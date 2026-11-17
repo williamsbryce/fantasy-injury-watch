@@ -7,6 +7,12 @@ on:
       - "src/**"
       - "tests/**"
   workflow_dispatch:
+    inputs:
+      send_test_email:
+        description: "Send one test email using configured Resend settings"
+        type: boolean
+        default: false
+        required: false
   schedule:
     # MFL sync every three hours, off the hour to reduce contention.
     - cron: '17 */3 * * *'
@@ -50,6 +56,7 @@ jobs:
           MFL_SEASON: ${{ vars.MFL_SEASON }}
           REPORT_PASSPHRASE: ${{ secrets.REPORT_PASSPHRASE }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          SEND_TEST_EMAIL: ${{ github.event_name == 'workflow_dispatch' && inputs.send_test_email || false }}
           ALERT_FROM: ${{ vars.ALERT_FROM }}
           ALERT_TO: ${{ vars.ALERT_TO }}
         run: python -m src.main

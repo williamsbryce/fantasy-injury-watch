@@ -50,3 +50,8 @@ Updated: November 17, 2026 (post first live run)
 - New MFL transient-error retries recovered from an injuries-feed error; final real report contained 7 injury items.
 - Ten automated tests passed. GitHub Pages reported success and environment URL https://williamsbryce.github.io/fantasy-injury-watch/.
 - Website end-user passphrase unlock and separate email delivery are still to be checked.
+
+## Email setup preparation (November 17, 2026)
+- Dashboard passphrase unlock confirmed by user.
+- Added a manual Run workflow test-email input. This sends exactly one test message, without marking the Thursday/Sunday digest as sent or enabling lineup modifications.
+- Email remains inactive until the user creates Resend account, supplies GitHub RESEND_API_KEY Secret, ALERT_FROM and ALERT_TO variables, and explicitly runs a test.

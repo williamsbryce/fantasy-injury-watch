@@ -103,3 +103,41 @@ class TestMFLResilience(unittest.TestCase):
    with self.assertRaisesRegex(MFLAPIError,'access denied'):
     export(2026,'injuries','40298','secret-test-value')
   self.assertEqual(fetch.call_count,1)
+
+
+class TestEmailTestMode(unittest.TestCase):
+ def test_manual_email_test_sends_once_without_marking_digest(self):
+  from pathlib import Path
+  from tempfile import TemporaryDirectory
+  from unittest.mock import patch
+  import os, json
+  from src import main
+  with TemporaryDirectory() as td:
+   path=Path(td)/'state.json'
+   env={
+    'MFL_API_KEY':'test-value','REPORT_PASSPHRASE':'a-very-long-testing-passphrase',
+    'MFL_LEAGUE_ID':'12345','MFL_FRANCHISE_ID':'0001',
+    'SEND_TEST_EMAIL':'true','RESEND_API_KEY':'test-provider-key',
+    'ALERT_FROM':'onboarding@resend.dev','ALERT_TO':'test@example.com',
+   }
+   with patch.dict(os.environ,env),patch.object(main,'REPORT_PATH',path),patch.object(main,'fetch_all',return_value=FIXTURE),patch.object(main,'send_resend',return_value=True) as send:
+    main.run()
+   self.assertEqual(send.call_count,1)
+   self.assertIn('Test email',send.call_args.args[3])
+   state=decrypt(json.loads(path.read_text()),env['REPORT_PASSPHRASE'])
+   self.assertEqual(state.get('sent_digest_date'),'')
+ def test_manual_email_requires_configuration(self):
+  from pathlib import Path
+  from tempfile import TemporaryDirectory
+  from unittest.mock import patch
+  import os
+  from src import main
+  with TemporaryDirectory() as td:
+   env={
+    'MFL_API_KEY':'test-value','REPORT_PASSPHRASE':'a-very-long-testing-passphrase',
+    'MFL_LEAGUE_ID':'12345','MFL_FRANCHISE_ID':'0001',
+    'SEND_TEST_EMAIL':'true','RESEND_API_KEY':'','ALERT_FROM':'','ALERT_TO':'',
+   }
+   with patch.dict(os.environ,env),patch.object(main,'REPORT_PATH',Path(td)/'report.json'),patch.object(main,'fetch_all',return_value=FIXTURE):
+    with self.assertRaisesRegex(RuntimeError,'Test email requested'):
+     main.run()

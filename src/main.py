@@ -48,7 +48,20 @@ def run():
     email_key = os.environ.get("RESEND_API_KEY", "")
     from_addr = os.environ.get("ALERT_FROM", "")
     to_addr = os.environ.get("ALERT_TO", "")
-    if all((email_key, from_addr, to_addr)):
+    test_email = os.environ.get("SEND_TEST_EMAIL", "").strip().lower() in {"true", "1", "yes"}
+    if test_email:
+        if not all((email_key, from_addr, to_addr)):
+            raise RuntimeError("Test email requested but RESEND_API_KEY, ALERT_FROM or ALERT_TO is missing")
+        count = sum(len(l["alerts"]) for l in leagues)
+        send_resend(email_key, from_addr, to_addr,
+                    "Fantasy Injury Watch | Test email",
+                    "This is a test notification from Fantasy Injury Watch.\n"
+                    f"Latest CFFL Dynasty sync: {now.isoformat()}\n"
+                    f"Current MFL injury items: {count}\n"
+                    "No lineup changes are enabled.\n"
+                    "The test does not count as a Thursday or Sunday summary.")
+        print("A single email test request was accepted by the provider. Inbox receipt not verified.")
+    elif all((email_key, from_addr, to_addr)):
         due = digest_key(now)
         if due and due != previous.get("sent_digest_date"):
             if send_resend(email_key, from_addr, to_addr,
