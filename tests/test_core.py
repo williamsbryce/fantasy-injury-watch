@@ -141,3 +141,26 @@ class TestEmailTestMode(unittest.TestCase):
    with patch.dict(os.environ,env),patch.object(main,'REPORT_PATH',Path(td)/'report.json'),patch.object(main,'fetch_all',return_value=FIXTURE):
     with self.assertRaisesRegex(RuntimeError,'Test email requested'):
      main.run()
+
+
+class TestNotificationGating(unittest.TestCase):
+ def test_credentials_alone_do_not_enable_emails(self):
+  import os
+  from pathlib import Path
+  from tempfile import TemporaryDirectory
+  from unittest.mock import patch
+  from src import main
+  with TemporaryDirectory() as td:
+   env={'MFL_API_KEY':'sample-key','REPORT_PASSPHRASE':'a-very-long-testing-passphrase',
+        'MFL_LEAGUE_ID':'12345','MFL_FRANCHISE_ID':'0001',
+        'RESEND_API_KEY':'sample-mail-key','ALERT_FROM':'onboarding@resend.dev',
+        'ALERT_TO':'test@example.com','EMAIL_ENABLED':'false','SEND_TEST_EMAIL':'false'}
+   with patch.dict(os.environ,env),patch.object(main,'REPORT_PATH',Path(td)/'state.json'),patch.object(main,'fetch_all',return_value=FIXTURE),patch.object(main,'send_resend') as sender:
+    main.run()
+   sender.assert_not_called()
+
+ def test_safe_mfl_error_classification(self):
+  from src.mfl import _error_category
+  self.assertEqual(_error_category('Too many requests'), 'rate_limit')
+  self.assertEqual(_error_category('Not authorized'), 'authorization')
+  self.assertEqual(_error_category('Unexpected private response'), 'unclassified')
