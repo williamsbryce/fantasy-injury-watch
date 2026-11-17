@@ -1,0 +1,43 @@
+name: Verify email alert configuration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/verify-email-settings.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check required configuration without printing private values
+        env:
+          EMAIL_ENABLED: ${{ vars.EMAIL_ENABLED }}
+          ALERT_FROM: ${{ vars.ALERT_FROM }}
+          ALERT_TO: ${{ vars.ALERT_TO }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          MFL_CLIENT_NAME: ${{ vars.MFL_CLIENT_NAME }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${EMAIL_ENABLED}" != "true" ]]; then
+            echo "::error::EMAIL_ENABLED must equal true; automatic notifications are not active"
+            exit 1
+          fi
+          if [[ -z "${ALERT_FROM}" || -z "${ALERT_TO}" ]]; then
+            echo "::error::ALERT_FROM or ALERT_TO is missing"
+            exit 1
+          fi
+          if [[ -z "${RESEND_API_KEY}" ]]; then
+            echo "::error::RESEND_API_KEY secret is missing"
+            exit 1
+          fi
+          if [[ -z "${MFL_CLIENT_NAME}" ]]; then
+            echo "::warning::MFL_CLIENT_NAME variable is absent; the registered client identifier is recommended"
+          fi
+          echo "Notification configuration enabled; email credentials and addresses are present."
+          echo "This is only a configuration check. No email was sent and no league API was called."
