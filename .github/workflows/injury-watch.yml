@@ -1,11 +1,5 @@
 name: Injury Watch (read-only)
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/injury-watch.yml"
-      - "src/**"
-      - "tests/**"
   workflow_dispatch:
     inputs:
       send_test_email:
@@ -57,6 +51,7 @@ jobs:
           REPORT_PASSPHRASE: ${{ secrets.REPORT_PASSPHRASE }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           SEND_TEST_EMAIL: ${{ github.event_name == 'workflow_dispatch' && inputs.send_test_email || false }}
+          EMAIL_ENABLED: ${{ vars.EMAIL_ENABLED }}
           ALERT_FROM: ${{ vars.ALERT_FROM }}
           ALERT_TO: ${{ vars.ALERT_TO }}
         run: python -m src.main
