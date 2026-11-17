@@ -178,3 +178,30 @@ class TestResendErrorDiagnostics(unittest.TestCase):
   self.assertIn('HTTP 403, code restricted_to_address',str(cm.exception))
   self.assertNotIn('private recipient',str(cm.exception))
   self.assertNotIn('secret token',str(cm.exception))
+
+
+class TestSafeResendReasonClassifier(unittest.TestCase):
+ def test_nested_testing_restriction_is_classified_and_sensitive_text_hidden(self):
+  import io, json, urllib.error
+  from unittest.mock import patch
+  from src.notify import send_resend
+  response={'error':{'name':'validation_error','message':'You can only send testing emails to your own email address (private@example.com)'}}
+  error=urllib.error.HTTPError('https://api.resend.com/emails',403,'Forbidden',{'Content-Type':'application/json'},io.BytesIO(json.dumps(response).encode()))
+  with patch('src.notify.urllib.request.urlopen',side_effect=error):
+   with self.assertRaises(RuntimeError) as cm:
+    send_resend('private-secret','onboarding@resend.dev','private@example.com','test','body')
+  self.assertIn('reason=test_recipient_restriction',str(cm.exception))
+  self.assertIn('response=json',str(cm.exception))
+  self.assertNotIn('private@example.com',str(cm.exception))
+  self.assertNotIn('private-secret',str(cm.exception))
+
+ def test_non_json_rejection_is_classified_as_html_without_body(self):
+  import io, urllib.error
+  from unittest.mock import patch
+  from src.notify import send_resend
+  error=urllib.error.HTTPError('https://api.resend.com/emails',403,'Forbidden',{'Content-Type':'text/html'},io.BytesIO(b'<html><body>private internal error</body></html>'))
+  with patch('src.notify.urllib.request.urlopen',side_effect=error):
+   with self.assertRaises(RuntimeError) as cm:
+    send_resend('private-secret','onboarding@resend.dev','test@example.com','test','body')
+  self.assertIn('reason=unclassified, response=html',str(cm.exception))
+  self.assertNotIn('private internal error',str(cm.exception))

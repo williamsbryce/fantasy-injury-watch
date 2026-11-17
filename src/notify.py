@@ -53,22 +53,59 @@ def send_resend(api_key, from_addr, to_addr, subject, body):
             if response.status not in (200, 201, 202):
                 raise RuntimeError("Email provider did not accept the message")
     except urllib.error.HTTPError as exc:
-        # HTTPError is a subclass of URLError. Report safe structured diagnostics
-        # without printing the response body, token, address, or request headers.
+        # Classify the error locally. No response body, URL, credentials, recipient
+        # or headers are ever printed into public GitHub Actions logs.
         status = exc.code if isinstance(exc.code, int) else 0
-        allowed_names = {
-            "invalid_api_key", "missing_api_key", "validation_error",
-            "restricted_to_address", "invalid_from_address",
-            "invalid_to_address", "missing_required_field", "rate_limit_exceeded",
-            "not_found", "forbidden", "unauthorized",
-        }
         try:
-            data = json.loads(exc.read(4096))
-            raw_name = data.get("name", "") if isinstance(data, dict) else ""
-            category = raw_name if raw_name in allowed_names else "unclassified"
-        except (ValueError, OSError, TypeError):
-            category = "unclassified"
-        raise RuntimeError(f"Resend API rejected email: HTTP {status}, code {category}. Check Resend Logs.") from None
+            raw = exc.read(8192).decode("utf-8", "replace")
+        except (OSError, UnicodeError):
+            raw = ""
+        data = None
+        try:
+            data = json.loads(raw)
+        except (ValueError, TypeError):
+            pass
+        error = data if isinstance(data, dict) else {}
+        if isinstance(error.get("error"), dict):
+            error = error["error"]
+        name = str(error.get("name") or error.get("code") or "").lower()
+        message = str(error.get("message") or "").lower()
+        if isinstance(data, dict):
+            response_type = "json"
+        elif "<html" in raw.lower() or "<!doctype html" in raw.lower():
+            response_type = "html"
+        elif raw:
+            response_type = "text"
+        else:
+            response_type = "empty"
+
+        # The reason is an allowlisted classification, never a raw provider
+        # message, which could contain addresses or request details.
+        if "only send testing emails" in message or (
+                "testing emails" in message and "own email" in message):
+            reason = "test_recipient_restriction"
+        elif "domain is not verified" in message or (
+                "domain" in message and "not verified" in message):
+            reason = "sender_domain_unverified"
+        elif "api key is not active" in message:
+            reason = "api_key_inactive"
+        elif "api key is suspended" in message or name == "suspended_api_key":
+            reason = "api_key_suspended"
+        elif "missing required scopes" in message or name == "invalid_permission":
+            reason = "permission_denied"
+        elif "api key is invalid" in message:
+            reason = "api_key_invalid"
+        elif name in {
+            "validation_error", "restricted_api_key", "missing_api_key",
+            "invalid_permission", "suspended_api_key", "email_above_quota",
+        }:
+            reason = name
+        else:
+            reason = "unclassified"
+        raise RuntimeError(
+            f"Resend rejected email: HTTP {status}, reason={reason}, response={response_type}. "
+            "No sensitive response content logged."
+        ) from None
     except (urllib.error.URLError, OSError):
         # Never leak bearer token in exception output.
         raise RuntimeError("Resend connection error; API request did not complete") from None
