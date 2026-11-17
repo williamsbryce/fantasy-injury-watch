@@ -175,7 +175,7 @@ class TestResendErrorDiagnostics(unittest.TestCase):
   with patch('src.notify.urllib.request.urlopen',side_effect=error):
    with self.assertRaises(RuntimeError) as cm:
     send_resend('secret','onboarding@resend.dev','account@example.com','test','body')
-  self.assertIn('HTTP 403, code restricted_to_address',str(cm.exception))
+  self.assertIn('HTTP 403, reason=restricted_to_address',str(cm.exception))
   self.assertNotIn('private recipient',str(cm.exception))
   self.assertNotIn('secret token',str(cm.exception))
 

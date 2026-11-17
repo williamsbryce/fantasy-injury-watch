@@ -93,6 +93,8 @@ def send_resend(api_key, from_addr, to_addr, subject, body):
             reason = "api_key_suspended"
         elif "missing required scopes" in message or name == "invalid_permission":
             reason = "permission_denied"
+        elif name == "restricted_to_address":
+            reason = "restricted_to_address"
         elif "api key is invalid" in message:
             reason = "api_key_invalid"
         elif name in {
