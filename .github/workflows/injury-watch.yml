@@ -1,5 +1,11 @@
 name: Injury Watch (read-only)
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/injury-watch.yml"
+      - "src/**"
+      - "tests/**"
   workflow_dispatch:
   schedule:
     # MFL sync every three hours, off the hour to reduce contention.
