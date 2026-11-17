@@ -71,3 +71,14 @@ To do an actual sync locally, set environment variables `MFL_API_KEY`, `REPORT_P
 | Follow-up | Add GitHub secrets/variables, run and verify actual feed shapes, connect email, add remaining leagues |
 
 The initial worker supports **one league**. For additional leagues, the next iteration will support separate MFL API keys per league or a Sleeper read-only adapter. Do not assume this initial one-key worker supports multiple leagues yet.
+
+## November 17 update: controlled email setup and MFL error diagnostics
+
+- User confirmed the current injury alerts match the real CFFL roster.
+- **EMAIL_ENABLED defaults to off.** Adding `RESEND_API_KEY`, `ALERT_FROM`, and `ALERT_TO` alone will not activate scheduled or urgent notifications.
+- The **Send one test email** checkbox in Actions > Injury Watch (read-only) > Run workflow still allows a deliberate delivery test, independent of `EMAIL_ENABLED`.
+- After receiving a test and verifying a sender domain for ongoing delivery, set GitHub repository variable `EMAIL_ENABLED` to `true`.
+- Register a MyFantasyLeague API client and set its exact client name as GitHub variable `MFL_CLIENT_NAME`. Unregistered clients may face tighter limits. Intermittent API errors have occurred; their exact cause has not been proven.
+- The worker logs only safe error categories: authorization, rate_limit, temporary, or unclassified. Raw API response text and keys are not logged.
+- Source-code commits no longer trigger live MFL polls. Only scheduled or manual checks do, reducing unnecessary requests during development.
+- If MFL sync fails, keep the last encrypted success; never declare an all-clear on missing data.
