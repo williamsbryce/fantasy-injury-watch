@@ -1,6 +1,6 @@
 # Fantasy Injury Watch: Decision and Progress Log
 
-Updated: November 17, 2026
+Updated: November 17, 2026 (post first live run)
 
 ## User-approved direction
 - Extremely streamlined, email-first injury monitoring dashboard.
@@ -36,3 +36,11 @@ Updated: November 17, 2026
 - GitHub Pages is public, so actual private franchise roster reports are encrypted, adding a password step for the website. Email remains the default quick-alert channel.
 - GitHub Actions schedules may be late, making this suitable for informative monitoring, not guaranteed last-minute inactive protection.
 - MFL injury feed offers designations but cannot alone guarantee up-to-the-minute official NFL inactives.
+
+## First live run result (November 17, 2026)
+- First MFL read-only live synchronization succeeded and encrypted 7 injury alerts for the first league.
+- GitHub Pages artifact upload succeeded but deployment immediately afterward could not find artifact metadata, despite the artifact being present.
+- A rerun shortly afterward failed because MFL returned an API error for its injuries export. The cause of that error has not been independently established; do not claim credentials were wrong or rate limiting is confirmed.
+- Updated MFL client to use bounded retries and longer pacing, without logging authentication material.
+- Split Pages deployment into a separate job and added an indexing delay. Deploy from the last encrypted successful report, even when a subsequent feed check fails. A failed sync still fails its job and sends failure notifications, appropriately.
+- Live email delivery and real dashboard viewing are not yet verified. No lineup writes.

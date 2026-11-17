@@ -1,4 +1,4 @@
-"""MFL export API, read only. Never log full request URLs (they can contain APIKEY)."""
+"""MFL read-only export client with bounded retries. Never log API keys or URLs."""
 import json
 import time
 import urllib.error
@@ -10,7 +10,23 @@ class MFLAPIError(RuntimeError):
     pass
 
 
-def export(year: int, kind: str, league_id: str, api_key: str, client_name: str = "FantasyInjuryWatch") -> dict:
+RETRIABLE_HTTP = {408, 425, 429, 500, 502, 503, 504}
+
+
+def _retry_delay(attempt):
+    # A few retries for temporary throttling/availability, not endless polling.
+    return (10, 30)[attempt - 1]
+
+
+def _error_message(payload):
+    error = payload.get("error", "")
+    if isinstance(error, dict):
+        return str(error.get("$t", error.get("message", ""))).lower()
+    return str(error).lower()
+
+
+def export(year: int, kind: str, league_id: str, api_key: str,
+           client_name: str = "FantasyInjuryWatch") -> dict:
     if kind not in {"rosters", "players", "injuries"}:
         raise ValueError("Unsupported read-only MFL export type")
     params = {"TYPE": kind, "L": league_id, "JSON": "1", "APIKEY": api_key}
@@ -19,27 +35,48 @@ def export(year: int, kind: str, league_id: str, api_key: str, client_name: str 
         "User-Agent": client_name,
         "Accept": "application/json",
     }, method="GET")
-    try:
-        with urllib.request.urlopen(request, timeout=25) as response:
-            if response.status != 200:
-                raise MFLAPIError(f"MFL {kind} returned HTTP {response.status}")
-            payload = json.loads(response.read(8_000_000))
-    except (urllib.error.URLError, OSError, TimeoutError, ValueError) as exc:
-        # urllib exceptions can contain the full URL and therefore the API key.
-        raise MFLAPIError(f"MFL {kind} request failed; check API access and network") from None
-    if not isinstance(payload, dict):
-        raise MFLAPIError(f"MFL {kind} response is not a JSON object")
-    if "error" in payload:
-        raise MFLAPIError(f"MFL {kind} API reported an error (credentials or privileges may be invalid)")
-    if kind not in payload:
-        raise MFLAPIError(f"MFL {kind} response missing required '{kind}' section")
-    return payload
+    for attempt in range(1, 4):
+        try:
+            with urllib.request.urlopen(request, timeout=25) as response:
+                payload = json.loads(response.read(8_000_000))
+        except urllib.error.HTTPError as exc:
+            if exc.code in RETRIABLE_HTTP and attempt < 3:
+                print(f"MFL {kind}: temporary HTTP {exc.code}; retry {attempt}/2")
+                time.sleep(_retry_delay(attempt))
+                continue
+            raise MFLAPIError(f"MFL {kind} failed with HTTP {exc.code}") from None
+        except (urllib.error.URLError, OSError, TimeoutError, ValueError):
+            # The original exception may contain the full URL with the secret.
+            if attempt < 3:
+                print(f"MFL {kind}: temporary connection/response problem; retry {attempt}/2")
+                time.sleep(_retry_delay(attempt))
+                continue
+            raise MFLAPIError(f"MFL {kind} failed after 3 network/response attempts") from None
+        if not isinstance(payload, dict):
+            raise MFLAPIError(f"MFL {kind} returned a non-object response")
+        if "error" in payload:
+            message = _error_message(payload)
+            if any(s in message for s in ("requires logged in", "invalid api", "invalid key",
+                                           "invalid cookie", "not authorized", "access denied",
+                                           "permission denied", "commissioner access")):
+                raise MFLAPIError(f"MFL {kind} access denied; verify the existing secret and league permissions")
+            # MFL sometimes returns an API error in a successful HTTP response;
+            # retry an unknown error without publishing an incorrect all-clear.
+            if attempt < 3:
+                print(f"MFL {kind}: API error response; retry {attempt}/2")
+                time.sleep(_retry_delay(attempt))
+                continue
+            raise MFLAPIError(f"MFL {kind} API error persisted after 3 attempts")
+        if kind not in payload:
+            raise MFLAPIError(f"MFL {kind} response missing '{kind}' section; refusing all-clear")
+        return payload
+    raise MFLAPIError(f"MFL {kind} feed unavailable")
 
 
 def fetch_all(year: int, league_id: str, api_key: str, client_name: str) -> dict:
     data = {}
     for index, kind in enumerate(("rosters", "players", "injuries")):
         if index:
-            time.sleep(1.1)  # Reasonable pacing; respect MFL usage limits.
+            time.sleep(2)  # Avoid requests in a tight burst.
         data[kind] = export(year, kind, league_id, api_key, client_name)
     return data

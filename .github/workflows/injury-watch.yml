@@ -17,11 +17,10 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  watch:
+  sync:
     # Wait for repository variables; manual runs still explain any missing credentials.
     if: ${{ github.event_name == 'workflow_dispatch' || (vars.MFL_LEAGUE_ID != '' && vars.MFL_FRANCHISE_ID != '') }}
     runs-on: ubuntu-latest
-    environment: github-pages
     steps:
       - name: Check out code and previous encrypted report
         uses: actions/checkout@v4
@@ -57,11 +56,30 @@ jobs:
             git commit -m 'Update encrypted injury status [skip ci]'
             git push
           fi
+  deploy:
+    # Deploy the last verified encrypted snapshot even if the next MFL poll fails.
+    # Never publish an empty/all-clear report when MFL is unavailable.
+    needs: sync
+    if: ${{ always() && (needs.sync.result == 'success' || needs.sync.result == 'failure') }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out last saved encrypted report
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Require an existing encrypted report
+        run: test -s site/data/report.enc.json
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload encrypted Pages site
         uses: actions/upload-pages-artifact@v4
         with:
           path: ./site
+      - name: Let Pages artifact metadata become available
+        run: sleep 15
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4

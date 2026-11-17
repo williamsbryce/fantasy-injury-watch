@@ -72,3 +72,34 @@ class TestPipeline(unittest.TestCase):
    self.assertNotIn('synthetic-test-key',text)
    decoded=decrypt(json.loads(text),env['REPORT_PASSPHRASE'])
    self.assertEqual(decoded['leagues'][0]['alerts'][0]['name'],'Test Smith')
+
+
+class TestMFLResilience(unittest.TestCase):
+ def test_transient_error_retried_without_exposing_key(self):
+  from unittest.mock import patch
+  from src.mfl import export
+  import json
+  class Response:
+   def __init__(self, value):self.value=value
+   def __enter__(self):return self
+   def __exit__(self,*args):return None
+   def read(self,n):return json.dumps(self.value).encode()
+  responses=[Response({'error':{'$t':'Too many requests'}}),Response({'injuries':{'injury':[]}})]
+  with patch('src.mfl.urllib.request.urlopen',side_effect=responses) as fetch,patch('src.mfl.time.sleep') as pause:
+   result=export(2026,'injuries','40298','secret-test-value')
+  self.assertIn('injuries',result)
+  self.assertEqual(fetch.call_count,2)
+  pause.assert_called_once()
+
+ def test_auth_denial_is_not_retried(self):
+  from unittest.mock import patch
+  from src.mfl import export, MFLAPIError
+  import json
+  class Response:
+   def __enter__(self):return self
+   def __exit__(self,*args):return None
+   def read(self,n):return json.dumps({'error':{'$t':'API requires logged in user'}}).encode()
+  with patch('src.mfl.urllib.request.urlopen',return_value=Response()) as fetch:
+   with self.assertRaisesRegex(MFLAPIError,'access denied'):
+    export(2026,'injuries','40298','secret-test-value')
+  self.assertEqual(fetch.call_count,1)
