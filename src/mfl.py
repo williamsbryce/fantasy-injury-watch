@@ -25,6 +25,23 @@ def _error_message(payload):
     return str(error).lower()
 
 
+def _error_category(message):
+    """Return a safe category without copying potentially sensitive API text."""
+    value = str(message or "").lower()
+    if any(x in value for x in (
+        "requires logged in", "invalid api", "invalid key", "invalid cookie",
+        "not authorized", "access denied", "permission denied",
+        "commissioner access", "unauthorized")):
+        return "authorization"
+    if any(x in value for x in (
+        "too many", "rate limit", "throttl", "exceeded", "max requests",
+        "request limit", "limit reached")):
+        return "rate_limit"
+    if any(x in value for x in ("temporarily unavailable", "try again", "server error")):
+        return "temporary"
+    return "unclassified"
+
+
 def export(year: int, kind: str, league_id: str, api_key: str,
            client_name: str = "FantasyInjuryWatch") -> dict:
     if kind not in {"rosters", "players", "injuries"}:
@@ -56,17 +73,14 @@ def export(year: int, kind: str, league_id: str, api_key: str,
             raise MFLAPIError(f"MFL {kind} returned a non-object response")
         if "error" in payload:
             message = _error_message(payload)
-            if any(s in message for s in ("requires logged in", "invalid api", "invalid key",
-                                           "invalid cookie", "not authorized", "access denied",
-                                           "permission denied", "commissioner access")):
+            category = _error_category(message)
+            if category == "authorization":
                 raise MFLAPIError(f"MFL {kind} access denied; verify the existing secret and league permissions")
-            # MFL sometimes returns an API error in a successful HTTP response;
-            # retry an unknown error without publishing an incorrect all-clear.
             if attempt < 3:
-                print(f"MFL {kind}: API error response; retry {attempt}/2")
+                print(f"MFL {kind}: API error category={category}; retry {attempt}/2")
                 time.sleep(_retry_delay(attempt))
                 continue
-            raise MFLAPIError(f"MFL {kind} API error persisted after 3 attempts")
+            raise MFLAPIError(f"MFL {kind} API error category={category} persisted after 3 attempts")
         if kind not in payload:
             raise MFLAPIError(f"MFL {kind} response missing '{kind}' section; refusing all-clear")
         return payload
