@@ -40,7 +40,7 @@ def run():
         if league["platform"] != "mfl":
             raise RuntimeError("Only MFL read-only integration has been implemented")
         feeds = fetch_all(int(league["season"]), league["id"], key,
-                          os.environ.get("MFL_CLIENT_NAME", "FantasyInjuryWatch"))
+                          (os.environ.get("MFL_CLIENT_NAME", "").strip() or "FantasyInjuryWatch"))
         leagues.append(parse_report(feeds, league, now))
     document = {"schema": 1, "synced_at": now.isoformat(), "leagues": leagues,
                 "sent_digest_date": previous.get("sent_digest_date", "")}
@@ -49,6 +49,7 @@ def run():
     from_addr = os.environ.get("ALERT_FROM", "")
     to_addr = os.environ.get("ALERT_TO", "")
     test_email = os.environ.get("SEND_TEST_EMAIL", "").strip().lower() in {"true", "1", "yes"}
+    email_enabled = os.environ.get("EMAIL_ENABLED", "").strip().lower() in {"true", "1", "yes"}
     if test_email:
         if not all((email_key, from_addr, to_addr)):
             raise RuntimeError("Test email requested but RESEND_API_KEY, ALERT_FROM or ALERT_TO is missing")
@@ -61,7 +62,9 @@ def run():
                     "No lineup changes are enabled.\n"
                     "The test does not count as a Thursday or Sunday summary.")
         print("A single email test request was accepted by the provider. Inbox receipt not verified.")
-    elif all((email_key, from_addr, to_addr)):
+    elif email_enabled:
+        if not all((email_key, from_addr, to_addr)):
+            raise RuntimeError("EMAIL_ENABLED is set, but email configuration is missing")
         due = digest_key(now)
         if due and due != previous.get("sent_digest_date"):
             if send_resend(email_key, from_addr, to_addr,
