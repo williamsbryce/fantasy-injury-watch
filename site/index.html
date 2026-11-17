@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a"><title>Injury Watch | Fantasy Football</title>
+<style>
+:root{color-scheme:light;--bg:#f5f7fb;--ink:#162337;--muted:#6d7890;--stroke:#e5eaf2;--red:#c72839;--yellow:#9f690c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:780px;margin:auto;padding:27px 20px 70px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:25px}
+.logo{display:flex;align-items:center;gap:12px;font-size:19px;font-weight:780;letter-spacing:-.4px}.mark{background:#142743;border-radius:11px;color:white;width:40px;height:40px;display:grid;place-items:center;font-size:21px}
+.pill{font-size:11px;font-weight:800;letter-spacing:.7px;padding:5px 9px;border-radius:8px;background:#e2e9f4;color:#4a5d78}
+small,.meta{color:var(--muted)}.meta{font-size:13px}.top{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:18px}
+h1{font-size:26px;letter-spacing:-.8px;line-height:1.2;margin:0 0 5px}h2{font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+h2 .dot{width:10px;height:10px;border-radius:50%;background:#df4356}.watch .dot{background:#e8a83e}
+.panel{background:white;border:1px solid var(--stroke);border-radius:15px;padding:19px;margin:12px 0;box-shadow:0 2px 10px rgba(20,31,49,.025)}
+.alert{border:1px solid var(--stroke);background:white;border-radius:12px;padding:15px;margin:9px 0} .alert.urgent{border-left:4px solid #d73b4a}
+.alert.watchItem{border-left:4px solid #db9c31}.line{display:flex;align-items:start;justify-content:space-between;gap:12px}
+.name{font-size:16px;font-weight:730;letter-spacing:-.25px}.status{font-size:11px;letter-spacing:.3px;font-weight:800;white-space:nowrap;border-radius:7px;padding:4px 8px;background:#fff0f1;color:var(--red)}
+.status.watchStatus{background:#fff6e5;color:var(--yellow)}.sub{font-size:12px;color:var(--muted);margin-top:2px}.detail{font-size:14px;margin:10px 0 0}.source{font-size:11px;color:#7d889d;margin-top:9px}
+section{margin-top:25px}.good{padding:16px;border:1px solid #d3e9d8;background:#f0fcf3;border-radius:12px;color:#216c37;font-size:14px}
+.lock h2{font-size:18px;margin-bottom:8px}.lock p{color:var(--muted);margin:6px 0 15px}.lock label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}
+input{font:inherit;border:1px solid #cdd6e5;width:100%;border-radius:9px;padding:12px 13px;min-height:44px;background:#fff}button{border:0;border-radius:9px;background:#182b47;color:#fff;font-weight:700;padding:12px 17px;min-height:44px;margin-top:12px;cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}.notice{font-size:12px;border-radius:9px;background:#fffaeb;border:1px solid #f4e5b5;padding:11px 13px;color:#755314;margin:14px 0}
+footer{text-align:center;color:var(--muted);font-size:12px;padding-top:25px}.hidden{display:none!important}.msg{margin-top:9px;color:var(--red);font-size:13px}
+@media(max-width:520px){main{padding:21px 14px 45px}h1{font-size:24px}.top{align-items:start;flex-direction:column}.panel{padding:16px}section{margin-top:22px}}
+</style>
+</head><body><main>
+<header><div class="logo"><div class="mark">✚</div><span>Injury Watch</span></div><span id="mode" class="pill">NOT CONNECTED</span></header>
+<div id="lock" class="panel lock">
+ <h2>Private injury report</h2><p>Your fantasy roster information is encrypted. Enter your dashboard passphrase to see your team's injury updates.</p>
+ <form id="form"><label for="password">Dashboard passphrase</label><input id="password" type="password" autocomplete="current-password" placeholder="Enter passphrase" required minlength="16"/><button id="unlock" type="submit">Open injury report</button></form>
+ <div id="error" class="msg" role="alert"></div><div class="source">The password is used in this browser to unlock the report. It is not sent to a server.</div>
+</div>
+<div id="report" class="hidden" aria-live="polite">
+  <div class="top"><div><h1>Player injury alerts</h1><div class="meta" id="sync">Latest update</div></div><div class="meta" id="coverage"></div></div>
+  <div id="stale" class="notice hidden">This report is out of date. Scheduled monitoring may have failed. Do not treat missing alerts as confirmation that players are healthy.</div>
+  <section id="actionSection"><h2><span class="dot"></span> Action needed <span id="actionCount"></span></h2><div id="actions"></div></section>
+  <section class="watch" id="watchSection"><h2><span class="dot"></span> Keep an eye on <span id="watchCount"></span></h2><div id="watchers"></div></section>
+  <div class="good hidden" id="allClear">No rostered players currently have an injury designation in the latest MFL feed. This is not an official inactive confirmation.</div>
+</div>
+<footer>Read-only monitoring · MyFantasyLeague injury reports · No lineup changes</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const bytes=b64=>Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+const txt=(node,s)=>{node.textContent=String(s??'');};
+function parsedDate(value){
+ const v=String(value||''); if(/^\d{10}$/.test(v)) return new Date(Number(v)*1000);
+ if(/^\d{13}$/.test(v)) return new Date(Number(v));return new Date(v);
+}
+function readableDate(value){const d=parsedDate(value);return isNaN(d)?String(value):d.toLocaleString('en-CA',{timeZone:'America/Regina',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true})+' SK';}
+async function decode(report,password){
+ const material=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveKey']);
+ const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:bytes(report.salt),iterations:report.iterations,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['decrypt']);
+ const data=await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(report.nonce),additionalData:new TextEncoder().encode('FantasyInjuryWatch:v1')},key,bytes(report.ciphertext));
+ return JSON.parse(new TextDecoder().decode(data));
+}
+function element(tag,className,text){const e=document.createElement(tag);if(className)e.className=className;if(text!==undefined)txt(e,text);return e;}
+function card(alert){
+ const outer=element('article','alert '+(alert.group==='action'?'urgent':'watchItem'));
+ const line=element('div','line'), left=element('div'), name=element('div','name',alert.name);
+ left.append(name,element('div','sub',[alert.position,alert.nfl_team,alert.league].filter(Boolean).join(' · ')));
+ const status=element('span','status'+(alert.group==='action'?'':' watchStatus'),String(alert.status).toUpperCase());
+ line.append(left,status);outer.append(line);
+ if(alert.details)outer.append(element('p','detail',alert.details));
+ outer.append(element('div','source','MFL injury feed'+(alert.source_timestamp?' · Feed time: '+readableDate(alert.source_timestamp):' · Feed time not provided')));
+ return outer;
+}
+function render(doc){
+ if(!Array.isArray(doc.leagues))throw Error('Unrecognized report');
+ const all=doc.leagues.flatMap(l=>l.alerts||[]);
+ const reds=all.filter(a=>a.group==='action'), yellows=all.filter(a=>a.group==='watch');
+ $('actions').replaceChildren(...reds.map(card));$('watchers').replaceChildren(...yellows.map(card));
+ txt($('actionCount'),'('+reds.length+')');txt($('watchCount'),'('+yellows.length+')');
+ $('actionSection').classList.toggle('hidden',!reds.length);$('watchSection').classList.toggle('hidden',!yellows.length);$('allClear').classList.toggle('hidden',Boolean(all.length));
+ txt($('sync'),'Last successful sync: '+readableDate(doc.synced_at));
+ txt($('coverage'),doc.leagues.length+' league'+(doc.leagues.length===1?'':'s'));
+ const feedTimes=doc.leagues.map(l=>parsedDate(l.feed_timestamp).getTime()).filter(x=>Number.isFinite(x));
+ const oldFeed=feedTimes.some(x=>Date.now()-x>36*3600_000);
+ const oldSync=!Number.isFinite(Date.parse(doc.synced_at))||Date.now()-Date.parse(doc.synced_at)>6*3600_000;
+ $('stale').classList.toggle('hidden',!(oldSync||oldFeed));
+ $('mode').textContent='READ ONLY';$('lock').classList.add('hidden');$('report').classList.remove('hidden');
+}
+$('form').addEventListener('submit',async function(e){e.preventDefault();$('error').textContent='';$('unlock').disabled=true;
+ try{const res=await fetch('data/report.enc.json?'+Date.now(),{cache:'no-store'});if(!res.ok)throw Error('No encrypted report has been published. Finish GitHub setup.');
+ const encrypted=await res.json();const doc=await decode(encrypted,$('password').value);render(doc);$('password').value='';}
+ catch(e){$('error').textContent=e.name==='OperationError'?'Incorrect passphrase or unreadable report.':e.message||'Unable to open report.'}
+ finally{$('unlock').disabled=false;}
+});
+</script>
+</body></html>

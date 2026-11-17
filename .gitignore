@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+*.log
+# Never commit raw unencrypted league data.
+private/
+raw/
+*.secret
+
+leagues.json
