@@ -47,6 +47,7 @@ def send_resend(api_key, from_addr, to_addr, subject, body):
     payload = json.dumps({"from": from_addr, "to": [to_addr], "subject": subject, "text": body}).encode()
     request = urllib.request.Request("https://api.resend.com/emails", data=payload, method="POST", headers={
         "Authorization": f"Bearer {api_key}", "Content-Type": "application/json",
+        "User-Agent": "FantasyInjuryWatch/1.0", "Accept": "application/json",
     })
     try:
         with urllib.request.urlopen(request, timeout=20) as response:
