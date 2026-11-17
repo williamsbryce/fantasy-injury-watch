@@ -164,3 +164,17 @@ class TestNotificationGating(unittest.TestCase):
   self.assertEqual(_error_category('Too many requests'), 'rate_limit')
   self.assertEqual(_error_category('Not authorized'), 'authorization')
   self.assertEqual(_error_category('Unexpected private response'), 'unclassified')
+
+class TestResendErrorDiagnostics(unittest.TestCase):
+ def test_http_error_reports_safe_code_not_provider_message(self):
+  import io, json, urllib.error
+  from unittest.mock import patch
+  from src.notify import send_resend
+  response={'name':'restricted_to_address','message':'private recipient and secret token 123'}
+  error=urllib.error.HTTPError('https://api.resend.com/emails',403,'Forbidden',{},io.BytesIO(json.dumps(response).encode()))
+  with patch('src.notify.urllib.request.urlopen',side_effect=error):
+   with self.assertRaises(RuntimeError) as cm:
+    send_resend('secret','onboarding@resend.dev','account@example.com','test','body')
+  self.assertIn('HTTP 403, code restricted_to_address',str(cm.exception))
+  self.assertNotIn('private recipient',str(cm.exception))
+  self.assertNotIn('secret token',str(cm.exception))
