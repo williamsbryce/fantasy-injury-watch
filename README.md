@@ -4,11 +4,11 @@ An email-first fantasy football injury monitor. **Read-only.** It cannot change 
 
 ## Current project status (2026-11-17)
 
-- Prepared one configurable MFL league (2026 by default); set the league and franchise IDs as GitHub repository variables before running.
-- MFL parser, injury classification, encrypted dashboard, alert email client and GitHub Actions workflow implemented.
-- Unit tests pass with **synthetic fixtures only**. Actual MFL access and email delivery have NOT yet been validated.
-- GitHub repository access is now granted. Source files have been prepared for upload. No live sync or deployment has run.
-- Pending: MFL credentials in Secrets, repository variables, registered API client name, GitHub Pages configuration, first live test, and then optional Resend email setup.
+- **LIVE:** Read-only MFL synchronization verified for CFFL Dynasty (league 40298, franchise 0001): seven current injury items in the latest run.
+- **LIVE:** Dashboard is deployed to https://williamsbryce.github.io/fantasy-injury-watch/; it is unlocked locally with your existing private report passphrase.
+- **Verified:** Ten automated tests pass. Encrypted JSON is stored in the public repository, with no plaintext roster or API credentials.
+- **Reliability improvements:** Bounded retry/backoff for temporary MFL failures and separate GitHub Pages deployment job; last successful encrypted report remains available if a later MFL check fails, with a stale-data warning.
+- **NOT YET ACTIVE:** Email delivery, official NFL inactive verification, additional fantasy leagues, and any lineup changes.
 
 ## How it works
 
@@ -33,7 +33,7 @@ An email-first fantasy football injury monitor. **Read-only.** It cannot change 
    - `MFL_CLIENT_NAME`: your registered MFL API client identifier. MFL says unregistered clients may be throttled. Register in MyFantasyLeague's API client setup page.
    - `ALERT_FROM`: verified Resend sending address.
    - `ALERT_TO`: the email address you want alerts delivered to.
-4. Settings → Pages → Build and deployment → **Source: GitHub Actions**. The site is not live until you choose this and run the workflow successfully.
+4. Settings → Pages → Build and deployment → **Source: GitHub Actions**. This was enabled and first successful deployment completed November 17, 2026.
 5. Actions tab → **Injury Watch (read-only)** → **Run workflow**. Review the job results. If GitHub Actions permissions block committing the encrypted status, allow read/write workflow permissions under repository Settings → Actions → General.
 6. Open the Pages URL (after a successful deployment). Enter the dashboard passphrase. Confirm it shows the actual current injuries and the real sync timestamp.
 7. For Resend, create an account at https://resend.com, verify a sender domain (or use a supported test sender to your own verified email), then configure the three email settings above and run the workflow again. Verify one real email before relying on alerts.
