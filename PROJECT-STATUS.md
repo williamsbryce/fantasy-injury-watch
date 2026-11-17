@@ -55,3 +55,12 @@ Updated: November 17, 2026 (post first live run)
 - Dashboard passphrase unlock confirmed by user.
 - Added a manual Run workflow test-email input. This sends exactly one test message, without marking the Thursday/Sunday digest as sent or enabling lineup modifications.
 - Email remains inactive until the user creates Resend account, supplies GitHub RESEND_API_KEY Secret, ALERT_FROM and ALERT_TO variables, and explicitly runs a test.
+
+## November 17: user verified live dashboard; notification prep
+- User confirmed that live displayed CFFL injuries match the actual roster.
+- Disabled automatic email delivery by default using EMAIL_ENABLED; manual single test is still available.
+- Removed push-triggered MFL sync to reduce redundant requests during development. Scheduled/manual runs remain enabled.
+- Added safe diagnostic classification of intermittent MFL API errors without disclosing error payloads or API keys.
+- Added regression tests for the email activation gate and error classifier; these newly added tests have not yet been executed in a GitHub Actions run.
+- Next user steps: register MFL API client and add GitHub MFL_CLIENT_NAME variable, create a Resend account and sending-only API key, configure ALERT_FROM / ALERT_TO, then run manual Send one test email.
+- Ongoing email alerts should only be enabled after an actual inbox delivery succeeds and sender-domain setup is confirmed.
