@@ -1,11 +1,6 @@
 name: Email Test (Resend only)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'src/notify.py'
-      - '.github/workflows/email-test.yml'
   workflow_dispatch:
 
 permissions:
