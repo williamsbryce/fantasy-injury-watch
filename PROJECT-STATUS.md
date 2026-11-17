@@ -18,9 +18,9 @@ Updated: November 17, 2026 (post first live run)
 - Automated tests using synthetic MFL fixtures, not live data.
 
 ## Not yet done
-- No live MFL sync has run. Real feed shape and authorization must be verified with actual private league API responses.
-- GitHub repository `williamsbryce/fantasy-injury-watch` is accessible through the connected GitHub integration with push permissions. Code installation initiated. GitHub Pages still needs configuration and the MFL API secret.
-- GitHub secrets and environment variables have not been configured.
+- Live MFL sync now completed successfully: seven real injury items returned for CFFL Dynasty (2026 league 40298, franchise 0001).
+- GitHub repository and GitHub Pages deployment are working. Latest successful deployment: November 17, 2026, following workflow reliability improvements.
+- Read-only MFL API key, report passphrase and league variables are configured as GitHub Secrets/variables. Email-specific configuration remains pending.
 - Resend sender verification and email recipient not configured; no real email sent.
 - Official inactive verification, news source links, starters/lineup status, and other leagues are not implemented.
 - No changes to fantasy lineups will be performed.
@@ -44,3 +44,9 @@ Updated: November 17, 2026 (post first live run)
 - Updated MFL client to use bounded retries and longer pacing, without logging authentication material.
 - Split Pages deployment into a separate job and added an indexing delay. Deploy from the last encrypted successful report, even when a subsequent feed check fails. A failed sync still fails its job and sends failure notifications, appropriately.
 - Live email delivery and real dashboard viewing are not yet verified. No lineup writes.
+
+## Verification of corrected run
+- Run https://github.com/williamsbryce/fantasy-injury-watch/actions/runs/44126586138 completed successfully (both sync and deploy jobs).
+- New MFL transient-error retries recovered from an injuries-feed error; final real report contained 7 injury items.
+- Ten automated tests passed. GitHub Pages reported success and environment URL https://williamsbryce.github.io/fantasy-injury-watch/.
+- Website end-user passphrase unlock and separate email delivery are still to be checked.
