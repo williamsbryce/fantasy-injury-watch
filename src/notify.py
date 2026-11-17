@@ -52,7 +52,24 @@ def send_resend(api_key, from_addr, to_addr, subject, body):
         with urllib.request.urlopen(request, timeout=20) as response:
             if response.status not in (200, 201, 202):
                 raise RuntimeError("Email provider did not accept the message")
+    except urllib.error.HTTPError as exc:
+        # HTTPError is a subclass of URLError. Report safe structured diagnostics
+        # without printing the response body, token, address, or request headers.
+        status = exc.code if isinstance(exc.code, int) else 0
+        allowed_names = {
+            "invalid_api_key", "missing_api_key", "validation_error",
+            "restricted_to_address", "invalid_from_address",
+            "invalid_to_address", "missing_required_field", "rate_limit_exceeded",
+            "not_found", "forbidden", "unauthorized",
+        }
+        try:
+            data = json.loads(exc.read(4096))
+            raw_name = data.get("name", "") if isinstance(data, dict) else ""
+            category = raw_name if raw_name in allowed_names else "unclassified"
+        except (ValueError, OSError, TypeError):
+            category = "unclassified"
+        raise RuntimeError(f"Resend API rejected email: HTTP {status}, code {category}. Check Resend Logs.") from None
     except (urllib.error.URLError, OSError):
         # Never leak bearer token in exception output.
-        raise RuntimeError("Email delivery failed; check sender verification or Resend credentials") from None
+        raise RuntimeError("Resend connection error; API request did not complete") from None
     return True
