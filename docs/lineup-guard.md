@@ -62,6 +62,15 @@ No code in this branch calls MFL's write API or changes a lineup.
 - The full live simulation is **not verified end-to-end yet** because MFL's `nflSchedule` export intermittently returns an error both with and without an API key. The separate MFL injuries export also intermittently fails, although one successful authenticated retry was verified. Keep automatic writes disabled.
 - Next steps: obtain a dependable week's NFL team schedule/bye lookup, validate the lineup constraints and cached/fresh source timestamps, and implement a tightly gated lineup import with full-list preservation plus post-write verification. The import must never be enabled without tested success/failure handling and a manual stop switch.
 
+## Correct current-week verification (November 18, 2026 UTC)
+- Independent ESPN scoreboard Week 12 check retrieved **16 scheduled NFL games** and all 32 NFL teams; MFL legacy team abbreviations are now normalized and actual kickoff times are available for candidate screening. Four associated offline schedule tests passed.
+- **Critical correction:** The user-supplied bare `/2026/lineup?L=40298&FRANCHISE=0001` URL currently defaults to **Week 11**, whose submitted lineup has 17 checked starters. The hidden `WEEK` field is 11. Those are NOT confirmed Week 12 starters.
+- Authenticated `/2026/lineup?L=40298&FRANCHISE=0001&WEEK=12` and the `W=12` variation both return hidden form `WEEK=12` but **zero checked starters**. Owner previously believed Week 12 lineup had been submitted, so this must be resolved with owner before any test or automatic swap.
+- The dry-run code now requires the form's week to equal the requested week before using its player IDs. It rejects both blank and stale lineups; no writes were attempted. Do not treat any prior 17-starter dry-run as Week 12 verification.
+- The current main branch injury dashboard and all email summaries remain separate and unchanged. The feature branch has not been merged.
+- Next requested action: owner should inspect the signed-in Week 12 lineup form, submit a valid set of starters, then intentionally test a known Out player in that week (well before kickoff). Obtain explicit approval of the exact target and eligible replacement before implementing/running a one-off write.
+- Note: MFL injury export intermittently fails, so live automatic operation must also address freshness and fail closed. A one-off approved write test may independently verify the manually designated target, but should not bypass source checks for unattended automation.
+
 ## Still required before production activation
 1. Retrieve the owner's **submitted upcoming starting lineup** through an authenticated MFL Starting Lineups report or equivalent source. Compare the result to the owner's known Week 12 lineup before relying on it; the league API key and pregame weeklyResults did not return starter IDs.
 2. Fetch the league's actual starting-position limits and scoring/
