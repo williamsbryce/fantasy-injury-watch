@@ -3,6 +3,7 @@
 Never prints response bodies, cookies, passwords, usernames, player IDs,
 roster names, page URLs, or tokens. Never sends an MFL import/write request.
 """
+from .submitted_lineup import extract_submitted_lineup, report_counts, LineupParseError
 from html.parser import HTMLParser
 from http.cookies import SimpleCookie
 from urllib.parse import urlencode, urlsplit, parse_qs
@@ -550,7 +551,15 @@ def probe_owner_page(opener, year, league_id, franchise_id, week, session, repor
     form.feed(page)
     page_diagnostics = SafePageDiagnostics()
     page_diagnostics.feed(page)
+    lineup_counts = {}
+    if endpoint == "lineup":
+        try:
+            lineup_counts = report_counts(extract_submitted_lineup(page, expected_starters=17))
+            lineup_counts["read_result"] = "verified"
+        except LineupParseError:
+            lineup_counts = {"read_result": "not_verified"}
     report = {
+        "lineup_extraction": lineup_counts,
         "host_valid": bool(final_host and re.fullmatch(
             r"www\d+\.myfantasyleague\.com", final_host)),
         "starting_lineups_heading": structure.starting_lineups_text,
@@ -613,7 +622,10 @@ def run():
     elif result["html_row_count"] == 0:
         print("AUTH PROBE: no pregame lineup table detected; needs further inspection.")
     else:
-        print("AUTH PROBE: markup returned; next validate player ID extraction privately.")
+        if result["lineup_extraction"].get("read_result") == "verified":
+            print("AUTH PROBE: submitted starters extracted with validated unique IDs (hidden).")
+        else:
+            print("AUTH PROBE: lineup selectors not verified; do not allow writes.")
 
 
 if __name__ == "__main__":
