@@ -1,5 +1,5 @@
 # Fantasy Injury Watch
-Public, passwordless, read-only fantasy injury dashboard at https://williamsbryce.github.io/fantasy-injury-watch/.
+Public, passwordless fantasy injury dashboard at https://williamsbryce.github.io/fantasy-injury-watch/.
 
 ## User-approved configuration (November 17, 2026)
 - GitHub Pages report is intentionally **public**, with no passphrase on the website. The user explicitly accepted public roster-injury visibility to reduce friction.
@@ -10,7 +10,17 @@ Public, passwordless, read-only fantasy injury dashboard at https://williamsbryc
 - Each injury card links to the MFL player-news page. Access to article content on MFL's private league page may require a logged-in session.
 - Recurring injury emails configured through `EMAIL_ENABLED=true`; Thursday after **5:00 p.m.** Saskatchewan and Sunday after **10:30 a.m.** Saskatchewan, with additional scheduled checks at those times (UTC 23:00 Thursday / 16:30 Sunday). Urgent designation changes still trigger during scheduled polls. Resend delivery verified 2026-11-17; GitHub Actions timing is best-effort.
 - Roster/news reports are **public JSON**; prior encrypted report migrated once using the legacy secret before removal from the branch. Historical git commits retain the old encrypted payload.
-- No roster edits, no lineup modifications, no auto-substitution.
+- The dashboard itself remains read-only; a separate scheduled owner-authenticated lineup guard can replace confirmed Out/Inactive starters. No waiver, roster ownership, or healthy-starter optimization is allowed.
+
+## Automatic lineup guard (November 18, 2026)
+- Enabled separately in GitHub Actions: `.github/workflows/automatic-cffl-out-starter.yml` on the default branch. This workflow checks the NFL schedule before accessing MFL and can submit a single verified native-form lineup change at the pregame window.
+- At most one nominal authenticated check about an hour before the earliest **Thursday** game and earliest **Sunday** game. GitHub's schedule itself runs at additional hourly candidate times to handle changing kickoff times and daylight saving; outside the due window it makes **no MFL requests**.
+- Only currently selected **Out/Inactive** starters are eligible for removal. Use the highest average of the **last three recorded completed MFL league-scored weeks**, over at most six historical weeks, among healthy, actively rostered, same-position bench options whose NFL games have not begun. Questionable and Doubtful are excluded.
+- If two starters are Out and only one has a valid replacement, fix the one and email about the other. Preserve all healthy starters. Do not retry or roll back ambiguous writes.
+- A write is successful only when the saved authenticated MFL lineup matches the exact 17-player proposal. Send a Resend email about successful swaps, unresolved Out starters, or failures.
+- The live automatic guard is limited to the **2026 season**, **CFFL league 40298**, **franchise 0001**. Its source is pinned to a tested commit. Manual dispatch of the workflow is read-only.
+- Limitations: GitHub Actions schedules can run late or be missed; later Sunday games and late Out declarations after the one check are **not** covered; first live automatic swap for an actual Out starter and post-Thursday locked-player form behavior are not yet field-validated.
+- Policy and detailed design: `docs/automatic-lineup-policy.md` on branch `feature/out-starter-guard`. Existing injury dashboard sync and digest are separate from lineup writes.
 
 ## Operating details
 - MFL read-only API exports: `rosters`, `players`, `injuries`. Missing feed or invalid roster identity fails closed, preserves last working report and warns if stale.
