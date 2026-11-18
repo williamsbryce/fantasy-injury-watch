@@ -108,6 +108,8 @@ def run():
         selection = extract_submitted_lineup(page, expected_starters=17)
         print("LINEUP DRY RUN: verified submitted starter count:", len(selection["starters"]))
         print("LINEUP DRY RUN: available player checkbox count:", len(selection["all_selectable"]))
+        print("LINEUP DRY RUN: form week fields:", selection["form_week_values"])
+        print("LINEUP DRY RUN: hidden field categories:", selection["hidden_field_categories"])
         del page
         cookie = ""
         feeds = {}
