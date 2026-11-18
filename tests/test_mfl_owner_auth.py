@@ -1,8 +1,9 @@
 """Synthetic tests only. No network connection, MFL credentials or writes."""
 import unittest
+import urllib.request
 from email.message import Message
 from unittest.mock import patch
-from src.mfl_owner_auth import owner_login, probe_owner_page, OwnerAuthError
+from src.mfl_owner_auth import owner_login, probe_owner_page, OwnerAuthError, MFLOnlyRedirects
 
 
 class FakeResponse:
@@ -61,6 +62,18 @@ class TestOwnerLogin(unittest.TestCase):
             owner_login(opener, "2026", "private-user", "private-password", "40298")
         self.assertNotIn("private", str(caught.exception))
         self.assertIn("rejected", str(caught.exception))
+
+    def test_import_post_redirect_is_rejected_before_method_change(self):
+        request = urllib.request.Request(
+            "https://www46.myfantasyleague.com/2026/import?TYPE=lineup&L=40298",
+            data=b"W=11&STARTERS=101%2C102", method="POST",
+            headers={"Cookie": "MFL_USER_ID=fake"},
+        )
+        with self.assertRaisesRegex(OwnerAuthError, "POST payload"):
+            MFLOnlyRedirects().redirect_request(
+                request, None, 302, "Found", Message(),
+                "https://www46.myfantasyleague.com/2026/lineup?L=40298",
+            )
 
     def test_readonly_lineup_request_only_counts_markup(self):
         opener = FakeOpener(FakeResponse(
