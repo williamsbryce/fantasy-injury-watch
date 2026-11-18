@@ -71,6 +71,14 @@ No code in this branch calls MFL's write API or changes a lineup.
 - Next requested action: owner should inspect the signed-in Week 12 lineup form, submit a valid set of starters, then intentionally test a known Out player in that week (well before kickoff). Obtain explicit approval of the exact target and eligible replacement before implementing/running a one-off write.
 - Note: MFL injury export intermittently fails, so live automatic operation must also address freshness and fail closed. A one-off approved write test may independently verify the manually designated target, but should not bypass source checks for unattended automation.
 
+## Guarded one-swap live-test preparation
+- Added `src/manual_lineup_test.py`, a one-time manual-only submission path. It never runs from the existing recurring injury monitor and has no automatic trigger.
+- The script requires a precise Week 12 target/outgoing MFL ID and incoming MFL ID, exactly **17** saved Week 12 starters, a unique one-for-one swap, the incoming player listed in the current selectable controls, an unchanged re-read immediately before submission, and an explicit approval phrase. It rejects rerun attempts and events other than `workflow_dispatch` for a LIVE write.
+- If ever explicitly authorized, the script sends one `TYPE=lineup` POST with the complete 17-player list directly to MFL's league host, verifies the XML success response, then GETs the Week 12 form and checks all 17 starters including the 16 untouched ones. No write is enabled or scheduled currently. The target/replacement need owner approval before first use.
+- Synthetic no-network tests cover approval gating, wrong target, invalid bench, complete-list preservation, safe XML response and error handling. The most recent isolated CI ran **39 tests** across the read-only and guarded modules, all passing.
+- The owner must first establish an actual Week 12 lineup: authenticated MFL form `WEEK=12` currently shows **zero** checked starters, whereas the 17-player lineup was **Week 11**. It would be unsafe to put a deliberate Out player on a blank Week 12 lineup or write before this is corrected.
+- Once user saves Week 12 with an intentionally Out starter, run the read-only selection and show specific suggested in/out names and MFL average, then request exact approval. The runner/dispatch to perform the one write must be wired separately and manually only, with no recurrence.
+
 ## Still required before production activation
 1. Retrieve the owner's **submitted upcoming starting lineup** through an authenticated MFL Starting Lineups report or equivalent source. Compare the result to the owner's known Week 12 lineup before relying on it; the league API key and pregame weeklyResults did not return starter IDs.
 2. Fetch the league's actual starting-position limits and scoring/
