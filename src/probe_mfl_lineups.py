@@ -87,14 +87,33 @@ def _summarize_other(data, kind, week):
         rows = _as_list(root.get("playerScore") or root.get("player"))
         if not rows:
             rows = _as_list(root.get("playerScores"))
+        numeric_score_count = sum(
+            isinstance(x, dict) and str(x.get("score", "")).replace(".", "", 1).replace("-", "", 1).isdigit()
+            for x in rows
+        )
+        print(f"PROBE playerScores AVG: numeric_score_count={numeric_score_count} "
+              f"first_row_fields_present="
+              f"{','.join(k for k in ('id','score','isAvailable','status') if rows and isinstance(rows[0], dict) and k in rows[0])}")
         print(f"PROBE {kind} W={week}: score_rows={len(rows)} "
               f"has_scores={any(isinstance(x,dict) and 'score' in x for x in rows)} "
               f"has_players={any(isinstance(x,dict) and 'id' in x for x in rows)}")
     elif kind == "nflSchedule":
-        print(f"PROBE {kind} W={week}: "
-              f"schedule_rows={len(_as_list(root.get('game') or root.get('matchup')))}")
+        games = _as_list(root.get("game") or root.get("matchup"))
+        first = games[0] if games and isinstance(games[0], dict) else {}
+        teams = _as_list(first.get("team"))
+        print(f"PROBE nflSchedule: game_fields={','.join(k for k in ('kickoff','team','id','date','time') if k in first)} "
+              f"team_fields={','.join(k for k in ('id','isHome','score') if teams and isinstance(teams[0], dict) and k in teams[0])} "
+              f"team_count={len(teams)}")
+        print(f"PROBE {kind} W={week}: schedule_rows={len(games)}")
     elif kind == "league":
         starters = root.get("starters")
+        print(f"PROBE league: starters_type={type(starters).__name__} "
+              f"starter_fields={','.join(k for k in ('position','count','minimum','maximum','min','max','value') if isinstance(starters,dict) and k in starters)}")
+        if isinstance(starters, dict):
+            pos = _as_list(starters.get("position") or starters.get("starter"))
+            first_pos = pos[0] if pos and isinstance(pos[0],dict) else {}
+            print(f"PROBE league: position_rows={len(pos)} "
+                  f"position_field_names={','.join(k for k in ('name','id','min','max','minimum','maximum','value') if k in first_pos)}")
         print(f"PROBE league: starter_rules_present={starters is not None} "
               f"roster_size_present={'rosterSize' in root} " 
               f"current_week_present={'currentWeek' in root}")
