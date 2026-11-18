@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "synced_at": "2026-11-18T00:59:36.372136+00:00",
+  "synced_at": "2026-11-18T20:37:49.727689+00:00",
   "leagues": [
     {
       "id": "40298",
@@ -9,8 +9,8 @@
       "franchise_id": "0001",
       "players_checked": 53,
       "full_roster_count": 57,
-      "feed_timestamp": "1794956465",
-      "synced_at": "2026-11-18T00:59:36.372136+00:00",
+      "feed_timestamp": "1795028465",
+      "synced_at": "2026-11-18T20:37:49.727689+00:00",
       "alerts": [
         {
           "key": "40298:17560",
@@ -26,7 +26,7 @@
           "details": "Neck",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1794956465",
+          "source_timestamp": "1795028465",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17560",
           "news": []
         },
@@ -44,7 +44,7 @@
           "details": "Concussion",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1794956465",
+          "source_timestamp": "1795028465",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14251",
           "news": []
         },
@@ -62,7 +62,7 @@
           "details": "Hamstring",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1794956465",
+          "source_timestamp": "1795028465",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14910",
           "news": []
         },
@@ -80,9 +80,16 @@
           "details": "Ankle",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1794956465",
+          "source_timestamp": "1795028465",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=16195",
-          "news": []
+          "news": [
+            {
+              "title": "Dontayvion Wicks: Practicing Wednesday",
+              "published": "November 18, 2026",
+              "url": "https://www.rotowire.com/football/headlines/dontayvion-wicks-injury-practicing-wednesday-648499",
+              "source": "RotoWire"
+            }
+          ]
         },
         {
           "key": "40298:16608",
@@ -98,7 +105,7 @@
           "details": "Knee - MCL",
           "expected_return": "Nov 29, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1794956465",
+          "source_timestamp": "1795028465",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=16608",
           "news": []
         },
@@ -116,7 +123,7 @@
           "details": "Hamstring",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1794956465",
+          "source_timestamp": "1795028465",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17123",
           "news": []
         },
@@ -134,13 +141,13 @@
           "details": "Finger",
           "expected_return": "Nov 25, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1794956465",
+          "source_timestamp": "1795028465",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14073",
           "news": []
         }
       ],
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-18T11:52:13.078752+00:00"
+      "news_checked_at": "2026-11-18T20:37:49.727689+00:00"
     }
   ],
   "sent_digest_date": ""
