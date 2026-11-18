@@ -77,23 +77,214 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding-top:25px}.hid
 .event-placeholder{background:#fff;border:1px solid var(--stroke);border-radius:12px;color:#647187;font-size:13px;padding:19px}
 .event-privacy{font-size:12px;color:#687790;margin-top:16px}
 @media(max-width:520px){.event-heading{align-items:flex-start}.event-top h1{font-size:25px}}
+
+/* Mobile-first visual refresh (2026-11-18). Existing behaviour is unchanged. */
+:root{
+  --bg:#f1f5f9;
+  --ink:#0f172a;
+  --muted:#475569;
+  --stroke:#e2e8f0;
+  --red:#991b1b;
+  --yellow:#92400e;
+  --blue:#1e40af;
+}
+body{background:#f1f5f9;color:#0f172a}
+main{max-width:780px;margin:0 auto;padding:0 20px 48px}
+header{
+  display:block;
+  margin:0 calc(50% - 50vw) 24px;
+  padding:calc(20px + env(safe-area-inset-top, 0px)) 18px 18px;
+  background:#0f172a;
+  color:#f8fafc;
+  border-radius:0 0 22px 22px;
+}
+.header-inner{max-width:740px;margin:0 auto}
+.logo{display:flex;align-items:center;gap:12px;font-size:19px;font-weight:800;letter-spacing:-.3px}
+.mark{
+  width:36px;height:36px;flex:0 0 36px;
+  display:grid;place-items:center;
+  border-radius:10px;background:#1e293b;
+}
+.brand{min-width:0}
+.brand>span{display:block;font-weight:800;line-height:1.25}
+.brand-subtitle{margin-top:3px;font-size:12px;font-weight:500;letter-spacing:0;color:#94a3b8}
+.tabs{
+  display:flex;align-items:center;gap:4px;
+  margin:16px 0 0;padding:4px;border:0;
+  background:#1e293b;border-radius:12px;
+}
+.tab{
+  flex:1;min-width:0;min-height:44px;
+  margin:0;padding:10px 8px;
+  border:0;border-radius:9px;background:transparent;
+  color:#cbd5e1;font-size:13px;font-weight:600;line-height:1.3;
+  cursor:pointer;
+}
+.tab:hover,.tab:not([aria-selected="true"]):hover{background:#334155;color:#f8fafc}
+.tab[aria-selected="true"]{
+  background:#f8fafc;color:#0f172a;font-weight:700;
+  box-shadow:none;
+}
+.tab:focus-visible{outline:3px solid #93c5fd;outline-offset:2px}
+h1,h2,.guide-card h2{font-weight:800;letter-spacing:-.3px}
+h1{font-size:22px;line-height:1.2;margin:0 0 6px}
+h2{font-size:17px;margin:0 0 12px}
+h2 .dot{display:none}
+small,.meta{color:#475569}
+#sync,#coverage{font-size:12px;color:#475569}
+.top{margin-bottom:18px}
+.panel,.guide-card,.alert,.event-entry,.event-placeholder{
+  background:#fff;border:0;border-radius:16px;
+  box-shadow:0 1px 2px rgba(15,23,42,.06);
+}
+.panel{padding:16px;margin:12px 0}
+section{margin-top:24px}
+#actionSection h2,#watchSection h2{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+#actionCount,#watchCount{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:2px 8px;border-radius:999px;font-size:12px;
+  font-weight:700;line-height:1.5;letter-spacing:0;
+}
+#actionCount{background:#fee2e2;color:#991b1b}
+#watchCount{background:#fef3c7;color:#92400e}
+#actions,#watchers{display:grid;gap:8px}
+.alert,.alert.urgent,.alert.watchItem{
+  border:0;border-left:0;border-radius:16px;
+  padding:14px;margin:0;
+  background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.06);
+}
+.line{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.line>div:first-child{min-width:0}
+.name{font-size:16px;font-weight:700;letter-spacing:-.3px;overflow-wrap:anywhere}
+.sub{font-size:13px;color:#64748b;margin-top:2px}
+.status{
+  display:inline-block;flex-shrink:0;
+  padding:5px 9px;border-radius:999px;
+  background:#fee2e2;color:#991b1b;
+  font-size:12px;font-weight:700;letter-spacing:0;line-height:1.3;
+  text-transform:lowercase;white-space:nowrap;
+}
+.status::first-letter{text-transform:uppercase}
+.status.watchStatus{background:#fef3c7;color:#92400e}
+.detail{font-size:14px;color:#334155;margin:10px 0 0}
+.alert .source{display:none}
+.news{border-top:1px solid #f1f5f9;margin-top:12px;padding-top:10px}
+.news:not(:has(.newslink)):not(:has(.mfl)){display:none}
+.news>.newssub:first-child{display:none}
+.newshead{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#1e40af}
+.newslink{
+  display:block;min-height:44px;margin-top:7px;
+  padding:10px 12px;border-radius:10px;
+  background:#eff6ff;color:#1e40af;
+  font-size:13px;font-weight:700;line-height:1.5;
+  text-decoration:none;overflow-wrap:anywhere;
+}
+.newslink:has(+ .newssub){border-radius:10px 10px 0 0;padding-bottom:5px}
+.newslink+.newssub{
+  margin:0;padding:0 12px 10px;border-radius:0 0 10px 10px;
+  background:#eff6ff;color:#475569;font-size:12px;
+}
+.mfl{
+  display:inline-flex;align-items:center;min-height:44px;
+  margin-top:5px;font-size:13px;font-weight:600;
+  color:#1e40af;text-decoration:none;
+}
+.ok-note,#allClear{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;border:1px solid #dcfce7;
+  border-radius:14px;background:#fff;color:#14532d;
+  font-size:14px;font-weight:600;
+  box-shadow:0 1px 2px rgba(15,23,42,.06);
+}
+#noAction{display:none}
+#report:has(#actionSection.hidden):has(#watchSection:not(.hidden)) #noAction{display:flex}
+.ok-icon{
+  flex:0 0 28px;width:28px;height:28px;
+  display:grid;place-items:center;border-radius:50%;background:#dcfce7;
+}
+.ok-icon svg{display:block}
+.notice,.guide-warning{
+  background:#fffbeb;border:1px solid #fde68a;
+  border-radius:14px;color:#78350f;
+}
+.notice{font-size:12px;padding:11px 13px;margin:14px 0}
+.guide-card{padding:16px;margin:15px 0}
+.guide-card h2{font-size:17px;font-weight:800;margin:0 0 7px}
+.guide-desc{font-size:13px;color:#475569}
+.section-kicker{
+  font-size:12px;font-weight:800;letter-spacing:.5px;
+  text-transform:uppercase;color:#1e40af;
+}
+.section-kicker .mini-dot{display:none}
+.schedule-row{border-top:1px solid #e2e8f0}
+.schedule-label{font-size:13px;font-weight:700;color:#0f172a}
+.schedule-body{font-size:13px;color:#475569;line-height:1.5}
+.schedule-body strong{color:#0f172a}
+.schedule-note{color:#475569}
+.how-steps li{padding-left:39px}
+.how-steps li:not(:last-child):before{left:12px;top:27px;background:#cbd5e1}
+.how-steps li:after{
+  width:26px;height:26px;border:0;border-radius:50%;
+  background:#0f172a;color:#f8fafc;font-size:12px;font-weight:800;
+}
+.how-steps strong{color:#0f172a}
+.how-steps p{color:#475569}
+.guide-split>div{background:#f8fafc;border:0;border-radius:12px}
+.guide-split p{color:#475569}
+.guide-warning{font-size:12px;padding:13px 15px;margin:16px 0 0}
+.guide-footer{color:#475569}
+.guide-footer a{display:inline-flex;align-items:center;min-height:44px;color:#1e40af}
+.event-top{align-items:center}
+.event-refresh,.event-filter{min-height:44px}
+.event-refresh{border:0;background:#fff;color:#1e40af;box-shadow:0 1px 2px rgba(15,23,42,.06)}
+.event-filter{background:#e2e8f0;color:#334155}
+.event-filter[aria-pressed="true"]{background:#0f172a;color:#f8fafc}
+.event-entry{padding:15px 16px}
+.event-entry.status-success,.event-entry.status-attention,.event-entry.status-pending{border-left:0}
+.event-name{color:#0f172a}
+.event-detail{color:#475569}
+.event-meta{color:#64748b}
+.event-run{display:inline-flex;align-items:center;min-height:44px;color:#1e40af}
+.event-placeholder{color:#475569}
+.event-privacy{color:#475569}
+button:focus-visible,a:focus-visible{outline:3px solid #1d4ed8;outline-offset:2px}
+@media(max-width:520px){
+  main{padding:0 14px 32px}
+  header{margin-bottom:20px}
+  .logo{font-size:17px}
+  .tab{min-height:44px;padding:10px 5px;font-size:12px}
+  .top{align-items:flex-start;flex-direction:column;gap:6px}
+  .panel,.guide-card{padding:16px}
+  section{margin-top:22px}
+  .schedule-row{grid-template-columns:1fr;gap:3px}
+  .schedule-label{font-size:13px;font-weight:700;color:#0f172a}
+  .schedule-body{font-size:13px;color:#475569;line-height:1.5}
+  .guide-split{grid-template-columns:1fr}
+  .event-top h1{font-size:22px}
+}
+
 </style>
 </head><body><main>
-<header><div class="logo"><div class="mark">✚</div><span>BAW's Injury Watch Tool</span></div></header>
+<header>
+  <div class="header-inner">
+    <div class="logo"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6v4"/><path d="M14 8h-4"/><path d="M14 14h-4"/><path d="M14 18h-4"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/><path d="M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18"/></svg></div><div class="brand"><span>BAW's Injury Watch Tool</span><div class="brand-subtitle">CFFL Dynasty · Franchise 0001</div></div></div>
 <nav class="tabs" role="tablist" aria-label="Dashboard views">
   <button class="tab" type="button" role="tab" id="tab-injuries" aria-selected="true" aria-controls="injuriesTab" tabindex="0" data-tab="injuries">Player alerts</button>
   <button class="tab" type="button" role="tab" id="tab-events" aria-selected="false" aria-controls="eventsTab" tabindex="-1" data-tab="events">Event log</button>
   <button class="tab" type="button" role="tab" id="tab-guide" aria-selected="false" aria-controls="guideTab" tabindex="-1" data-tab="guide">How it Works</button>
 </nav>
+  </div>
+</header>
 <div id="injuriesTab" role="tabpanel" aria-labelledby="tab-injuries">
 <div id="loading" class="panel" role="status">Loading the latest injury report…</div>
 <div id="errorPanel" class="panel hidden" role="alert">Could not load the latest report. <button type="button" onclick="location.reload()">Retry</button><div id="error" class="msg"></div></div>
 <div id="report" class="hidden" aria-live="polite">
   <div class="top"><div><h1>Player injury alerts</h1><div class="meta" id="sync">Latest update</div></div><div class="meta" id="coverage"></div></div>
   <div id="stale" class="notice hidden">This report is out of date. Scheduled monitoring may have failed. Do not treat missing alerts as confirmation that players are healthy.</div>
+  <div id="noAction" class="ok-note"><span class="ok-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>No action needed. Nobody is Out or Inactive.</div>
   <section id="actionSection"><h2><span class="dot"></span> Action needed <span id="actionCount"></span></h2><div id="actions"></div></section>
   <section class="watch" id="watchSection"><h2><span class="dot"></span> Keep an eye on <span id="watchCount"></span></h2><div id="watchers"></div></section>
-  <div class="good hidden" id="allClear">No rostered players currently have an injury designation in the latest MFL feed. This is not an official inactive confirmation.</div>
+  <div class="good hidden" id="allClear"><span class="ok-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>No rostered players currently have an injury designation in the latest MFL feed. This is not an official inactive confirmation.</div>
 </div>
 </div>
 <section id="guideTab" role="tabpanel" aria-labelledby="tab-guide" class="hidden" tabindex="0">
