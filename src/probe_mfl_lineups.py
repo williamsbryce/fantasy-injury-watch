@@ -130,7 +130,7 @@ def _probe_starting_lineups_site(year, league_id):
         ("home", f"{base}/home/{league_id}"),
         ("submit", f"{base}/options?L={league_id}&O=02&W=12"),
         ("report05", f"{base}/options?L={league_id}&O=05&W=12"),
-        ("report06", f"{base}/options?L={league_id}&O=06&W=12"),
+        ("report06", f"{base}/options?L={league_id}&O=06&WEEK=12&F={os.environ.get('MFL_FRANCHISE_ID','0001')}"),
     )
     for name,url in pages:
         req = urllib.request.Request(url,headers={
@@ -158,6 +158,11 @@ def _probe_starting_lineups_site(year, league_id):
             "week12":bool(re.search(r"Week 12",normalized,re.I)),
             "login_required":login,
         }
+        for marker in ("body_options_06","body_options_02","Starting Lineups","Starting Lineup","reportheader","loginbox"):
+            print(f"WEB {name}: marker_{marker.replace(' ','_')}={marker.lower() in normalized.lower()}")
+        print(f"WEB {name}: td_count={len(re.findall(r'<td\\b',normalized,re.I))} "
+              f"table_count={len(re.findall(r'<table\\b',normalized,re.I))} "
+              f"form_count={len(re.findall(r'<form\\b',normalized,re.I))}")
         print(f"WEB {name}: markers={markers}")
         links=[]
         for match in re.finditer(r'<a\b[^>]*href\s*=\s*(["\'])(.*?)\1[^>]*>(.*?)</a>',
@@ -172,6 +177,36 @@ def _probe_starting_lineups_site(year, league_id):
             if len(links)>=10:
                 break
         print(f"WEB {name}: report_link_formats={links}")
+
+
+def _probe_live_scoring(year, league_id, api_key, client_name):
+    params={"TYPE":"liveScoring","L":league_id,"W":"12","JSON":"1","APIKEY":api_key}
+    url=f"{URL_BASE}/{year}/export?"+urllib.parse.urlencode(params)
+    req=urllib.request.Request(url,method="GET",headers={
+        "User-Agent":client_name,"Accept":"application/json",
+    })
+    try:
+        with urllib.request.urlopen(req,timeout=25) as response:
+            doc=json.loads(response.read(4_000_000))
+    except urllib.error.HTTPError as error:
+        print(f"PROBE liveScoring W=12: HTTP {error.code}")
+        return
+    except (ValueError,urllib.error.URLError,OSError):
+        print("PROBE liveScoring W=12: invalid_or_unavailable")
+        return
+    if not isinstance(doc,dict) or "error" in doc:
+        print("PROBE liveScoring W=12: no_usable_feed")
+        return
+    root=doc.get("liveScoring")
+    if not isinstance(root,dict):
+        print("PROBE liveScoring W=12: missing_root")
+        return
+    matchups=_as_list(root.get("matchup"))
+    frans=[f for m in matchups if isinstance(m,dict)
+           for f in _as_list(m.get("franchise")) if isinstance(f,dict)]
+    print(f"PROBE liveScoring W=12: matchup_count={len(matchups)} "
+          f"franchise_rows={len(frans)} any_starters={any('starters' in f for f in frans)} "
+          f"any_player_rows={any('player' in f for f in frans)}")
 
 def run():
     key = os.environ.get("MFL_API_KEY", "")
@@ -194,6 +229,7 @@ def run():
             _summarize_lineup(data, franchise_id, week)
         else:
             _summarize_other(data, kind, week)
+    _probe_live_scoring(int(season), league_id, key, client_name)
     _probe_starting_lineups_site(int(season), league_id)
     print("PROBE COMPLETE: no lineup data, names, tokens or URLs were logged or published.")
 
