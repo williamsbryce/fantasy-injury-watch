@@ -463,40 +463,46 @@ class SafePageDiagnostics(HTMLParser):
 
 
 def verify_owner_franchise(opener, year, session, league_id, franchise_id):
-    """Read-only check of session ownership; return only safe, aggregate metadata."""
+    """Only safe structural metadata, never user identity or league names."""
     results = []
-    for with_year in (False, True):
-        params = {"TYPE": "myleagues", "JSON": "1"}
-        if with_year:
-            params["YEAR"] = str(year)
+    probes = [
+        ("export", f"https://api.myfantasyleague.com/{int(year)}/export?"
+         + urlencode({"TYPE": "myleagues", "JSON": "1", "YEAR": str(year)})),
+        ("direct", f"https://api.myfantasyleague.com/{int(year)}/myleagues?JSON=1"),
+    ]
+    for mode, url in probes:
         request = urllib.request.Request(
-            f"https://api.myfantasyleague.com/{int(year)}/export?{urlencode(params)}",
-            headers={"Cookie": session, "Accept": "application/json",
-                     "User-Agent": "FantasyInjuryWatchBryce/1.0"}, method="GET",
+            url, headers={"Cookie": session, "Accept": "application/json",
+                          "User-Agent": "FantasyInjuryWatchBryce/1.0"}, method="GET",
         )
         try:
             with opener.open(request, timeout=20) as response:
-                data = json.loads(response.read(1_000_000))
+                doc = json.loads(response.read(1_000_000))
         except (ValueError, urllib.error.HTTPError, urllib.error.URLError, OSError):
-            results.append({"year_explicit": with_year, "available": False})
+            results.append({"mode": mode, "available": False, "reason": "request_or_parse_failed"})
             continue
-        root = data.get("myleagues", {}) if isinstance(data, dict) else {}
+        if not isinstance(doc, dict):
+            results.append({"mode": mode, "available": False, "reason": "non_object"})
+            continue
+        top = [key for key in ("myleagues", "error", "status", "version")
+               if key in doc]
+        if "error" in doc:
+            results.append({"mode": mode, "available": False,
+                            "reason": "api_error", "top_fields": top})
+            continue
+        root = doc.get("myleagues")
         if not isinstance(root, dict):
-            results.append({"year_explicit": with_year, "available": False})
+            results.append({"mode": mode, "available": False,
+                            "reason": "missing_myleagues_root", "top_fields": top})
             continue
         items = root.get("league") or []
         leagues = items if isinstance(items, list) else [items]
-        safe_leagues = [x for x in leagues if isinstance(x, dict)]
-        matches = [x for x in safe_leagues
-                   if str(x.get("id") or x.get("league_id") or "") == str(league_id)]
+        valid = [l for l in leagues if isinstance(l, dict)]
+        matches = [l for l in valid
+                   if str(l.get("id") or l.get("league_id") or "") == str(league_id)]
         results.append({
-            "year_explicit": with_year, "available": True,
-            "league_rows": len(safe_leagues),
-            "league_field_present": "league" in root,
-            "league_ids_present": any("id" in x or "league_id" in x for x in safe_leagues),
-            "franchise_fields_present": any(
-                "franchise_id" in x or "franchiseId" in x or "FRANCHISE_ID" in x
-                for x in safe_leagues),
+            "mode": mode, "available": True,
+            "league_rows": len(valid), "league_field_present": "league" in root,
             "league_accessible": len(matches) == 1,
             "franchise_matches": any(
                 str(m.get("franchise_id") or m.get("franchiseId") or m.get("FRANCHISE_ID") or "").zfill(4)
