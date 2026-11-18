@@ -1,0 +1,40 @@
+name: One-shot Week 11 MFL reversible test
+on:
+  push:
+    branches:
+      - feature/out-starter-guard
+    paths:
+      - '.github/workflows/one-shot-week11-swap-restore.yml'
+permissions:
+  contents: read
+
+concurrency:
+  group: cffl-week11-live-test-one-shot
+  cancel-in-progress: false
+
+jobs:
+  swap-and-restore:
+    if: ${{ github.actor == 'williamsbryce' && github.ref == 'refs/heads/feature/out-starter-guard' && github.event.head_commit.message == 'AUTHORIZED: Execute one-shot Week 11 swap-and-restore trial' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact tested source code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify all swap safety tests before any MFL write
+        run: |
+          python -m unittest discover -s tests -p 'test_manual_lineup_test.py' -v
+          python -m unittest discover -s tests -p 'test_submitted_lineup.py' -v
+          python -m unittest discover -s tests -p 'test_reversible_lineup_test.py' -v
+      - name: Authorized one-time live Week 11 swap and immediate restoration
+        env:
+          MFL_OWNER_USERNAME: ${{ secrets.MFL_OWNER_USERNAME }}
+          MFL_OWNER_PASSWORD: ${{ secrets.MFL_OWNER_PASSWORD }}
+          MFL_API_KEY: ${{ secrets.MFL_API_KEY }}
+          LIVE_REVERSIBLE_TEST: AUTHORIZED_CEDRIC_GRAY_TO_ANTHONY_HILL_WEEK_11
+        run: python -m src.reversible_lineup_test
