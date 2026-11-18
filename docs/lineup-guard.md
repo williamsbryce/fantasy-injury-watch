@@ -28,6 +28,14 @@ No code in this branch calls MFL's write API or changes a lineup.
 - Never rebuild a lineup from scratch or change a healthy starter. If no eligible candidate exists or the currently submitted lineup cannot be read accurately, make no change and notify the owner.
 - The MFL website's UI restrictions are user-reported; authenticated API write semantics and full-lineup preservation still require verification before automatic writes can be safely enabled.
 
+## Confirmed owner policy (November 17, 2026)
+- Run one final pregame check about **one hour before Thursday kickoff**, and **one hour before Sunday noon Saskatchewan kickoffs**. This is separate from the digest email schedule.
+- On the **submitted** starting lineup, replace only a starter confirmed **Out/Inactive**. Do not optimize or rearrange healthy starters.
+- Select the eligible bench player with the **highest MFL league-scored points per game average** (to be verified through the `playerScores` AVG export). The replacement must satisfy league-specific starting slots, have an NFL game remaining that week, not be on bye and not be Out/Inactive.
+- MFL is responsible for enforcing locked-player rules, with league cutoff understood as five minutes before each player's kickoff. Do not build a separate owner-facing lock-management interface.
+- Nevertheless, the application must preserve **every other** current starter when making a full-lineup import; stop and alert if the league refuses the change, data is stale, or no safe replacement is available.
+- Automatic lineup writing is **not active** and must not be enabled until real pregame data, complete import semantics and write authentication are verified.
+
 ## Still required before production activation
 1. Query a current-week `weeklyResults` export in a controlled,
    read-only GitHub workflow to determine whether MFL exposes an
