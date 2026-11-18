@@ -65,7 +65,7 @@ class ReversibleSwapSafetyTests(unittest.TestCase):
 
     def test_reject_unapproved_run(self):
         env = {
-            "GITHUB_EVENT_NAME": "push", "GITHUB_REF": "refs/heads/feature/out-starter-guard",
+            "GITHUB_EVENT_NAME": "push", "GITHUB_REF": "refs/heads/main",
             "GITHUB_RUN_ATTEMPT": "1", "GITHUB_RUN_NUMBER": "1",
             "GITHUB_REPOSITORY": "williamsbryce/fantasy-injury-watch",
             "GITHUB_ACTOR": "williamsbryce",
@@ -74,7 +74,7 @@ class ReversibleSwapSafetyTests(unittest.TestCase):
         validate_one_shot_environment(env)
         for key, value in [
             ("GITHUB_EVENT_NAME", "schedule"), ("GITHUB_RUN_ATTEMPT", "2"),
-            ("GITHUB_REF", "refs/heads/main"),
+            ("GITHUB_REF", "refs/heads/feature/out-starter-guard"),
             ("LIVE_REVERSIBLE_TEST", "yes"),
             ("GITHUB_ACTOR", "someone-else"),
         ]:
