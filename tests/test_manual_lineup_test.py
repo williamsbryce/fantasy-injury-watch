@@ -3,7 +3,7 @@ import unittest
 from email.message import Message
 
 from src.manual_lineup_test import (
-    single_swap, check_approval, submit_full_lineup, ManualSwapError,
+    single_swap, check_approval, submit_full_lineup, classify_import_body, ManualSwapError,
 )
 
 
@@ -71,6 +71,26 @@ class TestExplicitLineupSwap(unittest.TestCase):
         self.assertIn(b"STARTERS=101%2C102",req.data)
         self.assertIn(b"W=11",req.data)
         self.assertNotIn("MFL_USER_ID",req.full_url)
+
+    def test_unexpected_import_response_is_classified_without_leaking_content(self):
+        samples = [
+            (b"", "text/plain", "empty"),
+            (b"  OK", "text/plain", "plain_text"),
+            (b"<!DOCTYPE html><html>private@domain.test</html>", "text/html", "html"),
+            (b'{"error": "private@domain.test"}', "application/json", "json_like"),
+            (b"<broken", "application/xml", "malformed_markup"),
+        ]
+        for body, mime, expected in samples:
+            with self.subTest(expected=expected):
+                result = classify_import_body(body, mime)
+                self.assertEqual(result["body_category"], expected)
+                self.assertNotIn("private@domain.test", str(result))
+                with self.assertRaisesRegex(ManualSwapError, "MFL import response invalid") as caught:
+                    submit_full_lineup(
+                        Opener(Response(body)), "MFL_USER_ID=test", "2026",
+                        "40298", "11", [str(x) for x in range(101,118)]
+                    )
+                self.assertNotIn("private@domain.test", str(caught.exception))
 
     def test_import_error_or_html_is_never_success(self):
         for body in (b"<error>Bad roster</error>",b"<html>login</html>",b"Not XML"):
