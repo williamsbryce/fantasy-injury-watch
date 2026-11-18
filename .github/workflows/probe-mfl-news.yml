@@ -54,3 +54,21 @@ jobs:
               print("RSS LINK:",(x.findtext("link") or "")[:150])
               print("RSS DESCRIPTION CHARS:",len(x.findtext("description") or ""))
           PY
+      - name: Examine public NFL news page HTML structure
+        shell: bash
+        run: |
+          python - <<'PY'
+          import urllib.request, re
+          url="https://www.rotowire.com/football/news.php"
+          request=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0 (compatible; FantasyInjuryWatchBryce/1.0)","Accept":"text/html"})
+          with urllib.request.urlopen(request,timeout=20) as response:
+            html=response.read(1500000).decode("utf-8","replace")
+            print("News page HTTP:",response.status,"bytes",len(html))
+          for word in ("josh jacobs","news-update__player-link","Could be back for Week 12"):
+            found=re.search(re.escape(word),html,re.I)
+            print("NEWS TAG",word,"found",bool(found))
+            if found:
+              snippet=html[max(0,found.start()-450):found.end()+950]
+              snippet=re.sub(r"(?is)(href|src)=[\"'][^\"']+[\"']",r"\1=[URL]",snippet)
+              print("NEWS HTML SAMPLE:",snippet[:1400].replace("\n"," "))
+          PY
