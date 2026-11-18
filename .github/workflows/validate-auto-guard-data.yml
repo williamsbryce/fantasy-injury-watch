@@ -1,0 +1,32 @@
+name: Validate CFFL Auto Guard Production Data (read only)
+on:
+  push:
+    branches:
+      - feature/out-starter-guard
+    paths:
+      - '.github/workflows/validate-auto-guard-data.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate ESPN current week, MFL weekly scores, and current lineup
+        env:
+          MFL_OWNER_USERNAME: ${{ secrets.MFL_OWNER_USERNAME }}
+          MFL_OWNER_PASSWORD: ${{ secrets.MFL_OWNER_PASSWORD }}
+          MFL_API_KEY: ${{ secrets.MFL_API_KEY }}
+          MFL_CLIENT_NAME: ${{ vars.MFL_CLIENT_NAME }}
+          MFL_LEAGUE_ID: '40298'
+          MFL_FRANCHISE_ID: '0001'
+          MFL_SEASON: '2026'
+          LINEUP_AUTOMATION_MODE: DRY_RUN
+        run: python -m src.verify_auto_guard_data
