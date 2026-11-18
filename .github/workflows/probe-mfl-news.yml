@@ -1,0 +1,37 @@
+name: Diagnose MFL player news page (temporary)
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/probe-mfl-news.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Examine public MFL news page format without API credentials
+        shell: bash
+        run: |
+          python - <<'PY'
+          import re, urllib.request, urllib.error
+          from html import unescape
+          url="https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14836"
+          req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0 (compatible; FantasyInjuryWatchBryce/1.0)","Accept":"text/html"})
+          try:
+            with urllib.request.urlopen(req,timeout=25) as r:
+              raw=r.read(1000000).decode("utf-8","replace")
+              print("HTTP:",r.status,"Type:",r.headers.get("Content-Type"),"HTML characters:",len(raw))
+              print("Final host:",urllib.parse.urlsplit(r.url).hostname)
+          except urllib.error.HTTPError as e:
+            print("HTTP:",e.code,"Content-Type:",e.headers.get("Content-Type"));raise
+          except Exception as e:
+            print("Network error:",type(e).__name__);raise
+          safe=re.sub(r"(?is)<script\b[^>]*>.*?</script>","",raw)
+          safe=re.sub(r"(?is)<style\b[^>]*>.*?</style>","",safe)
+          for key in ["news_articles", "practice", "injury", "report", "article", "news","roto"]:
+            print("Count",key,len(re.findall(key,safe,re.I)))
+          safe=re.sub(r"(?is)(href|src)=[\"'][^\"']{0,1000}[\"']",r"\1=[URL]",safe)
+          print("FIRST_HTML:",safe[:4500].replace("\n"," "))
+          PY
