@@ -155,6 +155,25 @@ def run():
             p = known[p_id]
             print("  " + friendly_name(p.get("name")) + " | "
                   + str(p.get("position") or "") + " | " + str(p.get("team") or ""))
+        # One-off engineering probe: expose selectable bench identities so that
+        # a reversible test can target an actual same-position replacement.
+        roster_root = feeds["rosters"].get("rosters", {})
+        franchise_row = next((f for f in as_list(roster_root.get("franchise"))
+                              if str(f.get("id") or "").zfill(4) == franchise.zfill(4)), None)
+        if franchise_row is None:
+            raise LineupParseError("Franchise roster not found")
+        active = {str(p["id"]): p for p in as_list(franchise_row.get("player"))
+                  if isinstance(p, dict) and p.get("id") is not None and
+                  str(p.get("status") or "").upper().replace(" ", "_") not in
+                  {"IR", "INJURED_RESERVE", "TAXI", "TAXI_SQUAD"}}
+        bench = sorted(set(selection["all_selectable"]) - set(selection["starters"]))
+        print("WEEK " + str(week) + " AVAILABLE BENCH (read only):")
+        for p_id in bench:
+            if p_id not in known or p_id not in active:
+                continue
+            p = known[p_id]
+            print("  " + str(p_id) + " | " + friendly_name(p.get("name")) + " | "
+                  + str(p.get("position") or "") + " | " + str(p.get("team") or ""))
         time.sleep(2)
         # Injury reports are public at MFL. Prefer a fresh public export to
         # avoid transient league-key errors. Missing/invalid data aborts.
