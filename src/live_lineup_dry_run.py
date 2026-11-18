@@ -142,6 +142,19 @@ def run():
         feeds["rosters"] = export(int(year), "rosters", league, key, client)
         time.sleep(2)
         feeds["players"] = export(int(year), "players", league, key, client)
+        # Owners can compare the authenticated submitted lineup to MFL's
+        # displayed starters without confusing this with the full roster.
+        from .model import as_list, friendly_name
+        player_root = feeds["players"].get("players", {})
+        known = {str(p.get("id")): p for p in as_list(player_root.get("player"))
+                 if isinstance(p, dict) and p.get("id") is not None}
+        if any(pid not in known for pid in selection["starters"]):
+            raise LineupParseError("Submitted starter IDs could not be resolved")
+        print("WEEK " + str(week) + " VERIFIED STARTERS (no lineup write):")
+        for p_id in selection["starters"]:
+            p = known[p_id]
+            print("  " + friendly_name(p.get("name")) + " | "
+                  + str(p.get("position") or "") + " | " + str(p.get("team") or ""))
         time.sleep(2)
         # Injury reports are public at MFL. Prefer a fresh public export to
         # avoid transient league-key errors. Missing/invalid data aborts.
