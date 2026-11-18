@@ -139,6 +139,8 @@ def run():
         print("LINEUP DRY RUN: website form action route:", selection["form_action_route"])
         print("LINEUP DRY RUN: website form action query keys:", selection["form_action_query_keys"])
         print("LINEUP DRY RUN: website checkbox name forms:", selection["checkbox_name_forms"])
+        from .mfl_web_form_shape import report as report_form_shape
+        print("LINEUP NATIVE FORM FIELDS:", report_form_shape(page))
         # One signed-in session, both owner-targeted and default views.
         # Compare only safe aggregate metadata. This avoids parallel logins.
         from .diagnose_owner_franchise import read_default, inspect_page
