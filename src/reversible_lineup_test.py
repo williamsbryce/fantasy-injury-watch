@@ -26,7 +26,7 @@ EXPECTED_STARTERS = 17
 
 def validate_one_shot_environment(env):
     if (env.get("GITHUB_EVENT_NAME") != "push" or
-        env.get("GITHUB_REF") != "refs/heads/feature/out-starter-guard" or
+        env.get("GITHUB_REF") != "refs/heads/main" or
         env.get("GITHUB_RUN_ATTEMPT") != "1" or
         env.get("GITHUB_RUN_NUMBER") != "1" or
         env.get("GITHUB_REPOSITORY") != "williamsbryce/fantasy-injury-watch" or
@@ -94,7 +94,17 @@ def run():
     if not all((username, password, api_key)):
         raise ManualSwapError("Owner login or API key not available")
     opener = _make_opener()
-    cookie = owner_login(opener, YEAR, username, password, LEAGUE)
+    # MFL sometimes returns a transient HTML page from the login endpoint
+    # instead of XML even with valid secrets; one retry is permitted before
+    # any write, never after a lineup POST.
+    try:
+        cookie = owner_login(opener, YEAR, username, password, LEAGUE)
+    except OwnerAuthError as exc:
+        if "returned html instead of valid XML" not in str(exc):
+            raise
+        print("LOGIN: temporary HTML response; retrying once before any write.")
+        time.sleep(12)
+        cookie = owner_login(opener, YEAR, username, password, LEAGUE)
     first = read_week_lineup(opener, YEAR, LEAGUE, FRANCHISE, WEEK, cookie)
     roster = export(int(YEAR), "rosters", LEAGUE, api_key)
     time.sleep(2)
