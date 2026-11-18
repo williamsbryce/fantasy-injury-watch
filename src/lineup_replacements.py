@@ -6,6 +6,7 @@ verified against this league's live starting-position constraints.
 """
 from decimal import Decimal, InvalidOperation
 
+from .nfl_week import normalize_team
 from .model import as_list, status_group
 
 BLOCKED_ROSTER = {"IR", "INJURED_RESERVE", "INJURED RESERVE",
@@ -117,7 +118,7 @@ def propose_out_replacements(selected, selectable, feeds, averages, teams_playin
             p = players[bench]
             if str(p.get("position") or "").upper().strip() != position:
                 continue
-            nfl_team = str(p.get("team") or "").upper().strip()
+            nfl_team = normalize_team(p.get("team"))
             if nfl_team not in teams_playing:
                 continue
             injury_status = str(injuries.get(bench, {}).get("status") or "")
