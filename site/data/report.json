@@ -136,11 +136,18 @@
           "source": "MyFantasyLeague injury feed",
           "source_timestamp": "1794956465",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14073",
-          "news": []
+          "news": [
+            {
+              "title": "Josh Jacobs: Could be back for Week 12",
+              "published": "November 17, 2026",
+              "url": "https://www.rotowire.com/football/headlines/josh-jacobs-injury-could-be-back-for-week-12-648321",
+              "source": "RotoWire"
+            }
+          ]
         }
       ],
-      "news_source": "RotoWire RSS",
-      "news_checked_at": "2026-11-18T00:20:59.168254+00:00"
+      "news_source": "RotoWire",
+      "news_checked_at": "2026-11-18T00:26:00.944474+00:00"
     }
   ],
   "sent_digest_date": ""
