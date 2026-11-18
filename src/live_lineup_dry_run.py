@@ -136,6 +136,9 @@ def run():
         print("LINEUP DRY RUN: available player checkbox count:", len(selection["all_selectable"]))
         print("LINEUP DRY RUN: form week fields:", selection["form_week_values"])
         print("LINEUP DRY RUN: hidden field categories:", selection["hidden_field_categories"])
+        print("LINEUP DRY RUN: website form action route:", selection["form_action_route"])
+        print("LINEUP DRY RUN: website form action query keys:", selection["form_action_query_keys"])
+        print("LINEUP DRY RUN: website checkbox name forms:", selection["checkbox_name_forms"])
         # One signed-in session, both owner-targeted and default views.
         # Compare only safe aggregate metadata. This avoids parallel logins.
         from .diagnose_owner_franchise import read_default, inspect_page
