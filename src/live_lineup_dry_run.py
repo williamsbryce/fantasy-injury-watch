@@ -6,13 +6,15 @@ lineup substitution service.
 """
 import os
 import re
+import json
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
 from urllib.parse import urlsplit
 
 from .mfl_owner_auth import owner_login, _make_opener, OwnerAuthError
-from .mfl import fetch_all, MFLAPIError
+from .mfl import export, MFLAPIError
 from .probe_mfl_lineups import _fetch
 from .submitted_lineup import extract_submitted_lineup, LineupParseError
 from .lineup_replacements import (
@@ -42,6 +44,25 @@ def fetch_authenticated_lineup(year, league, franchise, opener, cookie):
         raise OwnerAuthError("MFL lineup HTML unavailable") from None
 
 
+
+def read_public_injuries(year, league, client):
+    """Public MFL injury export without a league API key; validate before use."""
+    params = urllib.parse.urlencode({"TYPE": "injuries", "L": league, "JSON": "1"})
+    req = urllib.request.Request(
+        f"https://api.myfantasyleague.com/{int(year)}/export?{params}",
+        headers={"User-Agent": client, "Accept": "application/json"}, method="GET",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as response:
+            doc = json.loads(response.read(4_000_000))
+    except (urllib.error.HTTPError, urllib.error.URLError, OSError, ValueError):
+        raise LineupRecommendationError("Public injury data is unavailable") from None
+    root = doc.get("injuries") if isinstance(doc, dict) else None
+    if not isinstance(root, dict) or "injury" not in root:
+        raise LineupRecommendationError("Public injury report missing expected records")
+    return doc
+
+
 def run():
     username = os.environ.get("MFL_OWNER_USERNAME", "")
     password = os.environ.get("MFL_OWNER_PASSWORD", "")
@@ -67,7 +88,19 @@ def run():
         print("LINEUP DRY RUN: available player checkbox count:", len(selection["all_selectable"]))
         del page
         cookie = ""
-        feeds = fetch_all(int(year), league, key, client)
+        feeds = {}
+        feeds["rosters"] = export(int(year), "rosters", league, key, client)
+        time.sleep(2)
+        feeds["players"] = export(int(year), "players", league, key, client)
+        time.sleep(2)
+        # Injury reports are public at MFL. Prefer a fresh public export to
+        # avoid transient league-key errors. Missing/invalid data aborts.
+        try:
+            feeds["injuries"] = read_public_injuries(year, league, client)
+            print("LINEUP DRY RUN: public MFL injuries export validated.")
+        except LineupRecommendationError:
+            feeds["injuries"] = export(int(year), "injuries", league, key, client)
+            print("LINEUP DRY RUN: authenticated MFL injuries export validated.")
         averages_doc = _fetch(int(year), league, key, client, "playerScores", "AVG")
         schedule_doc = _fetch(int(year), league, key, client, "nflSchedule", week)
         averages = score_map(averages_doc)
