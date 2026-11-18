@@ -1,0 +1,41 @@
+name: One-time CFFL Week 11 Swap Restore
+on:
+  push:
+    branches:
+      - feature/out-starter-guard
+    paths:
+      - '.github/workflows/one-shot-week11-swap-restore-v2.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cffl-one-time-week11-swap-v2
+  cancel-in-progress: false
+
+jobs:
+  swap-and-restore:
+    if: ${{ github.actor == 'williamsbryce' && github.ref == 'refs/heads/feature/out-starter-guard' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact test branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run local test suite without network writes
+        run: |
+          python -m unittest discover -s tests -p 'test_submitted_lineup.py' -v
+          python -m unittest discover -s tests -p 'test_manual_lineup_test.py' -v
+          python -m unittest discover -s tests -p 'test_reversible_lineup_test.py' -v
+      - name: Swap one authorized player then restore saved Week 11 lineup
+        env:
+          MFL_OWNER_USERNAME: ${{ secrets.MFL_OWNER_USERNAME }}
+          MFL_OWNER_PASSWORD: ${{ secrets.MFL_OWNER_PASSWORD }}
+          MFL_API_KEY: ${{ secrets.MFL_API_KEY }}
+          LIVE_REVERSIBLE_TEST: AUTHORIZED_CEDRIC_GRAY_TO_ANTHONY_HILL_WEEK_11
+        run: python -m src.reversible_lineup_test
