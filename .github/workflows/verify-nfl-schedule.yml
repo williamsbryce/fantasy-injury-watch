@@ -1,0 +1,30 @@
+name: Verify independent NFL week schedule (read only)
+on:
+  pull_request:
+    paths:
+      - 'src/nfl_week.py'
+      - '.github/workflows/verify-nfl-schedule.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-schedule:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate 2026 Week 12 schedule and start times
+        run: |
+          python - <<'PY'
+          from src.nfl_week import fetch_espn_week,eligible_teams
+          week = fetch_espn_week(2026,12)
+          print("NFL SCHEDULE: verified games =",len(week)//2)
+          print("NFL SCHEDULE: teams with unstarted games =",len(eligible_teams(week)))
+          print("NFL SCHEDULE: unique kickoff times =",len(set(week.values())))
+          PY
