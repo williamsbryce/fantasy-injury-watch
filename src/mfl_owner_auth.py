@@ -71,7 +71,20 @@ def owner_login(opener, year, username, password, league_id):
     try:
         root = ET.fromstring(xml)
     except ET.ParseError:
-        raise OwnerAuthError("MFL owner login did not return valid XML") from None
+        lower = xml[:300].lstrip().lower()
+        if lower.startswith((b"<html", b"<!doctype html")):
+            safe_type = "html"
+        elif lower.startswith((b"{", b"[")):
+            safe_type = "json"
+        elif lower.startswith(b"<?xml") or lower.startswith(b"<status"):
+            safe_type = "broken_xml"
+        else:
+            safe_type = "other"
+        # Only classification and rough length, never response content.
+        raise OwnerAuthError(
+            f"MFL owner login returned {safe_type} instead of valid XML "
+            f"(response_bytes={len(xml)})"
+        ) from None
     if root.tag.lower() == "error":
         raise OwnerAuthError("MFL owner login rejected credentials or denied access")
     if root.tag.lower() != "status":
