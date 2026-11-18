@@ -65,11 +65,12 @@ class ReversibleSwapSafetyTests(unittest.TestCase):
 
     def test_reject_unapproved_run(self):
         env = {
-            "GITHUB_EVENT_NAME": "push", "GITHUB_REF": "refs/heads/main",
-            "GITHUB_RUN_ATTEMPT": "1", "GITHUB_RUN_NUMBER": "1",
+            "GITHUB_EVENT_NAME": "workflow_dispatch", "GITHUB_REF": "refs/heads/main",
+            "GITHUB_RUN_ATTEMPT": "1",
             "GITHUB_REPOSITORY": "williamsbryce/fantasy-injury-watch",
             "GITHUB_ACTOR": "williamsbryce",
             "LIVE_REVERSIBLE_TEST": "AUTHORIZED_CEDRIC_GRAY_TO_ANTHONY_HILL_WEEK_11",
+            "CONFIRM_SWAP_RESTORE": "APPROVE CEDRIC GRAY TO ANTHONY HILL JR WEEK 11 AND RESTORE",
         }
         validate_one_shot_environment(env)
         for key, value in [
@@ -77,6 +78,7 @@ class ReversibleSwapSafetyTests(unittest.TestCase):
             ("GITHUB_REF", "refs/heads/feature/out-starter-guard"),
             ("LIVE_REVERSIBLE_TEST", "yes"),
             ("GITHUB_ACTOR", "someone-else"),
+            ("CONFIRM_SWAP_RESTORE", "wrong"),
         ]:
             with self.subTest(key=key):
                 modified = dict(env)
