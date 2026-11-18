@@ -309,6 +309,7 @@ class SafeFormShape(HTMLParser):
         self.numeric_option_selected = 0
         self.form_method_get = 0
         self.form_method_post = 0
+        self.safe_hidden_weeks = []
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
@@ -320,6 +321,10 @@ class SafeFormShape(HTMLParser):
             elif method == "get":
                 self.form_method_get += 1
         if tag == "input":
+            if (a.get("type") or "").lower() == "hidden" and (a.get("name") or "").upper() == "WEEK":
+                week_text = str(a.get("value") or "").strip()
+                if week_text.isdigit() and 1 <= int(week_text) <= 18:
+                    self.safe_hidden_weeks.append(int(week_text))
             kind = (a.get("type") or "text").lower()
             kind = kind if re.fullmatch(r"[a-z]{1,20}", kind) else "other"
             self.input_types[kind] = self.input_types.get(kind, 0) + 1
@@ -356,6 +361,7 @@ class SafeFormShape(HTMLParser):
             "options_numeric": self.numeric_option_count,
             "options_numeric_selected": self.numeric_option_selected,
             "field_categories": sorted(self.field_categories),
+            "safe_hidden_week_values": self.safe_hidden_weeks,
         }
 
 
@@ -514,7 +520,7 @@ def verify_owner_franchise(opener, year, session, league_id, franchise_id):
 
 
 
-def probe_owner_page(opener, year, league_id, franchise_id, week, session, report_code='06', include_f=True, include_week=True, endpoint='options'):
+def probe_owner_page(opener, year, league_id, franchise_id, week, session, report_code='06', include_f=True, include_week=True, endpoint='options', lineup_week_parameter=None):
     """Retrieve owner-only MFL report without displaying or committing its contents."""
     args = {"L": league_id, "O": report_code}
     if include_week:
@@ -524,6 +530,8 @@ def probe_owner_page(opener, year, league_id, franchise_id, week, session, repor
     if endpoint == "lineup":
         # The user's actual 2026 Submit Lineup URL; do not substitute an options report.
         args = {"L": league_id, "FRANCHISE": franchise_id}
+        if lineup_week_parameter in ("WEEK", "W"):
+            args[lineup_week_parameter] = week
     elif endpoint != "options":
         raise ValueError("Unsupported MFL read-only endpoint")
     params = urlencode(args)
@@ -600,17 +608,27 @@ def run():
     try:
         cookie = owner_login(opener, season, username, password, league_id)
         print("AUTH PROBE: MFL owner login returned a session cookie (value hidden).")
-        result = probe_owner_page(
-            opener, season, league_id, franchise_id, week, cookie,
-            endpoint="lineup",
-        )
+        comparison = []
+        for parameter in (None, "WEEK", "W"):
+            data = probe_owner_page(
+                opener, season, league_id, franchise_id, week, cookie,
+                endpoint="lineup", lineup_week_parameter=parameter,
+            )
+            comparison.append({
+                "parameter": parameter or "none",
+                "hidden_weeks": data["form_shape"]["safe_hidden_week_values"],
+                "starter_count": data["lineup_extraction"].get("starter_count"),
+                "verified": data["lineup_extraction"].get("read_result") == "verified",
+                "checked_count": data["form_shape"]["inputs_checked"],
+            })
+        result = data
     except OwnerAuthError as error:
         # Every raised exception is an allowlisted, credential-free category.
         print(f"AUTH PROBE: {error}")
         return
     finally:
         cookie = ""
-    print("AUTH PROBE: user-supplied /2026/lineup page with L and FRANCHISE params")
+    print("AUTH PROBE: compare three pregame lineup week URL variants:", comparison)
     # All output is class/tag counts, not user-specific HTML or player details.
     public_fields = {k:v for k,v in result.items() if k not in ("table_shapes", "row_shapes")}
     print("AUTH PROBE: " + ", ".join(f"{key}={value}" for key, value in public_fields.items()))
