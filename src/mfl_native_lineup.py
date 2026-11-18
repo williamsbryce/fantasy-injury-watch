@@ -69,7 +69,8 @@ class NativeForm(HTMLParser):
             self.active = False
 
 
-def prepare_post(html, *, originals, proposed, outgoing, incoming):
+def prepare_post(html, *, originals, proposed, outgoing=None, incoming=None,
+                 changes=None, expected_week=11):
     p = NativeForm()
     p.feed(html)
     if p.forms != 1 or p.method != "post":
@@ -87,12 +88,12 @@ def prepare_post(html, *, originals, proposed, outgoing, incoming):
     if not (
         hidden.get("LEAGUE_ID") == "40298"
         and hidden.get("FRANCHISE", "").zfill(4) == "0001"
-        and hidden.get("WEEK") == "11"
+        and hidden.get("WEEK") == str(int(expected_week))
     ):
         raise ManualSwapError("NATIVE: form league, franchise or week mismatched")
     checkboxes = [c for c in p.controls if c["type"] == "checkbox" and not c["disabled"]]
-    if len(checkboxes) != 53:
-        raise ManualSwapError("NATIVE: MFL selectable roster checkbox count changed")
+    if not (17 <= len(checkboxes) <= 200):
+        raise ManualSwapError("NATIVE: unexpected editable checkbox count")
     if any(not c["name"] or not re.fullmatch(r"\d{1,8}", c["value"]) for c in checkboxes):
         raise ManualSwapError("NATIVE: unrecognized player checkbox name or identifier")
     saved = [c["value"] for c in checkboxes if c["checked"]]
@@ -101,14 +102,27 @@ def prepare_post(html, *, originals, proposed, outgoing, incoming):
     by_id = {c["value"]: c for c in checkboxes}
     if len(by_id) != len(checkboxes):
         raise ManualSwapError("NATIVE: repeated player identifiers")
-    if outgoing not in by_id or incoming not in by_id:
-        raise ManualSwapError("NATIVE: test players not on selectable roster")
-    if by_id[outgoing]["name"] != by_id[incoming]["name"]:
+    if changes is None:
+        changes = [(outgoing, incoming)]
+    if not changes or any(not isinstance(pair, (list, tuple)) or len(pair) != 2
+                          for pair in changes):
+        raise ManualSwapError("NATIVE: no validated substitution pairs")
+    outs = [str(pair[0]) for pair in changes]
+    ins = [str(pair[1]) for pair in changes]
+    if len(set(outs)) != len(outs) or len(set(ins)) != len(ins):
+        raise ManualSwapError("NATIVE: duplicate substitution player")
+    if any(out not in by_id or inc not in by_id for out, inc in zip(outs, ins)):
+        raise ManualSwapError("NATIVE: replacement player not on selectable roster")
+    if any(by_id[out]["name"] != by_id[inc]["name"]
+           for out, inc in zip(outs, ins)):
         raise ManualSwapError("NATIVE: outgoing and incoming players in different position fields")
     if len(proposed) != 17 or len(set(proposed)) != 17:
         raise ManualSwapError("NATIVE: invalid proposed starter count")
-    if set(proposed) != (set(originals) - {outgoing}) | {incoming}:
-        raise ManualSwapError("NATIVE: more than one starter substitution proposed")
+    if (set(proposed) != (set(originals) - set(outs)) | set(ins)
+            or any(out not in originals for out in outs)
+            or any(inc in originals for inc in ins)
+            or len(set(proposed) ^ set(originals)) != 2 * len(changes)):
+        raise ManualSwapError("NATIVE: unexpected starter substitution proposal")
     form_pairs = []
     selected_ids = []
     submit_seen = False
@@ -143,14 +157,14 @@ def prepare_post(html, *, originals, proposed, outgoing, incoming):
     return p.action, urlencode(form_pairs).encode("utf-8")
 
 
-def submit_native(opener, cookie, action, encoded_data):
+def submit_native(opener, cookie, action, encoded_data, *, week=11):
     """At most one POST. No retry. All outcomes require separate readback."""
     req = urllib.request.Request(
         action, data=encoded_data, method="POST",
         headers={
             "Cookie": cookie,
             "Content-Type": "application/x-www-form-urlencoded",
-            "Referer": "https://www46.myfantasyleague.com/2026/lineup?L=40298&FRANCHISE=0001&WEEK=11",
+            "Referer": "https://www46.myfantasyleague.com/2026/lineup?L=40298&FRANCHISE=0001&WEEK=" + str(int(week)),
             "Origin": "https://www46.myfantasyleague.com",
             "Accept": "text/html",
             "User-Agent": "FantasyInjuryWatchBryce/1.0",
