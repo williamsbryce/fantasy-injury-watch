@@ -46,7 +46,7 @@ def run():
         feeds = fetch_all(int(league["season"]), league["id"], key,
                           (os.environ.get("MFL_CLIENT_NAME", "").strip() or "FantasyInjuryWatch"))
         leagues.append(parse_report(feeds, league, now))
-    # Public news is optional; a failed news feed must not suppress MFL injury data.
+    # News is optional and must never suppress official MFL injury designations.
     enrich_reports(leagues, fetch_recent_news(), checked_at=now)
     document = {"schema": 2, "synced_at": now.isoformat(), "leagues": leagues,
                 "sent_digest_date": previous.get("sent_digest_date", "")}

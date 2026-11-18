@@ -59,6 +59,10 @@ def fetch_recent_news():
         description = _plain(item.findtext("description"))[:550]
         if not (title and link and NEWS_TERMS.search(title + " " + description)):
             continue
+        # A non-injury article saying "no injury" is not a health update.
+        if not NEWS_TERMS.search(title) and re.search(
+                r"\bno (?:injury|injuries|health concern)\b", description, re.I):
+            continue
         result.append({
             "title": title,
             "description": description,

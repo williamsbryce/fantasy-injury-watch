@@ -4,6 +4,9 @@ on:
     branches: [main]
     paths:
       - "src/main.py"
+      - "tests/test_core.py"
+      - "src/news.py"
+      - "src/migrate.py"
   workflow_dispatch:
     inputs:
       send_test_email:

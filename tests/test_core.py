@@ -51,7 +51,7 @@ class TestSync(unittest.TestCase):
 if __name__=='__main__':unittest.main()
 
 class TestPipeline(unittest.TestCase):
- def test_end_to_end_pipeline_does_not_publish_plaintext(self):
+ def test_end_to_end_public_report_has_no_api_key(self):
   import json
   import os
   import tempfile
@@ -65,7 +65,7 @@ class TestPipeline(unittest.TestCase):
     'MFL_LEAGUE_ID':'12345','MFL_FRANCHISE_ID':'0001',
     'RESEND_API_KEY':'','ALERT_FROM':'','ALERT_TO':'',
    }
-   with patch.dict(os.environ,env),patch.object(main,'REPORT_PATH',path),patch.object(main,'fetch_all',return_value=FIXTURE):
+   with patch.dict(os.environ,env),patch.object(main,'REPORT_PATH',path),patch.object(main,'LEGACY_PATH',path.parent/'test-legacy.enc.json'),patch.object(main,'fetch_all',return_value=FIXTURE):
     main.run()
    text=path.read_text()
    self.assertIn('Test Smith',text)  # Public report, by user's explicit choice.
@@ -121,7 +121,7 @@ class TestEmailTestMode(unittest.TestCase):
     'SEND_TEST_EMAIL':'true','RESEND_API_KEY':'test-provider-key',
     'ALERT_FROM':'onboarding@resend.dev','ALERT_TO':'test@example.com',
    }
-   with patch.dict(os.environ,env),patch.object(main,'REPORT_PATH',path),patch.object(main,'fetch_all',return_value=FIXTURE),patch.object(main,'send_resend',return_value=True) as send:
+   with patch.dict(os.environ,env),patch.object(main,'REPORT_PATH',path),patch.object(main,'LEGACY_PATH',path.parent/'test-legacy.enc.json'),patch.object(main,'fetch_all',return_value=FIXTURE),patch.object(main,'send_resend',return_value=True) as send:
     main.run()
    self.assertEqual(send.call_count,1)
    self.assertIn('Test email',send.call_args.args[3])
@@ -139,7 +139,7 @@ class TestEmailTestMode(unittest.TestCase):
     'MFL_LEAGUE_ID':'12345','MFL_FRANCHISE_ID':'0001',
     'SEND_TEST_EMAIL':'true','RESEND_API_KEY':'','ALERT_FROM':'','ALERT_TO':'',
    }
-   with patch.dict(os.environ,env),patch.object(main,'REPORT_PATH',Path(td)/'report.json'),patch.object(main,'fetch_all',return_value=FIXTURE):
+   with patch.dict(os.environ,env),patch.object(main,'REPORT_PATH',Path(td)/'report.json'),patch.object(main,'LEGACY_PATH',Path(td)/'legacy.enc.json'),patch.object(main,'fetch_all',return_value=FIXTURE):
     with self.assertRaisesRegex(RuntimeError,'Test email requested'):
      main.run()
 
@@ -156,7 +156,7 @@ class TestNotificationGating(unittest.TestCase):
         'MFL_LEAGUE_ID':'12345','MFL_FRANCHISE_ID':'0001',
         'RESEND_API_KEY':'sample-mail-key','ALERT_FROM':'onboarding@resend.dev',
         'ALERT_TO':'test@example.com','EMAIL_ENABLED':'false','SEND_TEST_EMAIL':'false'}
-   with patch.dict(os.environ,env),patch.object(main,'REPORT_PATH',Path(td)/'state.json'),patch.object(main,'fetch_all',return_value=FIXTURE),patch.object(main,'send_resend') as sender:
+   with patch.dict(os.environ,env),patch.object(main,'REPORT_PATH',Path(td)/'state.json'),patch.object(main,'LEGACY_PATH',Path(td)/'legacy.enc.json'),patch.object(main,'fetch_all',return_value=FIXTURE),patch.object(main,'send_resend') as sender:
     main.run()
    sender.assert_not_called()
 
