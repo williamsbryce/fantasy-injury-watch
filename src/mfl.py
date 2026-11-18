@@ -43,10 +43,14 @@ def _error_category(message):
 
 
 def export(year: int, kind: str, league_id: str, api_key: str,
-           client_name: str = "FantasyInjuryWatch") -> dict:
-    if kind not in {"rosters", "players", "injuries"}:
+           client_name: str = "FantasyInjuryWatch", week: int | None = None) -> dict:
+    if kind not in {"rosters", "players", "injuries", "weeklyResults"}:
         raise ValueError("Unsupported read-only MFL export type")
     params = {"TYPE": kind, "L": league_id, "JSON": "1", "APIKEY": api_key}
+    if kind == "weeklyResults":
+        if not isinstance(week, int) or not 1 <= week <= 18:
+            raise ValueError("Weekly lineup lookup requires an explicit NFL week from 1 to 18")
+        params["W"] = week
     url = f"https://api.myfantasyleague.com/{year}/export?{urllib.parse.urlencode(params)}"
     request = urllib.request.Request(url, headers={
         "User-Agent": client_name,
