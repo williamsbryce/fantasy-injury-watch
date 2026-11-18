@@ -207,10 +207,10 @@ class TableShape(HTMLParser):
             self.tables[self.active[-1]]["texts"] += 1
 
 
-def probe_owner_page(opener, year, league_id, franchise_id, week, session):
+def probe_owner_page(opener, year, league_id, franchise_id, week, session, report_code='06'):
     """Retrieve owner-only MFL report without displaying or committing its contents."""
     params = urlencode({
-        "L": league_id, "O": "06", "WEEK": week, "F": franchise_id,
+        "L": league_id, "O": report_code, "WEEK": week, "F": franchise_id,
     })
     request = urllib.request.Request(
         f"https://www46.myfantasyleague.com/{int(year)}/options?{params}",
@@ -263,16 +263,20 @@ def run():
     try:
         cookie = owner_login(opener, season, username, password, league_id)
         print("AUTH PROBE: MFL owner login returned a session cookie (value hidden).")
-        result = probe_owner_page(opener, season, league_id, franchise_id, week, cookie)
+        overview = probe_owner_page(opener, season, league_id, franchise_id, week, cookie)
+        result = probe_owner_page(opener, season, league_id, franchise_id, week, cookie, report_code="07")
     except OwnerAuthError as error:
         # Every raised exception is an allowlisted, credential-free category.
         print(f"AUTH PROBE: {error}")
         return
     finally:
         cookie = ""
+    print("AUTH PROBE: lineup overview O=06 tables=", overview["html_table_count"])
+    print("AUTH PROBE: franchise lineup detail O=07")
     # All output is class/tag counts, not user-specific HTML or player details.
     public_fields = {k:v for k,v in result.items() if k != "table_shapes"}
     print("AUTH PROBE: " + ", ".join(f"{key}={value}" for key, value in public_fields.items()))
+    # Do not print any HTML, player names or credentials.
     print("AUTH PROBE TABLE SHAPES:", result["table_shapes"])
     if result["login_form_present"] or not result["host_valid"]:
         print("AUTH PROBE: authenticated webpage access not confirmed.")
