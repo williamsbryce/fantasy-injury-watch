@@ -36,5 +36,5 @@ jobs:
           MFL_LEAGUE_ID: ${{ vars.MFL_LEAGUE_ID }}
           MFL_FRANCHISE_ID: ${{ vars.MFL_FRANCHISE_ID }}
           MFL_SEASON: ${{ vars.MFL_SEASON }}
-          MFL_LINEUP_WEEK: '12'
+          MFL_LINEUP_WEEK: '11'
         run: python -m src.live_lineup_dry_run
