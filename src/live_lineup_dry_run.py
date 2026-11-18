@@ -106,7 +106,14 @@ def run():
 
     opener = _make_opener()
     try:
-        cookie = owner_login(opener, year, username, password, league)
+        try:
+            cookie = owner_login(opener, year, username, password, league)
+        except OwnerAuthError as err:
+            if "returned html instead of valid XML" not in str(err):
+                raise
+            print("LINEUP DRY RUN: transient HTML login; retrying once before read-only check")
+            time.sleep(8)
+            cookie = owner_login(opener, year, username, password, league)
         selection = None
         for parameter in (None, "WEEK", "W"):
             page = fetch_authenticated_lineup(
