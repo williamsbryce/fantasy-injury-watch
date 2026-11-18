@@ -13,6 +13,7 @@ import urllib.parse
 import urllib.request
 from urllib.parse import urlsplit
 
+from .nfl_week import fetch_espn_week, eligible_teams, NFLScheduleError
 from .mfl_owner_auth import owner_login, _make_opener, OwnerAuthError
 from .mfl import export, MFLAPIError
 from .probe_mfl_lineups import _fetch
@@ -123,20 +124,17 @@ def run():
             feeds["injuries"] = export(int(year), "injuries", league, key, client)
             print("LINEUP DRY RUN: authenticated MFL injuries export validated.")
         averages_doc = _fetch(int(year), league, key, client, "playerScores", "AVG")
-        try:
-            schedule_doc = read_public_schedule(year, league, week, client)
-            print("LINEUP DRY RUN: public MFL NFL schedule validated.")
-        except LineupRecommendationError:
-            schedule_doc = _fetch(int(year), league, key, client, "nflSchedule", week)
-            print("LINEUP DRY RUN: authenticated MFL NFL schedule requested.")
         averages = score_map(averages_doc)
-        teams = teams_with_games(schedule_doc)
+        nfl_schedule = fetch_espn_week(int(year), int(week))
+        teams = eligible_teams(nfl_schedule)
+        print("LINEUP DRY RUN: independent NFL schedule has", len(nfl_schedule) // 2, "games.")
+        print("LINEUP DRY RUN: teams still eligible before kickoff:", len(teams))
         result = propose_out_replacements(
             selection["starters"], selection["all_selectable"], feeds,
             averages, teams, franchise,
         )
     except (OwnerAuthError, MFLAPIError, LineupParseError,
-            LineupRecommendationError, ValueError) as error:
+            LineupRecommendationError, NFLScheduleError, ValueError) as error:
         # Only allowlisted exception types from our own internal validation.
         print("LINEUP DRY RUN: analysis unavailable; no lineup submission attempted.")
         print("LINEUP DRY RUN: failure_category=", type(error).__name__)
