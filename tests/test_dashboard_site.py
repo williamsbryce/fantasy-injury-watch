@@ -47,7 +47,7 @@ class DashboardDocumentationTests(unittest.TestCase):
     def test_guide_documents_actual_schedules_and_selection_policy(self):
         html = self.html
         for item in (
-            "How Injury Watch works",
+            "How it Works",
             "12:17, 3:17, 6:17, 9:17 a.m.",
             "4:47 p.m., 5:00 p.m., and 5:47 p.m.",
             "10:30 a.m., 4:47 p.m., and 5:47 p.m.",
@@ -61,6 +61,16 @@ class DashboardDocumentationTests(unittest.TestCase):
         ):
             with self.subTest(item=item):
                 self.assertIn(item.lower(), html.lower())
+
+    def test_simple_brand_and_guide_title_without_status_chip(self):
+        html = self.html
+        self.assertIn("<title>BAW's Injury Watch Tool</title>", html)
+        self.assertIn("<span>BAW's Injury Watch Tool</span>", html)
+        self.assertIn('<h1>How it Works</h1>', html)
+        self.assertNotIn('id="mode"', html)
+        self.assertNotIn("id=\"mode\"", html)
+        self.assertNotIn("Operating guide · CFFL Dynasty", html)
+        self.assertNotIn("What the dashboard checks, when email is sent", html)
 
     def test_inline_script_has_valid_javascript(self):
         scripts = re.findall(r"<script[^>]*>(.*?)</script>", self.html, re.S | re.I)
