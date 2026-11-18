@@ -1,0 +1,55 @@
+name: Automatic CFFL Out Starter Guard
+on:
+  schedule:
+    # UTC hourly candidates; dynamic ESPN kickoff gate admits just one
+    # pregame check for the earliest Thursday and Sunday NFL games.
+    # Thursday UTC afternoon/evening, including holiday early games.
+    - cron: '0 14-23 * * 4'
+    # Thursday night in Saskatchewan crosses into Friday UTC.
+    - cron: '0 0-3 * * 5'
+    # Sunday, including early overseas kickoffs and normal NFL first slate.
+    - cron: '0 10-23 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mfl-cffl-automatic-out-starter-guard
+  cancel-in-progress: false
+
+jobs:
+  pregame-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout reviewed and tested 2026 auto guard
+        uses: actions/checkout@v4
+        with:
+          ref: ad132b4992272fb63a129811c587a5bfc516d718
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run safety tests before any MFL request or lineup write
+        run: |
+          python -m unittest discover -s tests -p 'test_auto_lineup_guard.py' -v
+          python -m unittest discover -s tests -p 'test_auto_lineup_integration.py' -v
+          python -m unittest discover -s tests -p 'test_native_mfl_lineup.py' -v
+          python -m unittest discover -s tests -p 'test_manual_lineup_test.py' -v
+      - name: Evaluate scheduled or read-only manual CFFL lineups
+        env:
+          LINEUP_AUTOMATION_MODE: ${{ github.event_name == 'schedule' && 'LIVE' || 'DRY_RUN' }}
+          LINEUP_WRITE_ENABLED: 'true'
+          MFL_OWNER_USERNAME: ${{ secrets.MFL_OWNER_USERNAME }}
+          MFL_OWNER_PASSWORD: ${{ secrets.MFL_OWNER_PASSWORD }}
+          MFL_API_KEY: ${{ secrets.MFL_API_KEY }}
+          MFL_CLIENT_NAME: ${{ vars.MFL_CLIENT_NAME }}
+          MFL_SEASON: '2026'
+          MFL_LEAGUE_ID: '40298'
+          MFL_FRANCHISE_ID: '0001'
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ALERT_FROM: ${{ vars.ALERT_FROM }}
+          ALERT_TO: ${{ vars.ALERT_TO }}
+        run: python -m src.auto_lineup_guard
