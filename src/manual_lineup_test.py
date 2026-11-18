@@ -1,7 +1,7 @@
 """Explicitly approved, one-time MFL lineup swap.
 
 NEVER called by scheduled injury monitoring. Requires two exact player IDs,
-Week 12 matching the signed-in MFL form, and an intentional manual workflow.
+Week 11 matching the signed-in MFL form, and an intentional manual workflow.
 Only one selected starter is replaced. Post-write MFL response and read-back
 are checked; no automatic retry of a lineup write.
 """
@@ -113,8 +113,8 @@ def run():
         raise ManualSwapError("Missing or invalid league, player, or week identifier")
     if str(year)!="2026" or str(league)!="40298" or str(franchise).zfill(4)!="0001":
         raise ManualSwapError("One-time tester restricted to designated league/franchise")
-    if int(week)!=12:
-        raise ManualSwapError("One-time tester restricted to 2026 Week 12")
+    if int(week)!=11:
+        raise ManualSwapError("One-time tester restricted to 2026 Week 11")
     live=check_approval(
         mode,approval,out_id,in_id,week,
         os.environ.get("GITHUB_EVENT_NAME",""),
