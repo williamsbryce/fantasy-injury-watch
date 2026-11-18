@@ -89,6 +89,8 @@ def submit_full_lineup(opener, cookie, year, league, week, proposed):
             if result.status not in (200,201,202):
                 raise ManualSwapError("MFL lineup submission was not accepted")
             response = result.read(100_000)
+    except OwnerAuthError:
+        raise ManualSwapError("MFL import redirected; refusing an unsafe POST-to-GET replay") from None
     except urllib.error.HTTPError as error:
         raise ManualSwapError(f"MFL import HTTP error {error.code}") from None
     except (urllib.error.URLError,OSError,TimeoutError):
