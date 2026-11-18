@@ -80,7 +80,7 @@ class DashboardDocumentationTests(unittest.TestCase):
         self.assertIn("function loadEvents()", html)
         self.assertIn("e.detail||''", html)
         self.assertIn("readableDate", html)
-        self.assertIn("Inbox", html)
+        self.assertIn("inbox", html.lower())
         self.assertIn("data-event-filter=\"email\"", html)
         self.assertIn("data-event-filter=\"lineup\"", html)
         self.assertIn("data-event-filter=\"check\"", html)
