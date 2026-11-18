@@ -124,6 +124,60 @@ class ReportStructure(HTMLParser):
             self.starting_lineups_text = True
 
 
+
+class TableShape(HTMLParser):
+    """Structural report diagnostics; never stores or emits player text."""
+    def __init__(self):
+        super().__init__()
+        self.tables = []
+        self.active = []
+        self.tag_counts = {}
+        self.headings = 0
+        self.input_names = set()
+        self.markers = set()
+
+    def handle_starttag(self, tag, attrs):
+        self.tag_counts[tag] = self.tag_counts.get(tag, 0) + 1
+        a = dict(attrs)
+        if tag == "table":
+            classname = a.get("class", "")
+            # Record only safe CSS class identifiers, never dynamic IDs.
+            classname = " ".join(
+                x for x in classname.split()
+                if re.fullmatch(r"[a-zA-Z_-]{1,24}", x)
+            )[:70]
+            self.tables.append({"class": classname or "none", "rows": 0, "cells": 0,
+                                "headings": 0, "links": 0, "texts": 0})
+            self.active.append(len(self.tables) - 1)
+        elif tag == "tr" and self.active:
+            self.tables[self.active[-1]]["rows"] += 1
+        elif tag == "td" and self.active:
+            self.tables[self.active[-1]]["cells"] += 1
+        elif tag == "th" and self.active:
+            self.tables[self.active[-1]]["headings"] += 1
+        elif tag == "a" and self.active:
+            self.tables[self.active[-1]]["links"] += 1
+        if tag == "h1" or tag == "h2":
+            self.headings += 1
+        if tag == "input":
+            name = a.get("name", "")
+            # Input names can be dynamic; classify, never output raw names.
+            for allowed in ("STARTERS", "PLAYERS", "WEEK", "F", "L", "O"):
+                if name.upper() == allowed:
+                    self.input_names.add(allowed)
+        for known in ("lineup", "starter", "player", "report", "roster"):
+            if known in (a.get("class", "") + " " + a.get("id", "")).lower():
+                self.markers.add(known)
+
+    def handle_endtag(self, tag):
+        if tag == "table" and self.active:
+            self.active.pop()
+
+    def handle_data(self, data):
+        if self.active and data.strip():
+            self.tables[self.active[-1]]["texts"] += 1
+
+
 def probe_owner_page(opener, year, league_id, franchise_id, week, session):
     """Retrieve owner-only MFL report without displaying or committing its contents."""
     params = urlencode({
@@ -145,6 +199,8 @@ def probe_owner_page(opener, year, league_id, franchise_id, week, session):
         raise OwnerAuthError("Authenticated MFL Starting Lineups request failed") from None
     structure = ReportStructure()
     structure.feed(page)
+    shape = TableShape()
+    shape.feed(page)
     report = {
         "host_valid": bool(final_host and re.fullmatch(
             r"www\d+\.myfantasyleague\.com", final_host)),
@@ -154,6 +210,10 @@ def probe_owner_page(opener, year, league_id, franchise_id, week, session):
         "html_cell_count": structure.cells,
         "login_form_present": structure.password_inputs > 0,
         "player_links_count": structure.linked_players,
+        "html_length": len(page),
+        "table_shapes": shape.tables,
+        "input_names_allowlisted": sorted(shape.input_names),
+        "css_marker_categories": sorted(shape.markers),
     }
     return report
 
@@ -181,7 +241,10 @@ def run():
         return
     finally:
         cookie = ""
-    print("AUTH PROBE: " + ", ".join(f"{key}={value}" for key, value in result.items()))
+    # All output is class/tag counts, not user-specific HTML or player details.
+    public_fields = {k:v for k,v in result.items() if k != "table_shapes"}
+    print("AUTH PROBE: " + ", ".join(f"{key}={value}" for key, value in public_fields.items()))
+    print("AUTH PROBE TABLE SHAPES:", result["table_shapes"])
     if result["login_form_present"] or not result["host_valid"]:
         print("AUTH PROBE: authenticated webpage access not confirmed.")
     elif result["html_row_count"] == 0:
