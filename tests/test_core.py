@@ -261,3 +261,27 @@ class TestCachedNewsFallback(unittest.TestCase):
    after=json.loads(report.read_text())
    self.assertEqual(after["synced_at"],doc["synced_at"])
    self.assertIn("PLAYERS=111",after["leagues"][0]["alerts"][0]["mfl_news_url"])
+
+
+class TestBroaderPublicNewsPage(unittest.TestCase):
+ def test_html_news_extracts_injury_headline_with_source_link(self):
+  from src.news import _parse_news_page, _matches_player
+  html = '''<html><div class="news-update">
+  <a class="news-update__player-link" href="/football/player/example-1">Example Player</a>
+  <a class="news-update__headline" href="/football/player/example-1">Good game</a>
+  <div class="news-update__timestamp">November 17, 2026</div></div>
+  <div class="news-update is-injured"><div class="news-update__playerhead">
+  <a class="news-update__player-link" href="/football/player/josh-jacobs-123">Josh Jacobs</a>
+  <a class="news-update__headline" href="/football/player/josh-jacobs-123">Could be back for Week 12</a></div>
+  <div class="news-update__timestamp">November 17, 2026</div>
+  </div></html>'''
+  result=_parse_news_page(html)
+  self.assertEqual(len(result),1)
+  self.assertEqual(result[0]["title"],"Josh Jacobs: Could be back for Week 12")
+  self.assertTrue(_matches_player(result[0]["title"],"Josh Jacobs"))
+  self.assertTrue(result[0]["url"].startswith("https://www.rotowire.com/"))
+
+ def test_player_suffix_matches_but_unrelated_name_does_not(self):
+  from src.news import _matches_player
+  self.assertTrue(_matches_player("Anthony Hill: Limited practice","Anthony Hill Jr."))
+  self.assertFalse(_matches_player("Anthony Harris: Limited practice","Anthony Hill Jr."))
