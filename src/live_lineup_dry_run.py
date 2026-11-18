@@ -14,7 +14,7 @@ import urllib.request
 from urllib.parse import urlsplit
 
 from .nfl_week import fetch_espn_week, eligible_teams, NFLScheduleError
-from .mfl_owner_auth import owner_login, _make_opener, OwnerAuthError
+from .mfl_owner_auth import owner_login, _make_opener, OwnerAuthError, SafeFormShape
 from .mfl import export, MFLAPIError
 from .probe_mfl_lineups import _fetch
 from .submitted_lineup import extract_submitted_lineup, LineupParseError
@@ -112,6 +112,13 @@ def run():
             page = fetch_authenticated_lineup(
                 year, league, franchise, opener, cookie, week=week, week_param=parameter,
             )
+            basic = SafeFormShape()
+            basic.feed(page)
+            print("LINEUP DRY RUN: variant=", parameter or "none",
+                  "hidden_weeks=", basic.safe_hidden_weeks,
+                  "checked_inputs=", basic.inputs_checked,
+                  "selected_options=", basic.options_selected,
+                  "form_count=", basic.form_count)
             try:
                 possible = extract_submitted_lineup(page, expected_starters=17)
             except LineupParseError:
