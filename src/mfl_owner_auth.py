@@ -513,16 +513,21 @@ def verify_owner_franchise(opener, year, session, league_id, franchise_id):
 
 
 
-def probe_owner_page(opener, year, league_id, franchise_id, week, session, report_code='06', include_f=True, include_week=True):
+def probe_owner_page(opener, year, league_id, franchise_id, week, session, report_code='06', include_f=True, include_week=True, endpoint='options'):
     """Retrieve owner-only MFL report without displaying or committing its contents."""
     args = {"L": league_id, "O": report_code}
     if include_week:
         args["WEEK"] = week
     if include_f:
         args["F"] = franchise_id
+    if endpoint == "lineup":
+        # The user's actual 2026 Submit Lineup URL; do not substitute an options report.
+        args = {"L": league_id, "FRANCHISE": franchise_id}
+    elif endpoint != "options":
+        raise ValueError("Unsupported MFL read-only endpoint")
     params = urlencode(args)
     request = urllib.request.Request(
-        f"https://www46.myfantasyleague.com/{int(year)}/options?{params}",
+        f"https://www46.myfantasyleague.com/{int(year)}/{endpoint}?{params}",
         headers={
             "Cookie": session,
             "User-Agent": "FantasyInjuryWatchBryce/1.0",
@@ -586,14 +591,9 @@ def run():
     try:
         cookie = owner_login(opener, season, username, password, league_id)
         print("AUTH PROBE: MFL owner login returned a session cookie (value hidden).")
-        owner_check = verify_owner_franchise(opener, season, cookie, league_id, franchise_id)
         result = probe_owner_page(
             opener, season, league_id, franchise_id, week, cookie,
-            report_code="02", include_f=False, include_week=False
-        )
-        alternate = probe_owner_page(
-            opener, season, league_id, franchise_id, week, cookie,
-            report_code="02", include_f=True, include_week=False
+            endpoint="lineup",
         )
     except OwnerAuthError as error:
         # Every raised exception is an allowlisted, credential-free category.
@@ -601,11 +601,7 @@ def run():
         return
     finally:
         cookie = ""
-    print("AUTH PROBE: owner-account franchise mapping:", owner_check)
-    print("AUTH PROBE: Submit Lineup O=02 without F/week params")
-    print("AUTH PROBE: O=02 with F only, form_shape=", alternate["form_shape"],
-          "table_count=", alternate["html_table_count"],
-          "visible_text_chars=", alternate["page_diagnostics"]["visible_text_chars"])
+    print("AUTH PROBE: user-supplied /2026/lineup page with L and FRANCHISE params")
     # All output is class/tag counts, not user-specific HTML or player details.
     public_fields = {k:v for k,v in result.items() if k not in ("table_shapes", "row_shapes")}
     print("AUTH PROBE: " + ", ".join(f"{key}={value}" for key, value in public_fields.items()))
