@@ -4,6 +4,9 @@ on:
     paths:
       - 'src/probe_mfl_lineups.py'
       - 'src/mfl_owner_auth.py'
+      - 'src/live_lineup_dry_run.py'
+      - 'src/lineup_replacements.py'
+      - 'src/submitted_lineup.py'
       - '.github/workflows/verify-mfl-pregame.yml'
   workflow_dispatch:
 
@@ -30,3 +33,14 @@ jobs:
           MFL_SEASON: ${{ vars.MFL_SEASON }}
           MFL_LINEUP_WEEK: '12'
         run: python -m src.mfl_owner_auth
+      - name: Simulate best eligible bench replacement (no lineup write)
+        env:
+          MFL_OWNER_USERNAME: ${{ secrets.MFL_OWNER_USERNAME }}
+          MFL_OWNER_PASSWORD: ${{ secrets.MFL_OWNER_PASSWORD }}
+          MFL_API_KEY: ${{ secrets.MFL_API_KEY }}
+          MFL_CLIENT_NAME: ${{ vars.MFL_CLIENT_NAME }}
+          MFL_LEAGUE_ID: ${{ vars.MFL_LEAGUE_ID }}
+          MFL_FRANCHISE_ID: ${{ vars.MFL_FRANCHISE_ID }}
+          MFL_SEASON: ${{ vars.MFL_SEASON }}
+          MFL_LINEUP_WEEK: '12'
+        run: python -m src.live_lineup_dry_run
