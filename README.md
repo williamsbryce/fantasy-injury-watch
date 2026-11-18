@@ -22,6 +22,14 @@ Public, passwordless fantasy injury dashboard at https://williamsbryce.github.io
 - Limitations: GitHub Actions schedules can run late or be missed; later Sunday games and late Out declarations after the one check are **not** covered; first live automatic swap for an actual Out starter and post-Thursday locked-player form behavior are not yet field-validated.
 - Policy and detailed design: `docs/automatic-lineup-policy.md` on branch `feature/out-starter-guard`. Existing injury dashboard sync and digest are separate from lineup writes.
 
+## Event log (November 18, 2026)
+- Dashboard tab: https://williamsbryce.github.io/fantasy-injury-watch/#event-log
+- Stores up to 200 UTC-timestamped, publicly visible operational records in `site/data/events.json`. Timestamps display in America/Regina on the website.
+- Incoming events are written by GitHub Actions through `src/audit_log.py` using optimistic concurrency, an allowlisted event schema and deduplicated run IDs. The dashboard fetches the live public history from GitHub directly because commits made by GitHub's workflow token do not start additional publication runs.
+- Injury-monitoring emails are recorded **only after Resend accepts the request**, which does not establish inbox delivery. Lineup guard records successful pregame checks, attempted submissions, exact saved-lineup verification, unresolved Out starters, and accepted notification emails.
+- The automated guard now checks audit persistence before a live MFL lineup POST. Sensitive email addresses, credentials, MFL cookies and private response content are intentionally omitted from the public history. Recorded lineup player names are visible to visitors because this is a public dashboard.
+- Logging started with a genuine activation event on November 18, 2026. No historic emails or lineup changes were retroactively invented. A maximum of 200 recent records is retained.
+
 ## Operating details
 - MFL read-only API exports: `rosters`, `players`, `injuries`. Missing feed or invalid roster identity fails closed, preserves last working report and warns if stale.
 - External news sources are optional: failure never suppresses or overwrites previously verified MFL injury designations. When a live MFL refresh fails, a separate step can update headline links without changing the last MFL sync timestamp.
