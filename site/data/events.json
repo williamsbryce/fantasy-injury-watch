@@ -1,5 +1,15 @@
 {
   "schema": 1,
-  "updated_at": null,
-  "events": []
+  "updated_at": "2026-11-18T22:59:13+00:00",
+  "events": [
+    {
+      "id": "44416656220-history-enabled",
+      "timestamp": "2026-11-18T22:59:13+00:00",
+      "kind": "system",
+      "status": "info",
+      "title": "Event history activated",
+      "detail": "Operational event tracking enabled. Future accepted emails and MFL lineup actions will appear here.",
+      "run_url": "https://github.com/williamsbryce/fantasy-injury-watch/actions/runs/44416656220"
+    }
+  ]
 }
