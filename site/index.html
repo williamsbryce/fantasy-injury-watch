@@ -23,9 +23,49 @@ button{border:0;border-radius:9px;background:#182b47;color:#fff;font-weight:700;
 button:disabled{opacity:.55;cursor:wait}.notice{font-size:12px;border-radius:9px;background:#fffaeb;border:1px solid #f4e5b5;padding:11px 13px;color:#755314;margin:14px 0}
 footer{text-align:center;color:var(--muted);font-size:12px;padding-top:25px}.hidden{display:none!important}.msg{margin-top:9px;color:var(--red);font-size:13px}
 @media(max-width:520px){main{padding:21px 14px 45px}h1{font-size:24px}.top{align-items:start;flex-direction:column}.panel{padding:16px}section{margin-top:22px}}
+
+/* Two-view navigation and transparent operating guide */
+.tabs{display:flex;align-items:center;gap:5px;padding:5px;border:1px solid var(--stroke);background:#eaf0f7;border-radius:12px;margin:-7px 0 23px}
+.tab{flex:1;margin:0;min-height:42px;padding:10px 13px;background:transparent;color:#53647b;font-weight:750;border-radius:8px}
+.tab:hover{background:#f7f9fd;color:var(--ink)}.tab[aria-selected="true"]{background:#fff;color:#182b47;box-shadow:0 1px 6px rgba(25,38,59,.11)}
+.tab:focus-visible{outline:3px solid #5988d2;outline-offset:2px}
+.guide-lede{font-size:14px;color:#5b677b;margin:8px 0 22px;max-width:640px}
+.guide-topline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.guide-topline h1{margin:0}.guide-tag{background:#e7eef8;color:#315782;font-size:11px;font-weight:800;border-radius:8px;padding:5px 9px;white-space:nowrap}
+.guide-kicker{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#69798f;margin-bottom:7px}
+.guide-card{background:#fff;border:1px solid var(--stroke);border-radius:15px;padding:20px;margin:15px 0;box-shadow:0 2px 10px rgba(20,31,49,.025)}
+.guide-card h2{font-size:18px;letter-spacing:-.35px;margin:0 0 7px;display:block}
+.guide-desc{color:#5d6980;font-size:13px;margin:0 0 16px}
+.schedule-list{display:grid;grid-template-columns:1fr;gap:0}
+.schedule-row{display:grid;grid-template-columns:172px minmax(0,1fr);gap:14px;padding:12px 0;border-top:1px solid var(--stroke);font-size:13px}
+.schedule-row:first-child{border-top:0;padding-top:0}
+.schedule-label{font-weight:760;color:#1c304b}.schedule-body{color:#55637a}.schedule-body strong{color:#20344c}
+.schedule-note{font-size:12px;color:#5c6c81;margin:12px 0 0}
+.section-kicker{display:flex;align-items:center;gap:9px;font-weight:800;font-size:12px;letter-spacing:.3px;margin:0 0 9px}
+.section-kicker .mini-dot{height:9px;width:9px;border-radius:50%;background:#305e9a}
+.how-steps{list-style:none;counter-reset:decision;padding:0;margin:9px 0 0}
+.how-steps li{position:relative;padding:0 0 18px 43px;min-height:45px}
+.how-steps li:not(:last-child):before{content:"";position:absolute;left:15px;top:30px;bottom:0;width:1px;background:#d5deeb}
+.how-steps li:after{counter-increment:decision;content:counter(decision);position:absolute;top:0;left:0;height:30px;width:30px;display:grid;place-items:center;border:1px solid #cadef3;border-radius:50%;font-size:12px;font-weight:850;background:#eaf2fb;color:#234b7d}
+.how-steps strong{display:block;font-size:14px;line-height:1.4;color:#1c304b}
+.how-steps p{margin:3px 0 0;font-size:13px;color:#5b6880}
+.how-steps li:last-child{padding-bottom:0}
+.guide-split{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.guide-split>div{border:1px solid #e5eaf2;border-radius:11px;padding:13px;background:#fafbfd}
+.guide-split strong{display:block;font-size:13px;margin-bottom:5px}
+.guide-split p{font-size:12px;color:#5b6b81;margin:0}
+.guide-warning{background:#fff8eb;border:1px solid #efdfba;color:#74521c;padding:13px 15px;border-radius:11px;font-size:12px;margin:16px 0 0}
+.guide-footer{font-size:12px;color:var(--muted);margin:18px 0 0}
+.guide-footer a{color:var(--blue)}
+@media(max-width:520px){.tab{padding:10px 7px;font-size:13px}.guide-card{padding:16px}.schedule-row{grid-template-columns:1fr;gap:3px}.guide-split{grid-template-columns:1fr}.guide-topline{display:block}.guide-tag{display:inline-block;margin-top:9px}}
 </style>
 </head><body><main>
 <header><div class="logo"><div class="mark">✚</div><span>Injury Watch</span></div><span id="mode" class="pill">NOT CONNECTED</span></header>
+<nav class="tabs" role="tablist" aria-label="Dashboard views">
+  <button class="tab" type="button" role="tab" id="tab-injuries" aria-selected="true" aria-controls="injuriesTab" tabindex="0" data-tab="injuries">Player alerts</button>
+  <button class="tab" type="button" role="tab" id="tab-guide" aria-selected="false" aria-controls="guideTab" tabindex="-1" data-tab="guide">How it works</button>
+</nav>
+<div id="injuriesTab" role="tabpanel" aria-labelledby="tab-injuries">
 <div id="loading" class="panel" role="status">Loading the latest injury report…</div>
 <div id="errorPanel" class="panel hidden" role="alert">Could not load the latest report. <button type="button" onclick="location.reload()">Retry</button><div id="error" class="msg"></div></div>
 <div id="report" class="hidden" aria-live="polite">
@@ -35,7 +75,72 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding-top:25px}.hid
   <section class="watch" id="watchSection"><h2><span class="dot"></span> Keep an eye on <span id="watchCount"></span></h2><div id="watchers"></div></section>
   <div class="good hidden" id="allClear">No rostered players currently have an injury designation in the latest MFL feed. This is not an official inactive confirmation.</div>
 </div>
-<footer>Public read-only dashboard · MFL injury designations and linked RotoWire news · No lineup changes</footer>
+</div>
+<section id="guideTab" role="tabpanel" aria-labelledby="tab-guide" class="hidden" tabindex="0">
+  <div class="guide-topline"><div><div class="guide-kicker">Operating guide · CFFL Dynasty</div><h1>How Injury Watch works</h1></div><span class="guide-tag">Saskatchewan time (UTC−6)</span></div>
+  <p class="guide-lede">What the dashboard checks, when email is sent, and how the separate automatic lineup guard chooses a replacement. These are <strong>configured schedules and rules</strong>, not a live guarantee that every check succeeded.</p>
+
+  <div class="guide-card">
+    <div class="section-kicker"><span class="mini-dot"></span> Routine monitoring</div>
+    <h2>Injury and article updates</h2>
+    <p class="guide-desc">The dashboard checks MyFantasyLeague injury designations and searches the public RotoWire injury headlines during the same scheduled run.</p>
+    <div class="schedule-list">
+      <div class="schedule-row"><div class="schedule-label">Every day · 3 hours</div><div class="schedule-body"><strong>12:17, 3:17, 6:17, 9:17 a.m.</strong> and <strong>12:17, 3:17, 6:17, 9:17 p.m.</strong></div></div>
+      <div class="schedule-row"><div class="schedule-label">Thursday · extra checks</div><div class="schedule-body">4:47 p.m., 5:00 p.m., and 5:47 p.m., in addition to the regular 3-hour schedule.</div></div>
+      <div class="schedule-row"><div class="schedule-label">Sunday · extra checks</div><div class="schedule-body">10:30 a.m., 4:47 p.m., and 5:47 p.m., in addition to the regular 3-hour schedule.</div></div>
+      <div class="schedule-row"><div class="schedule-label">Articles shown</div><div class="schedule-body">The <strong>latest matching public RotoWire injury or practice headline</strong> for each flagged player, if one is available. The broader RotoWire page is used first, with RSS fallback.</div></div>
+      <div class="schedule-row"><div class="schedule-label">If MFL is unavailable</div><div class="schedule-body">Retain the last successful injury data and try refreshing article links independently. The stale-report notice warns you about older data.</div></div>
+    </div>
+    <p class="schedule-note">Checking the website does not trigger a fresh API call. The website reads the last successfully published report, and new articles appear only when a scheduled run finds a match.</p>
+  </div>
+
+  <div class="guide-card">
+    <div class="section-kicker"><span class="mini-dot"></span> Your inbox</div>
+    <h2>Email notification rules</h2>
+    <div class="schedule-list">
+      <div class="schedule-row"><div class="schedule-label">Thursday summary</div><div class="schedule-body"><strong>5:00 p.m.</strong> onward. One scheduled injury digest per day if email is enabled and delivery succeeds.</div></div>
+      <div class="schedule-row"><div class="schedule-label">Sunday summary</div><div class="schedule-body"><strong>10:30 a.m.</strong> onward. One scheduled injury digest per day if email is enabled and delivery succeeds.</div></div>
+      <div class="schedule-row"><div class="schedule-label">New urgent injury</div><div class="schedule-body">An email is triggered when an MFL injury-monitoring run detects a newly urgent Out/Inactive-type status. This is checked at the <strong>next scheduled poll</strong>, not instantly when news breaks.</div></div>
+      <div class="schedule-row"><div class="schedule-label">Automatic swap</div><div class="schedule-body">A separate email after a lineup substitution is <strong>verified on MFL</strong>, identifying the players moved and the replacement's recent scoring.</div></div>
+      <div class="schedule-row"><div class="schedule-label">Unable to resolve</div><div class="schedule-body">An action-required email if an Out starter has no safe replacement, or if authentication, lineup validation, submission or readback cannot be confirmed.</div></div>
+    </div>
+    <p class="schedule-note">Routine injury summary emails and the automatic substitution emails are separate. No email is required when the lineup guard finds no Out/Inactive starters.</p>
+  </div>
+
+  <div class="guide-card">
+    <div class="section-kicker"><span class="mini-dot"></span> Your starting lineup</div>
+    <h2>Automatic substitutions</h2>
+    <p class="guide-desc">Only the first Thursday and first Sunday NFL game windows are covered. The guard calculates kickoff times from the current schedule rather than using a fixed local hour.</p>
+    <div class="schedule-list">
+      <div class="schedule-row"><div class="schedule-label">Thursday check</div><div class="schedule-body">One scheduled pregame evaluation, roughly <strong>35 to under 95 minutes before the first Thursday kickoff</strong>.</div></div>
+      <div class="schedule-row"><div class="schedule-label">Sunday check</div><div class="schedule-body">One scheduled pregame evaluation, roughly <strong>35 to under 95 minutes before the first Sunday kickoff</strong>. It may be earlier when international games are scheduled.</div></div>
+      <div class="schedule-row"><div class="schedule-label">What can change</div><div class="schedule-body">Only a <strong>confirmed Out or Inactive starter</strong> can be replaced. All unaffected starters stay in place. The guard does not add players to your roster or rearrange healthy starters.</div></div>
+    </div>
+    <p class="schedule-note">Hourly GitHub schedule triggers only evaluate whether it is the right pregame window. They do <strong>not</strong> change your lineup hourly. Manual guard runs are read-only.</p>
+  </div>
+
+  <div class="guide-card">
+    <div class="section-kicker"><span class="mini-dot"></span> Replacement selection</div>
+    <h2>Decision tree: who goes in?</h2>
+    <ol class="how-steps">
+      <li><strong>Is a currently selected starter confirmed Out or Inactive?</strong><p><b>No:</b> leave the lineup unchanged. Questionable or Doubtful starters are not automatically removed.</p></li>
+      <li><strong>Is that starter's game still unlocked?</strong><p><b>No:</b> do not attempt the swap; flag that starter as unresolved.</p></li>
+      <li><strong>Which bench players are eligible?</strong><p>Only players on your active roster, selectable in MFL, at the <b>same position</b>, and playing a game that has not started. Exclude bye weeks, IR/taxi and anyone Questionable, Doubtful, Out, Inactive, or with an unclear injury status.</p></li>
+      <li><strong>Rank by recent fantasy performance</strong><p>Calculate average <b>CFFL fantasy points</b> from the last <b>three available completed weekly scoring records</b>, looking back as far as six weeks. A player with fewer records uses those available; missing scores are not assumed to be zero. Highest average wins; ties favour more recorded games, then player ID.</p></li>
+      <li><strong>Is a safe replacement available?</strong><p><b>Yes:</b> replace only that Out starter. <b>No:</b> leave that spot alone and email you. If another Out starter can be replaced, make that independent change.</p></li>
+      <li><strong>Has your lineup changed since it was checked?</strong><p><b>Yes:</b> stop rather than overwrite your changes. <b>No:</b> submit the complete lineup through MFL's authenticated native form once.</p></li>
+      <li><strong>Did MFL save exactly the intended lineup?</strong><p>Read it back and verify all <b>17 starters</b>. Email confirmed changes and any unresolved players. If verification fails, send an urgent warning instead of claiming success. Do not retry or reverse the write automatically.</p></li>
+    </ol>
+    <div class="guide-split">
+      <div><strong>Example: valid swap</strong><p>Your starting RB is Out. Two healthy RBs remain eligible on your bench. The one with the higher recent CFFL points average is selected; your other 16 starters are preserved.</p></div>
+      <div><strong>Example: partial solution</strong><p>Your RB and LB are both Out, but only the RB has a healthy replacement. The RB is swapped, the LB is left alone, and the email identifies the unresolved LB.</p></div>
+    </div>
+    <div class="guide-warning"><strong>Timing limitation:</strong> You chose one Thursday and one Sunday pregame check. A player ruled Out <em>after</em> the Sunday check can be missed. GitHub Actions schedules are best-effort, so execution can also be delayed. These checks use MFL injury statuses, not a guaranteed live feed of official NFL inactive announcements.</div>
+  </div>
+
+  <p class="guide-footer">Configured for CFFL Dynasty, season 2026, franchise 0001. The website itself cannot change your lineup; only the separate authenticated scheduled job can. <a href="https://github.com/williamsbryce/fantasy-injury-watch/actions" target="_blank" rel="noopener noreferrer">View GitHub Actions run history ↗</a></p>
+</section>
+<footer>Public injury dashboard · MFL designations and RotoWire headlines · Separate scheduled lineup guard</footer>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -99,6 +204,35 @@ async function loadReport(){
    txt($('error'),e.message||'Unable to load report.');
  }
 }
+function showTab(tab, updateHash=true){
+ const guide=tab==='guide';
+ $('injuriesTab').classList.toggle('hidden',guide);
+ $('guideTab').classList.toggle('hidden',!guide);
+ for(const id of ['injuries','guide']){
+  const button=$('tab-'+id);
+  const selected=(id==='guide')===guide;
+  button.setAttribute('aria-selected',String(selected));
+  button.tabIndex=selected?0:-1;
+ }
+ if(updateHash){
+  const hash=guide?'#how-it-works':'#player-alerts';
+  history.replaceState(null,'',location.pathname+location.search+hash);
+ }
+}
+for(const button of document.querySelectorAll('[data-tab]')){
+ button.addEventListener('click',()=>showTab(button.dataset.tab));
+ button.addEventListener('keydown',event=>{
+  if(!['ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
+  event.preventDefault();
+  const next=event.key==='Home'?'injuries':event.key==='End'?'guide':
+   button.dataset.tab==='injuries'?'guide':'injuries';
+  showTab(next);
+  $('tab-'+next).focus();
+ });
+}
+function syncTabFromHash(){showTab(location.hash==='#how-it-works'?'guide':'injuries',false);}
+window.addEventListener('hashchange',syncTabFromHash);
+syncTabFromHash();
 loadReport();
 </script>
 </body></html>
