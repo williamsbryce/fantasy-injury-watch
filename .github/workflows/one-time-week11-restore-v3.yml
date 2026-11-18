@@ -1,0 +1,42 @@
+name: CFFL one-time Week 11 restore test v3
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/one-time-week11-restore-v3.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: only-cffl-week11-restore-test-v3
+  cancel-in-progress: false
+
+jobs:
+  verify-swap-and-restore:
+    if: ${{ github.actor == 'williamsbryce' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out authorized test source from development branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/out-starter-guard
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reconfirm offline parser and rollback safety
+        run: |
+          python -m unittest discover -s tests -p 'test_submitted_lineup.py' -v
+          python -m unittest discover -s tests -p 'test_manual_lineup_test.py' -v
+          python -m unittest discover -s tests -p 'test_reversible_lineup_test.py' -v
+      - name: Live test Cedric Gray to Anthony Hill Jr and restore
+        env:
+          MFL_OWNER_USERNAME: ${{ secrets.MFL_OWNER_USERNAME }}
+          MFL_OWNER_PASSWORD: ${{ secrets.MFL_OWNER_PASSWORD }}
+          MFL_API_KEY: ${{ secrets.MFL_API_KEY }}
+          LIVE_REVERSIBLE_TEST: AUTHORIZED_CEDRIC_GRAY_TO_ANTHONY_HILL_WEEK_11
+        run: python -m src.reversible_lineup_test
