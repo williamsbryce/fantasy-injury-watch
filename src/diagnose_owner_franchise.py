@@ -11,7 +11,6 @@ import urllib.request
 from html.parser import HTMLParser
 
 from .mfl_owner_auth import _make_opener, owner_login, OwnerAuthError
-from .live_lineup_dry_run import fetch_authenticated_lineup
 from .submitted_lineup import extract_submitted_lineup, LineupParseError
 
 
@@ -75,6 +74,7 @@ def run():
     if not username or not password:
         print("FRANCHISE DIAGNOSTIC: owner credentials missing")
         return
+    from .live_lineup_dry_run import fetch_authenticated_lineup
     opener = _make_opener()
     phase = "login"
     try:
