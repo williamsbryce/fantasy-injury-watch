@@ -12,6 +12,10 @@ on:
     - cron: '17 */3 * * *'
     # Extra evening checks around Thursday and Sunday game windows (UTC).
     - cron: '47 22,23 * * 0,4'
+    # Summary delivery checks: Thursday 17:00 and Sunday 10:30 Saskatchewan
+    # (UTC-6 year-round). GitHub Actions schedules are best-effort.
+    - cron: '0 23 * * 4'
+    - cron: '30 16 * * 0'
 
 permissions:
   contents: write
