@@ -7,6 +7,8 @@ on:
       - 'tests/test_mfl_owner_auth.py'
       - 'src/submitted_lineup.py'
       - 'tests/test_submitted_lineup.py'
+      - 'src/lineup_replacements.py'
+      - 'tests/test_lineup_replacements.py'
       - 'src/model.py'
       - 'src/probe_mfl_lineups.py'
       - '.github/workflows/lineup-guard-tests.yml'
@@ -30,6 +32,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_lineup_guard.py' -v
           python -m unittest discover -s tests -p 'test_mfl_owner_auth.py' -v
           python -m unittest discover -s tests -p 'test_submitted_lineup.py' -v
+          python -m unittest discover -s tests -p 'test_lineup_replacements.py' -v
       - name: Run read-only MFL export probe
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         env:
