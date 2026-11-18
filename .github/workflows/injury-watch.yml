@@ -1,13 +1,5 @@
 name: Injury Watch (read-only)
 on:
-  push:
-    branches: [main]
-    paths:
-      - "src/main.py"
-      - "tests/test_core.py"
-      - "src/news.py"
-      - "src/migrate.py"
-      - "src/enrich_cached.py"
   workflow_dispatch:
     inputs:
       send_test_email:
@@ -36,7 +28,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || (vars.MFL_LEAGUE_ID != '' && vars.MFL_FRANCHISE_ID != '') }}
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code and previous encrypted report
+      - name: Check out code and previous report
         uses: actions/checkout@v4
         with:
           persist-credentials: true
@@ -60,7 +52,6 @@ jobs:
           MFL_FRANCHISE_ID: ${{ vars.MFL_FRANCHISE_ID }}
           MFL_LEAGUE_NAME: ${{ vars.MFL_LEAGUE_NAME }}
           MFL_SEASON: ${{ vars.MFL_SEASON }}
-          REPORT_PASSPHRASE: ${{ secrets.REPORT_PASSPHRASE }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           SEND_TEST_EMAIL: ${{ github.event_name == 'workflow_dispatch' && inputs.send_test_email || false }}
           EMAIL_ENABLED: ${{ vars.EMAIL_ENABLED }}
@@ -105,7 +96,7 @@ jobs:
         run: test -s site/data/report.json
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-      - name: Upload encrypted Pages site
+      - name: Upload public Pages site
         uses: actions/upload-pages-artifact@v4
         with:
           path: ./site
