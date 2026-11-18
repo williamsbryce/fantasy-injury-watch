@@ -2,13 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f172a"><title>Injury Watch | Fantasy Football</title>
+<meta name="theme-color" content="#0f172a"><title>BAW's Injury Watch Tool</title>
 <style>
 :root{color-scheme:light;--bg:#f5f7fb;--ink:#162337;--muted:#6d7890;--stroke:#e5eaf2;--red:#c72839;--yellow:#9f690c;--blue:#244b83}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 main{max-width:780px;margin:auto;padding:27px 20px 70px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:25px}
 .logo{display:flex;align-items:center;gap:12px;font-size:19px;font-weight:780;letter-spacing:-.4px}.mark{background:#142743;border-radius:11px;color:white;width:40px;height:40px;display:grid;place-items:center;font-size:21px}
-.pill{font-size:11px;font-weight:800;letter-spacing:.7px;padding:5px 9px;border-radius:8px;background:#e2e9f4;color:#4a5d78}
 small,.meta{color:var(--muted)}.meta{font-size:13px}.top{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:18px}
 h1{font-size:26px;letter-spacing:-.8px;line-height:1.2;margin:0 0 5px}h2{font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
 h2 .dot{width:10px;height:10px;border-radius:50%;background:#df4356}.watch .dot{background:#e8a83e}
@@ -29,10 +28,6 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding-top:25px}.hid
 .tab{flex:1;margin:0;min-height:42px;padding:10px 13px;background:transparent;color:#53647b;font-weight:750;border-radius:8px}
 .tab:hover{background:#f7f9fd;color:var(--ink)}.tab[aria-selected="true"]{background:#fff;color:#182b47;box-shadow:0 1px 6px rgba(25,38,59,.11)}
 .tab:focus-visible{outline:3px solid #5988d2;outline-offset:2px}
-.guide-lede{font-size:14px;color:#5b677b;margin:8px 0 22px;max-width:640px}
-.guide-topline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.guide-topline h1{margin:0}.guide-tag{background:#e7eef8;color:#315782;font-size:11px;font-weight:800;border-radius:8px;padding:5px 9px;white-space:nowrap}
-.guide-kicker{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#69798f;margin-bottom:7px}
 .guide-card{background:#fff;border:1px solid var(--stroke);border-radius:15px;padding:20px;margin:15px 0;box-shadow:0 2px 10px rgba(20,31,49,.025)}
 .guide-card h2{font-size:18px;letter-spacing:-.35px;margin:0 0 7px;display:block}
 .guide-desc{color:#5d6980;font-size:13px;margin:0 0 16px}
@@ -57,13 +52,13 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding-top:25px}.hid
 .guide-warning{background:#fff8eb;border:1px solid #efdfba;color:#74521c;padding:13px 15px;border-radius:11px;font-size:12px;margin:16px 0 0}
 .guide-footer{font-size:12px;color:var(--muted);margin:18px 0 0}
 .guide-footer a{color:var(--blue)}
-@media(max-width:520px){.tab{padding:10px 7px;font-size:13px}.guide-card{padding:16px}.schedule-row{grid-template-columns:1fr;gap:3px}.guide-split{grid-template-columns:1fr}.guide-topline{display:block}.guide-tag{display:inline-block;margin-top:9px}}
+@media(max-width:520px){.tab{padding:10px 7px;font-size:13px}.guide-card{padding:16px}.schedule-row{grid-template-columns:1fr;gap:3px}.guide-split{grid-template-columns:1fr}}
 </style>
 </head><body><main>
-<header><div class="logo"><div class="mark">✚</div><span>Injury Watch</span></div><span id="mode" class="pill">NOT CONNECTED</span></header>
+<header><div class="logo"><div class="mark">✚</div><span>BAW's Injury Watch Tool</span></div></header>
 <nav class="tabs" role="tablist" aria-label="Dashboard views">
   <button class="tab" type="button" role="tab" id="tab-injuries" aria-selected="true" aria-controls="injuriesTab" tabindex="0" data-tab="injuries">Player alerts</button>
-  <button class="tab" type="button" role="tab" id="tab-guide" aria-selected="false" aria-controls="guideTab" tabindex="-1" data-tab="guide">How it works</button>
+  <button class="tab" type="button" role="tab" id="tab-guide" aria-selected="false" aria-controls="guideTab" tabindex="-1" data-tab="guide">How it Works</button>
 </nav>
 <div id="injuriesTab" role="tabpanel" aria-labelledby="tab-injuries">
 <div id="loading" class="panel" role="status">Loading the latest injury report…</div>
@@ -77,8 +72,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding-top:25px}.hid
 </div>
 </div>
 <section id="guideTab" role="tabpanel" aria-labelledby="tab-guide" class="hidden" tabindex="0">
-  <div class="guide-topline"><div><div class="guide-kicker">Operating guide · CFFL Dynasty</div><h1>How Injury Watch works</h1></div><span class="guide-tag">Saskatchewan time (UTC−6)</span></div>
-  <p class="guide-lede">What the dashboard checks, when email is sent, and how the separate automatic lineup guard chooses a replacement. These are <strong>configured schedules and rules</strong>, not a live guarantee that every check succeeded.</p>
+  <h1>How it Works</h1>
 
   <div class="guide-card">
     <div class="section-kicker"><span class="mini-dot"></span> Routine monitoring</div>
@@ -191,7 +185,7 @@ function render(doc){
  const oldFeed=feedTimes.some(x=>Date.now()-x>36*3600_000);
  const oldSync=!Number.isFinite(Date.parse(doc.synced_at))||Date.now()-Date.parse(doc.synced_at)>6*3600_000;
  $('stale').classList.toggle('hidden',!(oldSync||oldFeed));
- $('mode').textContent='READ ONLY';$('loading').classList.add('hidden');$('report').classList.remove('hidden');
+ $('loading').classList.add('hidden');$('report').classList.remove('hidden');
 }
 async function loadReport(){
  try{
@@ -200,7 +194,6 @@ async function loadReport(){
    const doc=await response.json();render(doc);
  }catch(e){
    $('loading').classList.add('hidden');$('errorPanel').classList.remove('hidden');
-   txt($('mode'),'DATA UNAVAILABLE');
    txt($('error'),e.message||'Unable to load report.');
  }
 }
