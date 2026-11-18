@@ -244,3 +244,20 @@ class TestNewsIntegration(unittest.TestCase):
    result=fetch_recent_news()
   self.assertEqual(result[0]['title'],'Test Smith: Limited at practice')
   self.assertEqual(len(result),1)
+
+
+class TestCachedNewsFallback(unittest.TestCase):
+ def test_cache_enrichment_preserves_last_verified_injury_timestamp(self):
+  import tempfile, json
+  from pathlib import Path
+  from unittest.mock import patch
+  from src import enrich_cached
+  with tempfile.TemporaryDirectory() as td:
+   report=Path(td)/"public.json"
+   doc={"schema":1,"synced_at":"2026-11-17T17:17:12Z","leagues":[parse_report(FIXTURE,LEAGUE)]}
+   report.write_text(json.dumps(doc))
+   with patch.object(enrich_cached,"PUBLIC_PATH",report),patch.object(enrich_cached,"fetch_recent_news",return_value=[]):
+    enrich_cached.run()
+   after=json.loads(report.read_text())
+   self.assertEqual(after["synced_at"],doc["synced_at"])
+   self.assertIn("PLAYERS=111",after["leagues"][0]["alerts"][0]["mfl_news_url"])
