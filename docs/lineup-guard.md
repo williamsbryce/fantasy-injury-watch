@@ -53,6 +53,15 @@ No code in this branch calls MFL's write API or changes a lineup.
 - Current blocker: obtain the **exact Submit Lineup page URL from the owner's signed-in browser**, without credentials or tokens, then determine which authenticated endpoint supplies that page's actual starter IDs. If the HTML is client-rendered, inspect the loading endpoint. Do not assume the form exists server-side.
 - The user was told that owner login works, but **the live Week 12 lineup has not been extracted**. Do not merge automatic lineup writes. Last successful GitHub Actions owner diagnostic was read-only.
 
+## Actual owner lineup URL: verified (November 18, 2026 UTC)
+- Owner provided the exact signed-in MFL URL: `https://www46.myfantasyleague.com/2026/lineup?L=40298&FRANCHISE=0001`.
+- This is the **correct** pregame lineup read endpoint. Prior `options?O=02` tests were targeting the wrong page.
+- Authenticated read-only GET returns a POST form with **17 checked player selections**. The strict `src/submitted_lineup.py` parser successfully extracted 17 unique numeric starting player IDs and 53 selectable numeric player IDs without logging the IDs or any personal credentials. This matches the owner's submitted lineup count.
+- Pure replacement planner in `src/lineup_replacements.py` filters out non-active roster entries, injury-flagged players, and teams without an NFL game, choosing the highest MFL league average from selectable same-position bench players. It creates a full proposed starter list while preserving every unchanged starter. All synthetic unit tests passed; the planner is **not wired into an active lineup writer**.
+- GitHub Actions runs read-only, no POST to MFL lineup import. It does not write starting lineups or alter the live dashboard or alerts.
+- The full live simulation is **not verified end-to-end yet** because MFL's `nflSchedule` export intermittently returns an error both with and without an API key. The separate MFL injuries export also intermittently fails, although one successful authenticated retry was verified. Keep automatic writes disabled.
+- Next steps: obtain a dependable week's NFL team schedule/bye lookup, validate the lineup constraints and cached/fresh source timestamps, and implement a tightly gated lineup import with full-list preservation plus post-write verification. The import must never be enabled without tested success/failure handling and a manual stop switch.
+
 ## Still required before production activation
 1. Retrieve the owner's **submitted upcoming starting lineup** through an authenticated MFL Starting Lineups report or equivalent source. Compare the result to the owner's known Week 12 lineup before relying on it; the league API key and pregame weeklyResults did not return starter IDs.
 2. Fetch the league's actual starting-position limits and scoring/
