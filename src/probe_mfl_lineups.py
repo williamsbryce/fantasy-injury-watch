@@ -119,6 +119,60 @@ def _summarize_other(data, kind, week):
               f"current_week_present={'currentWeek' in root}")
 
 
+
+def _probe_starting_lineups_site(year, league_id):
+    """Inspect public MFL report navigation and HTML without logging names/IDs."""
+    import re
+    from html import unescape
+    from urllib.parse import urlsplit, parse_qs
+    base = f"https://www.myfantasyleague.com/{year}"
+    pages = (
+        ("home", f"{base}/home/{league_id}"),
+        ("submit", f"{base}/options?L={league_id}&O=02&W=12"),
+        ("report05", f"{base}/options?L={league_id}&O=05&W=12"),
+        ("report06", f"{base}/options?L={league_id}&O=06&W=12"),
+    )
+    for name,url in pages:
+        req = urllib.request.Request(url,headers={
+            "User-Agent":"Mozilla/5.0 (compatible; FantasyInjuryWatchBryce/1.0)",
+            "Accept":"text/html",
+        })
+        try:
+            with urllib.request.urlopen(req,timeout=18) as response:
+                page=response.read(800_000).decode("utf-8","replace")
+                print(f"WEB {name}: HTTP={response.status} final_host={urlsplit(response.url).hostname} "
+                      f"html_size={len(page)}")
+        except urllib.error.HTTPError as e:
+            print(f"WEB {name}: HTTP={e.code}")
+            continue
+        except (OSError, urllib.error.URLError, TimeoutError):
+            print(f"WEB {name}: network_error")
+            continue
+        normalized=re.sub(r"<script\b[^>]*>.*?</script>", " ", page, flags=re.I|re.S)
+        normalized=re.sub(r"<style\b[^>]*>.*?</style>", " ", normalized, flags=re.I|re.S)
+        login=bool(re.search(r"please log ?in|login required|log ?in to",normalized,re.I))
+        markers = {
+            "starting_lineups":bool(re.search(r"Starting Lineups",normalized,re.I)),
+            "submit_lineups":bool(re.search(r"Submit Lineup",normalized,re.I)),
+            "franchise":bool(re.search(r"franchise",normalized,re.I)),
+            "week12":bool(re.search(r"Week 12",normalized,re.I)),
+            "login_required":login,
+        }
+        print(f"WEB {name}: markers={markers}")
+        links=[]
+        for match in re.finditer(r'<a\b[^>]*href\s*=\s*(["\'])(.*?)\1[^>]*>(.*?)</a>',
+                                 normalized,re.I|re.S):
+            label=re.sub(r'<[^>]*>', ' ', match.group(3))
+            if not re.search(r'starting lineups|submit lineups|weekly results',unescape(label),re.I):
+                continue
+            parsed=urlsplit(unescape(match.group(2)))
+            query=parse_qs(parsed.query)
+            opts={k: query[k][0] for k in ("O","R") if k in query}
+            links.append((unescape(label).strip()[:36],parsed.path.split("/")[-1],opts))
+            if len(links)>=10:
+                break
+        print(f"WEB {name}: report_link_formats={links}")
+
 def run():
     key = os.environ.get("MFL_API_KEY", "")
     league_id = os.environ.get("MFL_LEAGUE_ID", "")
@@ -140,6 +194,7 @@ def run():
             _summarize_lineup(data, franchise_id, week)
         else:
             _summarize_other(data, kind, week)
+    _probe_starting_lineups_site(int(season), league_id)
     print("PROBE COMPLETE: no lineup data, names, tokens or URLs were logged or published.")
 
 
