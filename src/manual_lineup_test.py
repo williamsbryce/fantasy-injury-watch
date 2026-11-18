@@ -63,6 +63,44 @@ def check_approval(mode, phrase, out_id, in_id, week, event, attempt):
     return True
 
 
+def classify_import_body(body, content_type):
+    """Allowlisted response metadata only. Never log untrusted body text."""
+    raw = bytes(body or b"")
+    mime = str(content_type or "").lower()
+    if "xml" in mime:
+        mime_category = "xml"
+    elif "html" in mime:
+        mime_category = "html"
+    elif "json" in mime:
+        mime_category = "json"
+    elif mime.startswith("text/"):
+        mime_category = "text"
+    elif not mime:
+        mime_category = "absent"
+    else:
+        mime_category = "other"
+
+    stripped = raw.lstrip()
+    lower = stripped[:256].lower()
+    if not stripped:
+        body_category = "empty"
+    elif lower.startswith((b"<!doctype", b"<html")) or b"<html" in lower:
+        body_category = "html"
+    elif lower.startswith((b"{", b"[")):
+        body_category = "json_like"
+    elif lower.startswith(b"<?xml") or lower.startswith(b"<"):
+        body_category = "malformed_markup"
+    elif all((32 <= c <= 126 or c in (9, 10, 13)) for c in stripped[:256]):
+        body_category = "plain_text"
+    else:
+        body_category = "binary_or_unrecognized"
+    return {
+        "mime_category": mime_category,
+        "body_category": body_category,
+        "byte_count": len(raw),
+    }
+
+
 def submit_full_lineup(opener, cookie, year, league, week, proposed):
     """One POST to league's own host; never follows redirects as successful writes."""
     if len(proposed) != 17 or len(set(proposed)) != 17:
@@ -86,9 +124,15 @@ def submit_full_lineup(opener, cookie, year, league, week, proposed):
     )
     try:
         with opener.open(request,timeout=30) as result:
-            if result.status not in (200,201,202):
-                raise ManualSwapError("MFL lineup submission was not accepted")
-            response = result.read(100_000)
+            status = int(result.status)
+            mime = str(result.headers.get("Content-Type") or "").split(";", 1)[0].strip().lower()
+            # MFL may return an intermediate page on its league host. Do
+            # not print or store response content, location, or request URL.
+            response = result.read(100_001)
+            if len(response) > 100_000:
+                raise ManualSwapError("MFL import response exceeded 100KB limit")
+            if status not in (200,201,202):
+                raise ManualSwapError("MFL import rejected HTTP " + str(status))
     except OwnerAuthError:
         raise ManualSwapError("MFL import redirected; refusing an unsafe POST-to-GET replay") from None
     except urllib.error.HTTPError as error:
@@ -98,9 +142,13 @@ def submit_full_lineup(opener, cookie, year, league, week, proposed):
     try:
         root = ET.fromstring(response)
     except ET.ParseError:
-        if b"<html" in response.lower() or b"<!doctype html" in response.lower():
-            raise ManualSwapError("MFL import returned HTML rather than XML") from None
-        raise ManualSwapError("MFL import returned a non-XML response") from None
+        kind = classify_import_body(response, mime)
+        raise ManualSwapError(
+            "MFL import response invalid: HTTP " + str(status) +
+            ", mime=" + kind["mime_category"] +
+            ", body=" + kind["body_category"] +
+            ", bytes=" + str(kind["byte_count"])
+        ) from None
     if root.tag.lower() == "error":
         safe = " ".join(root.itertext()).lower()
         if "logged in" in safe or "log in" in safe or "authorization" in safe:
