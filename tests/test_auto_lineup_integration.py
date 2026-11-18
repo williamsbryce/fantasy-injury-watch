@@ -32,6 +32,7 @@ class AutoLineupIntegrationTests(unittest.TestCase):
             "MFL_SEASON": "2026", "MFL_LEAGUE_ID": "40298",
             "MFL_FRANCHISE_ID": "0001", "MFL_OWNER_USERNAME": "fake",
             "MFL_OWNER_PASSWORD": "fake", "MFL_API_KEY": "fake",
+            "AUDIT_GITHUB_TOKEN": "fake",
             "RESEND_API_KEY": "fake", "ALERT_FROM": "sender@test.example",
             "ALERT_TO": "recipient@test.example",
         }
@@ -68,6 +69,7 @@ class AutoLineupIntegrationTests(unittest.TestCase):
         self.selector = mock("select_replacements", self.plan)
         self.prepare = mock("prepare_post", ("https://www46.myfantasyleague.com/2026/lineup", b"safe"))
         self.submit = mock("submit_native", {"http_status": 200, "response_bytes": 50000})
+        self.audit = mock("audit_guard")
         self.notify = mock("notify_owner")
         mock("time.sleep")
 
@@ -83,6 +85,13 @@ class AutoLineupIntegrationTests(unittest.TestCase):
         self.assertEqual(self.get_form.call_count, 3)
         self.notify.assert_called_once()
         self.assertIn("Lineup changed", self.notify.call_args.args[1])
+
+    def test_verified_lineup_records_attempt_and_success_audit_events(self):
+        run(env=self.env, now=self.now)
+        keys = [call.args[1] for call in self.audit.call_args_list]
+        self.assertIn("lineup-submission-attempt", keys)
+        self.assertIn("lineup-submission-verified", keys)
+        self.assertNotIn("guard-error", keys)
 
     def test_dry_run_never_submits_or_emails(self):
         env = dict(self.env, LINEUP_AUTOMATION_MODE="DRY_RUN",
