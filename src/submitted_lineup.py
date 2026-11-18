@@ -28,6 +28,8 @@ class _LineupFormParser(HTMLParser):
         self.invalid_numeric_checkboxes = 0
         self.submit_inputs = 0
         self.checkbox_name_forms = set()
+        self.form_week_values = []
+        self.form_hidden_field_categories = set()
 
     def handle_starttag(self, tag, attrs):
         attr = dict(attrs)
@@ -46,6 +48,14 @@ class _LineupFormParser(HTMLParser):
         kind = (attr.get("type") or "text").lower()
         if kind == "submit":
             self.submit_inputs += 1
+        if kind == "hidden":
+            hidden_name = str(attr.get("name") or "").strip().upper()
+            if hidden_name in ("WEEK", "W", "L", "FRANCHISE", "FRANCHISE_ID"):
+                self.form_hidden_field_categories.add(hidden_name)
+            if hidden_name in ("WEEK", "W"):
+                value = str(attr.get("value") or "").strip()
+                if value.isdigit() and 1 <= int(value) <= 18:
+                    self.form_week_values.append(int(value))
         if kind != "checkbox":
             return
         name = str(attr.get("name") or "")
@@ -105,6 +115,8 @@ def extract_submitted_lineup(html, *, expected_starters=None):
         "form_action_query_keys": p.form_action_query_keys,
         "checkbox_name_forms": sorted(p.checkbox_name_forms),
         "unrecognized_checkbox_count": p.invalid_numeric_checkboxes,
+        "form_week_values": p.form_week_values,
+        "hidden_field_categories": sorted(p.form_hidden_field_categories),
     }
 
 
@@ -117,4 +129,6 @@ def report_counts(lineup):
         "action_query_keys": lineup["form_action_query_keys"],
         "checkbox_name_formats": lineup["checkbox_name_forms"],
         "nonplayer_checkbox_count": lineup["unrecognized_checkbox_count"],
+        "form_week_values": lineup["form_week_values"],
+        "hidden_field_categories": lineup["hidden_field_categories"],
     }
