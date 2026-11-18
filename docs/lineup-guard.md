@@ -44,6 +44,15 @@ No code in this branch calls MFL's write API or changes a lineup.
 - Until a real pregame lineup is retrieved and checked against the owner's submitted list, automatic writes must remain disabled. Never interpret missing starters as a blank user lineup.
 - MFL `playerScores?W=AVG` returned 1,599 scoring-average records, each with a numeric score and player ID. MFL `league` export returned eight starting-position rule entries; MFL `nflSchedule?W=12` returned 16 games with team IDs and kickoff data. These are sufficient inputs for designing replacement selection once the lineup read is solved.
 
+## Owner-login live verification (November 17, 2026)
+- The owner added `MFL_OWNER_USERNAME` and `MFL_OWNER_PASSWORD` as GitHub Actions Secrets. Verified the login API returns a temporary `MFL_USER_ID` cookie, never printed or committed. The trusted PR diagnostic workflow runs read-only.
+- MFL's authenticated `options?O=06` Starting Lineups overview returns league-level report tables but **does not expose current starter player IDs** in this league.
+- A linked `options?O=07&F=0001` page returns 57 **franchise roster** player IDs. These are **not** the submitted starting lineup and must not be treated as starters.
+- Authenticated `options?O=02` Submit Lineup HTML returns only the page shell, ten non-player checkbox controls, **zero HTML forms and zero player links**. Tested with `F`/`WEEK` present and absent. This is not yet a dependable lineup source.
+- MFL's documented `myleagues` read path did not return a parseable `myleagues` root through either tested route; **this does not prove a user/franchise mismatch**. Account-to-franchise authorization remains unverified.
+- Current blocker: obtain the **exact Submit Lineup page URL from the owner's signed-in browser**, without credentials or tokens, then determine which authenticated endpoint supplies that page's actual starter IDs. If the HTML is client-rendered, inspect the loading endpoint. Do not assume the form exists server-side.
+- The user was told that owner login works, but **the live Week 12 lineup has not been extracted**. Do not merge automatic lineup writes. Last successful GitHub Actions owner diagnostic was read-only.
+
 ## Still required before production activation
 1. Retrieve the owner's **submitted upcoming starting lineup** through an authenticated MFL Starting Lineups report or equivalent source. Compare the result to the owner's known Week 12 lineup before relying on it; the league API key and pregame weeklyResults did not return starter IDs.
 2. Fetch the league's actual starting-position limits and scoring/
