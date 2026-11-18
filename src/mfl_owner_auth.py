@@ -5,7 +5,7 @@ roster names, page URLs, or tokens. Never sends an MFL import/write request.
 """
 from html.parser import HTMLParser
 from http.cookies import SimpleCookie
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import urlencode, urlsplit, parse_qs
 import os
 import re
 import urllib.error
@@ -160,7 +160,8 @@ class TableShape(HTMLParser):
                 if re.fullmatch(r"[a-zA-Z_-]{1,24}", x)
             )[:70]
             self.tables.append({"class": classname or "none", "rows": 0, "cells": 0,
-                                "headings": 0, "links": 0, "texts": 0})
+                                "headings": 0, "links": 0, "texts": 0,
+                                "link_routes": []})
             self.active.append(len(self.tables) - 1)
         elif tag == "tr" and self.active:
             self.tables[self.active[-1]]["rows"] += 1
@@ -169,7 +170,22 @@ class TableShape(HTMLParser):
         elif tag == "th" and self.active:
             self.tables[self.active[-1]]["headings"] += 1
         elif tag == "a" and self.active:
-            self.tables[self.active[-1]]["links"] += 1
+            current = self.tables[self.active[-1]]
+            current["links"] += 1
+            href = a.get("href") or ""
+            if len(current["link_routes"]) < 6:
+                parsed = urlsplit(href)
+                route = parsed.path.split("/")[-1].lower()
+                route = route if re.fullmatch(r"[a-z_]{1,20}", route) else "other"
+                params = parse_qs(parsed.query)
+                def code(key):
+                    value = (params.get(key) or [""])[0]
+                    return value if re.fullmatch(r"[0-9]{1,3}", value) else ""
+                current["link_routes"].append({
+                    "route": route, "O": code("O"), "R": code("R"),
+                    "F_present": bool(params.get("F")),
+                    "WEEK_present": bool(params.get("WEEK")),
+                })
         if tag == "h1" or tag == "h2":
             self.headings += 1
         if tag == "input":
