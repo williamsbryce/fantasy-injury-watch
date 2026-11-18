@@ -35,3 +35,22 @@ jobs:
           safe=re.sub(r"(?is)(href|src)=[\"'][^\"']{0,1000}[\"']",r"\1=[URL]",safe)
           print("FIRST_HTML:",safe[:4500].replace("\n"," "))
           PY
+      - name: Examine public NFL RSS news feed
+        shell: bash
+        run: |
+          python - <<'PY'
+          import urllib.request, xml.etree.ElementTree as ET
+          url="https://www.rotowire.com/rss/news.php?sport=NFL"
+          request=urllib.request.Request(url,headers={"User-Agent":"FantasyInjuryWatchBryce/1.0","Accept":"application/rss+xml, application/xml"})
+          with urllib.request.urlopen(request,timeout=25) as response:
+              data=response.read(2000000)
+              print("RSS HTTP status",response.status,"bytes",len(data))
+          root=ET.fromstring(data)
+          items=root.findall(".//item")
+          print("RSS item count",len(items))
+          for x in items[:4]:
+              print("RSS TITLE:",(x.findtext("title") or "")[:130])
+              print("RSS DATE:",(x.findtext("pubDate") or "")[:100])
+              print("RSS LINK:",(x.findtext("link") or "")[:150])
+              print("RSS DESCRIPTION CHARS:",len(x.findtext("description") or ""))
+          PY
