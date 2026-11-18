@@ -1,0 +1,48 @@
+name: Publish Injury Watch Dashboard
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'site/index.html'
+      - 'tests/test_dashboard_site.py'
+      - '.github/workflows/publish-dashboard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: dashboard-pages-publish
+  cancel-in-progress: false
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout published dashboard
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate dashboard HTML and inline JavaScript
+        run: python -m unittest discover -s tests -p 'test_dashboard_site.py' -v
+      - name: Preserve verified current injury report
+        run: |
+          test -s site/index.html
+          test -s site/data/report.json
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload dashboard
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./site
+      - name: Publish dashboard to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
