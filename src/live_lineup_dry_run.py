@@ -23,12 +23,15 @@ from .lineup_replacements import (
 )
 
 
-def fetch_authenticated_lineup(year, league, franchise, opener, cookie):
+def fetch_authenticated_lineup(year, league, franchise, opener, cookie, week=None, week_param=None):
     if not (str(year).isdigit() and str(league).isdigit() and str(franchise).isdigit()):
         raise ValueError("Invalid MFL lineup identifier")
+    params = {"L": league, "FRANCHISE": franchise}
+    if week_param in ("WEEK", "W"):
+        params[week_param] = str(week)
     address = (
         f"https://www46.myfantasyleague.com/{year}/lineup?"
-        + urllib.parse.urlencode({"L": league, "FRANCHISE": franchise})
+        + urllib.parse.urlencode(params)
     )
     req = urllib.request.Request(address, headers={
         "User-Agent": "FantasyInjuryWatchBryce/1.0",
@@ -104,8 +107,24 @@ def run():
     opener = _make_opener()
     try:
         cookie = owner_login(opener, year, username, password, league)
-        page = fetch_authenticated_lineup(year, league, franchise, opener, cookie)
-        selection = extract_submitted_lineup(page, expected_starters=17)
+        selection = None
+        for parameter in (None, "WEEK", "W"):
+            page = fetch_authenticated_lineup(
+                year, league, franchise, opener, cookie, week=week, week_param=parameter,
+            )
+            try:
+                possible = extract_submitted_lineup(page, expected_starters=17)
+            except LineupParseError:
+                continue
+            print("LINEUP DRY RUN: page variant=", parameter or "none",
+                  "form_week_values=", possible["form_week_values"],
+                  "starter_count=", len(possible["starters"]))
+            if possible["form_week_values"] == [int(week)]:
+                selection = possible
+                print("LINEUP DRY RUN: requested week matched saved selections.")
+                break
+        if selection is None:
+            raise LineupParseError("No page variant identified the requested NFL week")
         print("LINEUP DRY RUN: verified submitted starter count:", len(selection["starters"]))
         print("LINEUP DRY RUN: available player checkbox count:", len(selection["all_selectable"]))
         print("LINEUP DRY RUN: form week fields:", selection["form_week_values"])
