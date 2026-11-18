@@ -57,6 +57,7 @@ jobs:
           MFL_LEAGUE_NAME: ${{ vars.MFL_LEAGUE_NAME }}
           MFL_SEASON: ${{ vars.MFL_SEASON }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          AUDIT_GITHUB_TOKEN: ${{ github.token }}
           SEND_TEST_EMAIL: ${{ github.event_name == 'workflow_dispatch' && inputs.send_test_email || false }}
           EMAIL_ENABLED: ${{ vars.EMAIL_ENABLED }}
           ALERT_FROM: ${{ vars.ALERT_FROM }}
@@ -80,7 +81,8 @@ jobs:
           git rm -f --ignore-unmatch site/data/report.enc.json
           if ! git diff --cached --quiet; then
             git commit -m 'Update public injury status [skip ci]'
-            git push
+            git pull --rebase origin main
+          git push origin HEAD:main
           fi
   deploy:
     # Deploy the last verified public report even if the next MFL poll fails.
