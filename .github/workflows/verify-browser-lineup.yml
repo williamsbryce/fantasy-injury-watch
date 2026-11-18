@@ -1,0 +1,35 @@
+name: Inspect rendered MFL lineup (read only)
+on:
+  pull_request:
+    paths:
+      - 'src/browser_lineup_probe.py'
+      - '.github/workflows/verify-browser-lineup.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-browser:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser automation for read-only diagnostic
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Compare HTML selections vs rendered browser selections
+        env:
+          MFL_OWNER_USERNAME: ${{ secrets.MFL_OWNER_USERNAME }}
+          MFL_OWNER_PASSWORD: ${{ secrets.MFL_OWNER_PASSWORD }}
+          MFL_LEAGUE_ID: ${{ vars.MFL_LEAGUE_ID }}
+          MFL_FRANCHISE_ID: ${{ vars.MFL_FRANCHISE_ID }}
+          MFL_SEASON: ${{ vars.MFL_SEASON }}
+        run: python -m src.browser_lineup_probe
