@@ -5,6 +5,7 @@ on:
       - 'src/lineup_guard.py'
       - 'tests/test_lineup_guard.py'
       - 'src/model.py'
+      - 'src/probe_mfl_lineups.py'
       - '.github/workflows/lineup-guard-tests.yml'
   workflow_dispatch:
 
@@ -23,3 +24,12 @@ jobs:
           python-version: '3.12'
       - name: Run isolated lineup tests (no MFL or Resend calls)
         run: python -m unittest discover -s tests -p 'test_lineup_guard.py' -v
+      - name: Run read-only MFL export probe
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+        env:
+          MFL_API_KEY: ${{ secrets.MFL_API_KEY }}
+          MFL_CLIENT_NAME: ${{ vars.MFL_CLIENT_NAME }}
+          MFL_LEAGUE_ID: ${{ vars.MFL_LEAGUE_ID }}
+          MFL_FRANCHISE_ID: ${{ vars.MFL_FRANCHISE_ID }}
+          MFL_SEASON: ${{ vars.MFL_SEASON }}
+        run: python -m src.probe_mfl_lineups
