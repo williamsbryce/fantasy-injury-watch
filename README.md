@@ -6,7 +6,7 @@ Public, passwordless, read-only fantasy injury dashboard at https://williamsbryc
 - MFL API credentials and Resend API key remain GitHub Secrets and never reach the website.
 - One MFL league, CFFL Dynasty, 2026, franchise 0001. Only active roster players are monitored; MFL IR/taxi excluded.
 - MFL official injury designations are authoritative for this app's statuses, but they are not official kickoff inactive reports.
-- An optional RotoWire NFL RSS feed provides **latest matching practice and injury headlines**. Headline, publisher, date and source link appear only if matched by player name and relevant terms. RSS feed is short and cannot guarantee every player has a news item. The app never invents news.
+- An optional RotoWire **public NFL news page** provides recent matching injury and practice headlines, with a public NFL RSS fallback. A dated headline and publisher link appear only when there is a verified player-name match and an injury-specific item. Not all injured players have recent news; the application never invents an update.
 - Each injury card links to the MFL player-news page. Access to article content on MFL's private league page may require a logged-in session.
 - Recurring injury emails configured through `EMAIL_ENABLED=true`; Thursday/Sunday after 9 a.m. Saskatchewan and urgent designation changes during scheduled polls. Delivery through Resend verified 2026-11-17; GitHub Actions timing is best-effort.
 - Roster/news reports are **public JSON**; prior encrypted report migrated once using the legacy secret before removal from the branch. Historical git commits retain the old encrypted payload.
@@ -14,12 +14,12 @@ Public, passwordless, read-only fantasy injury dashboard at https://williamsbryc
 
 ## Operating details
 - MFL read-only API exports: `rosters`, `players`, `injuries`. Missing feed or invalid roster identity fails closed, preserves last working report and warns if stale.
-- Public news RSS is optional: failure never suppresses actual MFL injury designations.
-- News can be stale or absent if the RSS feed only includes the five newest updates. The MFL link is provided as a secondary source.
-- GitHub Actions controls synchronization and GitHub Pages deployment.
+- External news sources are optional: failure never suppresses or overwrites previously verified MFL injury designations. When a live MFL refresh fails, a separate step can update headline links without changing the last MFL sync timestamp.
+- News coverage can be incomplete or delayed. The public webpage supplies more than the RSS feed's five latest updates, but this is still not an exhaustive official practice-participation feed. An MFL player-news link is always available.
+- GitHub Actions controls synchronization and GitHub Pages deployment. MFL polls occur on a schedule or manual dispatch, not on every code change, to avoid needless throttling.
 - Run tests: `python -m pip install -r requirements.txt && python -m unittest discover -s tests -v`.
 
 ## Follow-ups
 - Monitor first scheduled Thursday/Sunday and urgent real alerts.
-- Validate live news matching against actual injured players.
+- Live headline matching verified for Josh Jacobs (November 17, 2026), one matching RotoWire item among seven rostered injury designations. Other players still have MFL news links; do not assume absence of news means healthy.
 - Later add second MFL league/Sleeper and official NFL inactives separately.
