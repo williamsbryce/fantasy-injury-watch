@@ -1,0 +1,43 @@
+name: Authorized One-Time CFFL Week 11 Swap
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/authorized-one-way-week11.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: one-time-cffl-week11-cedric-anthony
+  cancel-in-progress: false
+
+jobs:
+  single-substitution:
+    if: ${{ github.actor == 'williamsbryce' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout exact source revision tested offline
+        uses: actions/checkout@v4
+        with:
+          ref: a36b4afad8346af6164f48dbef7020dbcc5bc9d0
+          persist-credentials: false
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify all lineup write safety tests
+        run: |
+          python -m unittest discover -s tests -p 'test_submitted_lineup.py' -v
+          python -m unittest discover -s tests -p 'test_manual_lineup_test.py' -v
+          python -m unittest discover -s tests -p 'test_reversible_lineup_test.py' -v
+          python -m unittest discover -s tests -p 'test_one_way_lineup_test.py' -v
+      - name: Perform one authorized Week 11 substitution and verify readback
+        env:
+          MFL_OWNER_USERNAME: ${{ secrets.MFL_OWNER_USERNAME }}
+          MFL_OWNER_PASSWORD: ${{ secrets.MFL_OWNER_PASSWORD }}
+          MFL_API_KEY: ${{ secrets.MFL_API_KEY }}
+          ONE_WAY_LINEUP_APPROVAL: AUTHORIZED_ONE_WAY_CEDRIC_GRAY_TO_ANTHONY_HILL_WEEK11
+        run: python -m src.one_way_lineup_test
