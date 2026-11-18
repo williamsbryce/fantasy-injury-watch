@@ -103,3 +103,11 @@ Some leagues begin each week with no starting lineup. Detecting and
 restoring a previously approved or previous-week lineup is a distinct
 feature. This first detector deliberately does not make up a lineup when
 none has been submitted.
+
+## CORRECTION: current-week targeting (November 18, 2026)
+- The current upcoming matchup is **Week 11** (games Nov 19–23); Week 12 follows with Nov 29 Sunday games. The previous Week 12 no-starters error was caused by requesting the following week.
+- Authenticated 2026 Week 11 lineup form returned exactly 17 selected starters, 53 selectable player checkboxes, and a hidden `WEEK=11` field.
+- A fresh live read-only dry run of Week 11 successfully reconciled the 17 starters with MFL rosters, players, injuries, league scoring average and independent NFL schedule (13 games, 26 teams).
+- Fresh injury assessment reported **zero Out/Inactive starters**, so `status=no_out_starters` and the correct action was **no change**.
+- The guarded `manual_lineup_test.py` and manual action have been retargeted exclusively to Week 11; the live test still requires explicit outgoing/incoming IDs and approval, cannot run on a schedule, and no MFL submission has been sent.
+- Do **not** substitute a healthy player solely because the Out-starter safeguard has nothing to do this week. If doing a separate reversible engineering test, select the pair intentionally and verify the submitted and restored lineups explicitly.
