@@ -25,6 +25,7 @@ on:
       - 'src/recent_scores.py'
       - 'src/auto_lineup_guard.py'
       - 'tests/test_auto_lineup_guard.py'
+      - 'tests/test_auto_lineup_integration.py'
       - 'src/model.py'
       - 'src/probe_mfl_lineups.py'
       - '.github/workflows/lineup-guard-tests.yml'
@@ -55,6 +56,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_one_way_lineup_test.py' -v
           python -m unittest discover -s tests -p 'test_native_mfl_lineup.py' -v
           python -m unittest discover -s tests -p 'test_auto_lineup_guard.py' -v
+          python -m unittest discover -s tests -p 'test_auto_lineup_integration.py' -v
       - name: Run read-only MFL export probe
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         env:
