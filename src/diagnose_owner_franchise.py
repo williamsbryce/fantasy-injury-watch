@@ -76,13 +76,22 @@ def run():
         print("FRANCHISE DIAGNOSTIC: owner credentials missing")
         return
     opener = _make_opener()
+    phase = "login"
     try:
-        cookie = owner_login(opener, "2026", username, password, "40298")
+        try:
+            cookie = owner_login(opener, "2026", username, password, "40298")
+        except OwnerAuthError as ex:
+            if "returned html instead of valid XML" not in str(ex):
+                raise
+            time.sleep(8)
+            cookie = owner_login(opener, "2026", username, password, "40298")
+        phase = "explicit_franchise_get"
         explicit_html = fetch_authenticated_lineup(
             "2026", "40298", "0001", opener, cookie,
             week="11", week_param="WEEK",
         )
         explicit, ids = inspect_page(explicit_html, "explicit_0001")
+        phase = "default_franchise_get"
         default_html = read_default(opener, cookie)
         default, default_ids = inspect_page(default_html, "no_franchise_param")
         print("FRANCHISE DIAGNOSTIC:", explicit)
@@ -92,7 +101,7 @@ def run():
         print("FRANCHISE DIAGNOSTIC: login_cookie_received=yes; no lineup changes made")
     except (OwnerAuthError, urllib.error.HTTPError, urllib.error.URLError,
             OSError, TimeoutError, ValueError) as exc:
-        print("FRANCHISE DIAGNOSTIC: read failed, category=", type(exc).__name__)
+        print("FRANCHISE DIAGNOSTIC: read failed, phase=", phase, "category=", type(exc).__name__)
         print("FRANCHISE DIAGNOSTIC: no lineup changes made")
 
 
