@@ -1,0 +1,30 @@
+name: Verify real MFL pregame lineup data (read only)
+on:
+  pull_request:
+    paths:
+      - 'src/probe_mfl_lineups.py'
+      - '.github/workflows/verify-mfl-pregame.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out diagnostic code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check only MFL export shapes (no write calls)
+        env:
+          MFL_API_KEY: ${{ secrets.MFL_API_KEY }}
+          MFL_CLIENT_NAME: ${{ vars.MFL_CLIENT_NAME }}
+          MFL_LEAGUE_ID: ${{ vars.MFL_LEAGUE_ID }}
+          MFL_FRANCHISE_ID: ${{ vars.MFL_FRANCHISE_ID }}
+          MFL_SEASON: ${{ vars.MFL_SEASON }}
+        run: python -m src.probe_mfl_lineups
