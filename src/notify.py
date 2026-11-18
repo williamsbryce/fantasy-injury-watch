@@ -17,7 +17,10 @@ def urgent_new_alerts(current, previous):
 
 def digest_key(now):
     local = now.astimezone(TZ)
-    if local.weekday() in (3, 6) and local.hour >= 9:
+    # Saskatchewan stays at UTC-6 year-round. Summaries are due only
+    # after their requested local start time; the workflow may run late.
+    if ((local.weekday() == 3 and (local.hour, local.minute) >= (17, 0)) or
+            (local.weekday() == 6 and (local.hour, local.minute) >= (10, 30))):
         return local.strftime("%Y-%m-%d")
     return None
 
