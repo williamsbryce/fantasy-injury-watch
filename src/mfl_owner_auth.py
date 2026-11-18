@@ -207,6 +207,88 @@ class TableShape(HTMLParser):
             self.tables[self.active[-1]]["texts"] += 1
 
 
+
+class PlayerRowShapes(HTMLParser):
+    """Read markup privately and output only row shape and generic slot labels."""
+    SAFE_SLOTS = {"qb", "rb", "wr", "te", "pk", "k", "def", "dst", "dl", "lb",
+                  "db", "de", "dt", "cb", "s", "flex", "ir", "bench"}
+    GENERIC = {
+        "starters", "starter", "nonstarters", "non-starters", "bench",
+        "starting lineup", "starting lineups", "lineup", "not submitted",
+        "submitted", "player", "position", "status", "points", "average",
+        "stats", "projected", "name", "opp", "total", "week",
+    }
+
+    def __init__(self):
+        super().__init__()
+        self.rows = []
+        self.row = None
+        self.cell = None
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "tr":
+            self.row = {"cells": [], "class": self._safe_class(attrs.get("class", ""))}
+        if tag in ("td", "th") and self.row is not None:
+            self.cell = {"kind": tag, "class": self._safe_class(attrs.get("class", "")),
+                         "text": [], "player_id": None}
+        if tag == "a" and self.cell is not None:
+            u = urlsplit(attrs.get("href", ""))
+            if u.path.split("/")[-1].lower() == "player":
+                p = (parse_qs(u.query).get("P") or [""])[0]
+                if p.isdigit() and len(p) <= 8:
+                    self.cell["player_id"] = p
+
+    @staticmethod
+    def _safe_class(classname):
+        return " ".join(
+            x for x in classname.split()
+            if re.fullmatch(r"[a-zA-Z_-]{1,28}", x)
+        )[:80]
+
+    def handle_data(self, data):
+        if self.cell is not None:
+            self.cell["text"].append(data)
+
+    def handle_endtag(self, tag):
+        if tag in ("td", "th") and self.cell is not None:
+            self.cell["text"] = " ".join(" ".join(self.cell["text"]).split())
+            self.row["cells"].append(self.cell)
+            self.cell = None
+        if tag == "tr" and self.row is not None:
+            self.rows.append(self.row)
+            self.row = None
+
+    def public_shapes(self):
+        output = []
+        for idx, row in enumerate(self.rows):
+            if idx >= 85:
+                break
+            parts = []
+            for cell in row["cells"]:
+                lower = cell["text"].strip().lower()
+                recognized = lower if lower in self.GENERIC else (
+                    lower if lower in self.SAFE_SLOTS else "")
+                if not recognized:
+                    for label in ("starters", "nonstarters", "bench"):
+                        if re.search(r"\b" + label + r"\b", lower):
+                            recognized = label
+                            break
+                parts.append({
+                    "kind": cell["kind"],
+                    "class": cell["class"],
+                    "label": recognized[:25],
+                    "has_player_id": cell["player_id"] is not None,
+                })
+            output.append({"index": idx, "class": row["class"], "cells": parts})
+        return output
+
+    def player_id_summary(self):
+        pids = [c["player_id"] for row in self.rows for c in row["cells"]
+                if c["player_id"] is not None]
+        return {"player_cell_count": len(pids), "unique_players": len(set(pids))}
+
+
 def probe_owner_page(opener, year, league_id, franchise_id, week, session, report_code='06'):
     """Retrieve owner-only MFL report without displaying or committing its contents."""
     params = urlencode({
@@ -230,6 +312,8 @@ def probe_owner_page(opener, year, league_id, franchise_id, week, session, repor
     structure.feed(page)
     shape = TableShape()
     shape.feed(page)
+    rows = PlayerRowShapes()
+    rows.feed(page)
     report = {
         "host_valid": bool(final_host and re.fullmatch(
             r"www\d+\.myfantasyleague\.com", final_host)),
@@ -243,6 +327,8 @@ def probe_owner_page(opener, year, league_id, franchise_id, week, session, repor
         "table_shapes": shape.tables,
         "input_names_allowlisted": sorted(shape.input_names),
         "css_marker_categories": sorted(shape.markers),
+        "player_id_summary": rows.player_id_summary(),
+        "row_shapes": rows.public_shapes(),
     }
     return report
 
@@ -274,10 +360,11 @@ def run():
     print("AUTH PROBE: lineup overview O=06 tables=", overview["html_table_count"])
     print("AUTH PROBE: franchise lineup detail O=07")
     # All output is class/tag counts, not user-specific HTML or player details.
-    public_fields = {k:v for k,v in result.items() if k != "table_shapes"}
+    public_fields = {k:v for k,v in result.items() if k not in ("table_shapes", "row_shapes")}
     print("AUTH PROBE: " + ", ".join(f"{key}={value}" for key, value in public_fields.items()))
     # Do not print any HTML, player names or credentials.
     print("AUTH PROBE TABLE SHAPES:", result["table_shapes"])
+    print("AUTH PROBE ROW SHAPES:", result["row_shapes"])
     if result["login_form_present"] or not result["host_valid"]:
         print("AUTH PROBE: authenticated webpage access not confirmed.")
     elif result["html_row_count"] == 0:
