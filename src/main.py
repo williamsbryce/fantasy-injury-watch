@@ -9,10 +9,21 @@ from .mfl import fetch_all
 from .news import enrich_reports, fetch_recent_news
 from .model import parse_report
 from .notify import digest_key, email_text, send_resend, urgent_new_alerts
+from .audit_log import record_event, AuditError
 
 ROOT = Path(__file__).resolve().parent.parent
 REPORT_PATH = ROOT / "site" / "data" / "report.json"
 LEGACY_PATH = ROOT / "site" / "data" / "report.enc.json"
+
+
+def log_accepted_email(key, title, detail):
+    """Resend accepted a message; inbox delivery is not verified."""
+    try:
+        record_event("email", "success", title, detail, key=key)
+        print("AUDIT: provider-accepted email event saved")
+    except AuditError as error:
+        # Never turn an accepted email into a second send because audit failed.
+        print("AUDIT: email accepted but history update failed:", str(error))
 
 
 def run():
@@ -68,6 +79,8 @@ def run():
                     "No lineup changes are enabled.\n"
                     "The test does not count as a Thursday or Sunday summary.")
         print("A single email test request was accepted by the provider. Inbox receipt not verified.")
+        log_accepted_email("test-email", "Test email accepted",
+                           "Resend accepted the Injury Watch test email. Inbox delivery is not verified.")
     elif email_enabled:
         if not all((email_key, from_addr, to_addr)):
             raise RuntimeError("EMAIL_ENABLED is set, but email configuration is missing")
@@ -77,13 +90,21 @@ def run():
                            "Fantasy Injury Watch | Thursday" if now.astimezone(__import__('zoneinfo').ZoneInfo('America/Regina')).weekday() == 3 else "Fantasy Injury Watch | Sunday",
                            email_text(document, "Your fantasy injury summary")):
                 document["sent_digest_date"] = due
+                day = now.astimezone(__import__('zoneinfo').ZoneInfo('America/Regina')).weekday()
+                log_accepted_email(
+                    "scheduled-digest", "Scheduled injury summary accepted",
+                    ("Thursday" if day == 3 else "Sunday") +
+                    " summary accepted by Resend. Inbox delivery is not verified.")
         else:
             new_urgent = urgent_new_alerts(document, previous)
             if new_urgent:
                 names = ", ".join(a["name"] for a in new_urgent[:4])
-                send_resend(email_key, from_addr, to_addr,
-                            f"Fantasy Injury Watch | New urgent status: {names}",
-                            email_text(document, "New urgent injury status"))
+                if send_resend(email_key, from_addr, to_addr,
+                               f"Fantasy Injury Watch | New urgent status: {names}",
+                               email_text(document, "New urgent injury status")):
+                    log_accepted_email(
+                        "urgent-email", "Urgent injury email accepted",
+                        f"Resend accepted an alert for {len(new_urgent)} new urgent injury status(es). Inbox delivery is not verified.")
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
     REPORT_PATH.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
     print(f"Read-only MFL sync successful. Leagues: {len(leagues)}. Total injury items: {sum(len(l['alerts']) for l in leagues)}.")
