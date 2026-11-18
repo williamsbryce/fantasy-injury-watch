@@ -114,6 +114,7 @@ def run():
         # Only allowlisted exception types from our own internal validation.
         print("LINEUP DRY RUN: analysis unavailable; no lineup submission attempted.")
         print("LINEUP DRY RUN: failure_category=", type(error).__name__)
+        print("LINEUP DRY RUN: safe_failure_detail=", str(error))
         return
     finally:
         cookie = ""
