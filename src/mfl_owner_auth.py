@@ -376,6 +376,7 @@ class SafePageDiagnostics(HTMLParser):
         self.script_depth = 0
         self.style_depth = 0
         self.visible = []
+        self.script_text_chunks = []
         self.scripts = 0
         self.scripts_inline = 0
         self.sources = {}
@@ -409,11 +410,33 @@ class SafePageDiagnostics(HTMLParser):
             self.style_depth = max(0, self.style_depth - 1)
 
     def handle_data(self, data):
+        if self.script_depth and data.strip():
+            self.script_text_chunks.append(data)
         if not self.script_depth and not self.style_depth and data.strip():
             self.visible.append(data)
 
     def public(self):
         visible = " ".join(self.visible)
+        scripts = " ".join(self.script_text_chunks)
+        categories = {
+            "inline_player_data": r"player(?:s|id)?\s*[:=]",
+            "inline_starter_data": r"starter(?:s)?\s*[:=]",
+            "inline_roster_data": r"roster\s*[:=]",
+            "lineup_status": r"lineup.*?(?:status|submitted)",
+            "ajax_call": r"\b(?:fetch|ajax|XMLHttpRequest)\s*\(",
+            "mfl_api_endpoint": r"/(?:export|import)\?",
+        }
+        notice_terms = {
+            "permission": r"permission|permitted|not\s+authorized",
+            "access": r"access|denied",
+            "submitted": r"submitted|submission",
+            "lineup": r"lineup",
+            "week": r"week",
+            "error": r"error|failed|not\s+allowed",
+            "inactive_franchise": r"inactive\s+franchise|select\s+(?:your\s+)?franchise",
+            "lineup_form": r"(?:select|choose|change)\s+(?:your\s+)?(?:starting\s+)?lineup",
+            "none_available": r"not\s+available|not\s+found|nothing\s+to\s+show",
+        }
         return {
             "visible_text_chars": len(visible),
             "visible_nodes": len(self.visible),
@@ -424,6 +447,16 @@ class SafePageDiagnostics(HTMLParser):
                 key: bool(re.search(pattern, visible, re.I))
                 for key, pattern in self.CHECKS.items()
             },
+            "notice_counts": {
+                key: len(re.findall(pattern, visible, re.I))
+                for key, pattern in notice_terms.items()
+            },
+            "inline_script_chars": len(scripts),
+            "inline_script_categories": {
+                key: bool(re.search(pattern, scripts, re.I))
+                for key, pattern in categories.items()
+            },
+            "inline_five_digit_numbers": len(re.findall(r"(?<!\d)\d{5}(?!\d)", scripts)),
         }
 
 
