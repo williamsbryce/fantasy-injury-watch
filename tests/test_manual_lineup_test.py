@@ -68,6 +68,7 @@ class TestExplicitLineupSwap(unittest.TestCase):
         req=opener.calls[0]
         self.assertEqual(req.get_method(),"POST")
         self.assertIn("TYPE=lineup",req.full_url)
+        self.assertTrue(req.full_url.startswith("https://api.myfantasyleague.com/2026/import?"))
         self.assertIn(b"STARTERS=101%2C102",req.data)
         self.assertIn(b"W=11",req.data)
         self.assertNotIn("MFL_USER_ID",req.full_url)
