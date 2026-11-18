@@ -23,7 +23,7 @@ button:disabled{opacity:.55;cursor:wait}.notice{font-size:12px;border-radius:9px
 footer{text-align:center;color:var(--muted);font-size:12px;padding-top:25px}.hidden{display:none!important}.msg{margin-top:9px;color:var(--red);font-size:13px}
 @media(max-width:520px){main{padding:21px 14px 45px}h1{font-size:24px}.top{align-items:start;flex-direction:column}.panel{padding:16px}section{margin-top:22px}}
 
-/* Two-view navigation and transparent operating guide */
+/* Three-view navigation, event history and operating guide */
 .tabs{display:flex;align-items:center;gap:5px;padding:5px;border:1px solid var(--stroke);background:#eaf0f7;border-radius:12px;margin:-7px 0 23px}
 .tab{flex:1;margin:0;min-height:42px;padding:10px 13px;background:transparent;color:#53647b;font-weight:750;border-radius:8px}
 .tab:hover{background:#f7f9fd;color:var(--ink)}.tab[aria-selected="true"]{background:#fff;color:#182b47;box-shadow:0 1px 6px rgba(25,38,59,.11)}
@@ -53,11 +53,36 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding-top:25px}.hid
 .guide-footer{font-size:12px;color:var(--muted);margin:18px 0 0}
 .guide-footer a{color:var(--blue)}
 @media(max-width:520px){.tab{padding:10px 7px;font-size:13px}.guide-card{padding:16px}.schedule-row{grid-template-columns:1fr;gap:3px}.guide-split{grid-template-columns:1fr}}
+
+/* Public operational history; all content is rendered as text, never HTML */
+.event-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 8px}
+.event-top h1{margin:0}.event-intro{font-size:13px;color:var(--muted);margin:0 0 16px}
+.event-refresh{margin:0;background:#fff;border:1px solid #dbe3ee;color:#2b4e7c;padding:8px 13px;font-size:12px;min-height:38px}
+.event-refresh:hover{background:#f0f4fa}
+.event-filters{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 15px}
+.event-filter{margin:0;min-height:35px;padding:7px 11px;font-size:12px;font-weight:750;color:#50647e;background:#eaf0f7;border-radius:9px}
+.event-filter[aria-pressed="true"]{color:white;background:#243d5c}
+.event-log-list{display:flex;flex-direction:column;gap:10px}
+.event-entry{background:#fff;border:1px solid var(--stroke);border-radius:12px;padding:15px 16px;border-left:4px solid #a6b6cb}
+.event-entry.status-success{border-left-color:#3f9873}.event-entry.status-attention{border-left-color:#d88431}
+.event-entry.status-pending{border-left-color:#7494c1}
+.event-heading{display:flex;gap:8px;justify-content:space-between;align-items:flex-start}
+.event-name{font-size:14px;font-weight:760;color:#1b304e}
+.event-status{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;border-radius:6px;padding:3px 7px;background:#eaf0f7;color:#425775;white-space:nowrap}
+.event-status.status-success{background:#e8f5ed;color:#2d724d}.event-status.status-attention{background:#fff1df;color:#965b14}
+.event-status.status-pending{background:#edf2fa;color:#3d628f}
+.event-detail{font-size:13px;color:#54667e;margin:7px 0}
+.event-meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:11px;color:#7a869a;margin-top:8px}
+.event-run{font-weight:700;text-decoration:none;color:var(--blue)}.event-run:hover{text-decoration:underline}
+.event-placeholder{background:#fff;border:1px solid var(--stroke);border-radius:12px;color:#647187;font-size:13px;padding:19px}
+.event-privacy{font-size:12px;color:#687790;margin-top:16px}
+@media(max-width:520px){.event-heading{align-items:flex-start}.event-top h1{font-size:25px}}
 </style>
 </head><body><main>
 <header><div class="logo"><div class="mark">✚</div><span>BAW's Injury Watch Tool</span></div></header>
 <nav class="tabs" role="tablist" aria-label="Dashboard views">
   <button class="tab" type="button" role="tab" id="tab-injuries" aria-selected="true" aria-controls="injuriesTab" tabindex="0" data-tab="injuries">Player alerts</button>
+  <button class="tab" type="button" role="tab" id="tab-events" aria-selected="false" aria-controls="eventsTab" tabindex="-1" data-tab="events">Event log</button>
   <button class="tab" type="button" role="tab" id="tab-guide" aria-selected="false" aria-controls="guideTab" tabindex="-1" data-tab="guide">How it Works</button>
 </nav>
 <div id="injuriesTab" role="tabpanel" aria-labelledby="tab-injuries">
@@ -134,6 +159,19 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding-top:25px}.hid
 
   <p class="guide-footer">Configured for CFFL Dynasty, season 2026, franchise 0001. The website itself cannot change your lineup; only the separate authenticated scheduled job can. <a href="https://github.com/williamsbryce/fantasy-injury-watch/actions" target="_blank" rel="noopener noreferrer">View GitHub Actions run history ↗</a></p>
 </section>
+<section id="eventsTab" role="tabpanel" aria-labelledby="tab-events" class="hidden" tabindex="0">
+  <div class="event-top"><h1>Event log</h1><button class="event-refresh" type="button" id="refreshEvents">Refresh log</button></div>
+  <p class="event-intro">Recorded email notifications, pregame lineup checks, submissions and results. Times shown in Saskatchewan time.</p>
+  <div class="event-filters" role="group" aria-label="Filter event types">
+    <button class="event-filter" type="button" data-event-filter="all" aria-pressed="true">All events</button>
+    <button class="event-filter" type="button" data-event-filter="email" aria-pressed="false">Emails</button>
+    <button class="event-filter" type="button" data-event-filter="lineup" aria-pressed="false">Substitutions</button>
+    <button class="event-filter" type="button" data-event-filter="check" aria-pressed="false">Checks</button>
+  </div>
+  <div class="meta" id="eventsStatus" role="status">Open this tab to retrieve recent events.</div>
+  <div id="eventsFeed" class="event-log-list" style="margin-top:13px"></div>
+  <p class="event-privacy">History begins when logging was enabled. It is publicly viewable and retains up to 200 events. “Email accepted” means the email provider accepted the message, not that it reached your inbox. No email addresses or credentials are shown.</p>
+</section>
 <footer>Public injury dashboard · MFL designations and RotoWire headlines · Separate scheduled lineup guard</footer>
 </main>
 <script>
@@ -197,18 +235,91 @@ async function loadReport(){
    txt($('error'),e.message||'Unable to load report.');
  }
 }
-function showTab(tab, updateHash=true){
- const guide=tab==='guide';
- $('injuriesTab').classList.toggle('hidden',guide);
- $('guideTab').classList.toggle('hidden',!guide);
- for(const id of ['injuries','guide']){
-  const button=$('tab-'+id);
-  const selected=(id==='guide')===guide;
-  button.setAttribute('aria-selected',String(selected));
-  button.tabIndex=selected?0:-1;
+const eventKinds={email:'Email',lineup:'Lineup',check:'Check',system:'System'};
+const eventStatuses={success:'Verified',attention:'Needs attention',pending:'Pending',info:'Recorded'};
+const eventsSource='https://raw.githubusercontent.com/williamsbryce/fantasy-injury-watch/main/site/data/events.json';
+let recordedEvents=[],eventsLoaded=false,eventFilter='all';
+function eventDate(value){
+ const d=parsedDate(value);
+ return isNaN(d)?'Time unavailable':
+  d.toLocaleString('en-CA',{timeZone:'America/Regina',year:'numeric',
+   month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true})+' SK';
+}
+function renderEvents(){
+ const rows=recordedEvents.filter(e=>
+  eventFilter==='all'||(eventFilter==='check'
+   ?e.kind==='check'||e.kind==='system':e.kind===eventFilter));
+ const feed=$('eventsFeed');feed.replaceChildren();
+ if(!rows.length){
+  feed.append(element('div','event-placeholder',eventsLoaded
+   ?(recordedEvents.length?'No events match this filter.':'No events recorded yet. Future emails, pregame checks and lineup submissions will appear here.')
+   :'No event history available.'));
+  return;
  }
+ for(const e of rows.slice(0,100)){
+  const status=Object.prototype.hasOwnProperty.call(eventStatuses,e.status)?e.status:'info';
+  const kind=Object.prototype.hasOwnProperty.call(eventKinds,e.kind)?e.kind:'system';
+  const entry=element('article','event-entry status-'+status);
+  const head=element('div','event-heading');
+  head.append(element('div','event-name',e.title||'Activity'));
+  head.append(element('span','event-status status-'+status,eventStatuses[status]));
+  entry.append(head,element('p','event-detail',e.detail||''));
+  const meta=element('div','event-meta');
+  meta.append(element('span','',eventDate(e.timestamp)+' · '+eventKinds[kind]));
+  if(typeof e.run_url==='string'&&
+     /^https:\/\/github\.com\/williamsbryce\/fantasy-injury-watch\/actions\/runs\/\d+$/.test(e.run_url)){
+   const link=element('a','event-run','View run');
+   link.href=e.run_url;link.target='_blank';link.rel='noopener noreferrer';
+   meta.append(link);
+  }
+  entry.append(meta);feed.append(entry);
+ }
+}
+async function loadEvents(){
+ const refresh=$('refreshEvents');
+ refresh.disabled=true;
+ txt($('eventsStatus'),'Loading latest event history…');
+ try{
+  // This public GitHub raw file is read directly because commits by the
+  // workflow token do not trigger another GitHub Actions deployment.
+  const response=await fetch(eventsSource+'?t='+Date.now(),{cache:'no-store'});
+  if(!response.ok)throw Error('GitHub event history is not available right now.');
+  const history=await response.json();
+  if(history.schema!==1||!Array.isArray(history.events))throw Error('Event history format is invalid.');
+  recordedEvents=history.events.filter(e=>e&&typeof e==='object'&&
+   typeof e.timestamp==='string'&&typeof e.title==='string'&&
+   typeof e.detail==='string'&&typeof e.kind==='string');
+  recordedEvents.sort((a,b)=>Date.parse(b.timestamp)-Date.parse(a.timestamp));
+  eventsLoaded=true;
+  txt($('eventsStatus'),recordedEvents.length+' recorded event'+(recordedEvents.length===1?'':'s')+' · Live GitHub history');
+  renderEvents();
+ }catch(error){
+  txt($('eventsStatus'),'Could not refresh live event history. '+(error.message||'Try again.'));
+  if(!eventsLoaded)$('eventsFeed').replaceChildren(
+   element('div','event-placeholder','Event history is temporarily unavailable. Please refresh again.'));
+ }finally{refresh.disabled=false;}
+}
+$('refreshEvents').addEventListener('click',loadEvents);
+for(const btn of document.querySelectorAll('[data-event-filter]')){
+ btn.addEventListener('click',()=>{
+  eventFilter=btn.dataset.eventFilter;
+  for(const item of document.querySelectorAll('[data-event-filter]'))
+   item.setAttribute('aria-pressed',String(item===btn));
+  renderEvents();
+ });
+}
+const tabs=['injuries','events','guide'];
+function showTab(tab, updateHash=true){
+ if(!tabs.includes(tab))tab='injuries';
+ for(const id of tabs){
+  $(''+id+'Tab').classList.toggle('hidden',id!==tab);
+  const button=$('tab-'+id);
+  button.setAttribute('aria-selected',String(id===tab));
+  button.tabIndex=id===tab?0:-1;
+ }
+ if(tab==='events'&&!eventsLoaded)loadEvents();
  if(updateHash){
-  const hash=guide?'#how-it-works':'#player-alerts';
+  const hash=tab==='guide'?'#how-it-works':tab==='events'?'#event-log':'#player-alerts';
   history.replaceState(null,'',location.pathname+location.search+hash);
  }
 }
@@ -217,13 +328,16 @@ for(const button of document.querySelectorAll('[data-tab]')){
  button.addEventListener('keydown',event=>{
   if(!['ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
   event.preventDefault();
-  const next=event.key==='Home'?'injuries':event.key==='End'?'guide':
-   button.dataset.tab==='injuries'?'guide':'injuries';
+  const index=tabs.indexOf(button.dataset.tab);
+  const next=event.key==='Home'?tabs[0]:event.key==='End'?tabs[tabs.length-1]:
+    tabs[(index+(event.key==='ArrowRight'?1:tabs.length-1))%tabs.length];
   showTab(next);
   $('tab-'+next).focus();
  });
 }
-function syncTabFromHash(){showTab(location.hash==='#how-it-works'?'guide':'injuries',false);}
+function syncTabFromHash(){
+ showTab(location.hash==='#how-it-works'?'guide':location.hash==='#event-log'?'events':'injuries',false);
+}
 window.addEventListener('hashchange',syncTabFromHash);
 syncTabFromHash();
 loadReport();
