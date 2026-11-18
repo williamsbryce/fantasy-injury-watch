@@ -1,0 +1,25 @@
+name: Read-only lineup guard tests
+on:
+  pull_request:
+    paths:
+      - 'src/lineup_guard.py'
+      - 'tests/test_lineup_guard.py'
+      - 'src/model.py'
+      - '.github/workflows/lineup-guard-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run isolated lineup tests (no MFL or Resend calls)
+        run: python -m unittest discover -s tests -p 'test_lineup_guard.py' -v
