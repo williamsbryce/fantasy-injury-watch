@@ -38,7 +38,7 @@ def discover_current_nfl_week(year=2026):
 def check_due(schedule, now, *, force_dry_run=False):
     """Check only on Thursday or Sunday, about an hour before first game.
 
-    Hourly cron combined with a window of 35-95 minutes before kickoff
+    Hourly cron combined with a half-open window of [35,95) minutes before kickoff
     yields one nominal check on a game day, including London/holiday games.
     """
     if not isinstance(schedule, dict) or now.tzinfo is None:
@@ -55,7 +55,7 @@ def check_due(schedule, now, *, force_dry_run=False):
         return {"due": False, "reason": "no_games_today", "first_kickoff": None}
     first = games_today[0]
     minutes_to_first = (first - now).total_seconds() / 60
-    return {"due": 35 <= minutes_to_first <= 95,
+    return {"due": 35 <= minutes_to_first < 95,
             "reason": "pregame_window" if 35 <= minutes_to_first <= 95 else "not_pregame_window",
             "first_kickoff": first,
             "minutes_to_first": minutes_to_first}
