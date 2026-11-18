@@ -1,9 +1,5 @@
 name: Inspect rendered MFL lineup (read only)
 on:
-  pull_request:
-    paths:
-      - 'src/browser_lineup_probe.py'
-      - '.github/workflows/verify-browser-lineup.yml'
   workflow_dispatch:
 
 permissions:
@@ -11,7 +7,6 @@ permissions:
 
 jobs:
   inspect-browser:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
