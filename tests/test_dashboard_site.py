@@ -36,13 +36,13 @@ class DashboardDocumentationTests(unittest.TestCase):
 
     def test_two_accessible_tabs_and_unique_ids(self):
         s = self.structure
-        self.assertEqual(len(s.tabs), 2)
-        self.assertEqual(len(s.panels), 2)
+        self.assertEqual(len(s.tabs), 3)
+        self.assertEqual(len(s.panels), 3)
         self.assertEqual(len(s.ids), len(set(s.ids)))
         self.assertEqual({a["aria-controls"] for a in s.tabs},
-                         {"injuriesTab", "guideTab"})
+                         {"injuriesTab", "guideTab", "eventsTab"})
         self.assertEqual({a["aria-labelledby"] for a in s.panels},
-                         {"tab-injuries", "tab-guide"})
+                         {"tab-injuries", "tab-guide", "tab-events"})
 
     def test_guide_documents_actual_schedules_and_selection_policy(self):
         html = self.html
@@ -71,6 +71,19 @@ class DashboardDocumentationTests(unittest.TestCase):
         self.assertNotIn("id=\"mode\"", html)
         self.assertNotIn("Operating guide · CFFL Dynasty", html)
         self.assertNotIn("What the dashboard checks, when email is sent", html)
+
+    def test_event_log_fetches_public_history_and_never_renders_raw_html(self):
+        html = self.html
+        self.assertIn('<h1>Event log</h1>', html)
+        self.assertIn("raw.githubusercontent.com/williamsbryce/fantasy-injury-watch/main/site/data/events.json", html)
+        self.assertIn("function renderEvents()", html)
+        self.assertIn("function loadEvents()", html)
+        self.assertIn("e.detail||''", html)
+        self.assertIn("readableDate", html)
+        self.assertIn("Inbox", html)
+        self.assertIn("data-event-filter=\"email\"", html)
+        self.assertIn("data-event-filter=\"lineup\"", html)
+        self.assertIn("data-event-filter=\"check\"", html)
 
     def test_inline_script_has_valid_javascript(self):
         scripts = re.findall(r"<script[^>]*>(.*?)</script>", self.html, re.S | re.I)
