@@ -6,6 +6,11 @@ on:
     paths:
       - 'site/index.html'
       - 'tests/test_dashboard_site.py'
+      - 'site/data/events.json'
+      - 'src/audit_log.py'
+      - 'src/main.py'
+      - 'tests/test_audit_log.py'
+      - 'tests/test_event_notifications.py'
       - '.github/workflows/publish-dashboard.yml'
   workflow_dispatch:
 
@@ -32,7 +37,10 @@ jobs:
         with:
           python-version: '3.12'
       - name: Validate dashboard HTML and inline JavaScript
-        run: python -m unittest discover -s tests -p 'test_dashboard_site.py' -v
+        run: |
+          python -m unittest discover -s tests -p 'test_dashboard_site.py' -v
+          python -m unittest discover -s tests -p 'test_audit_log.py' -v
+          python -m unittest discover -s tests -p 'test_event_notifications.py' -v
       - name: Preserve verified current injury report
         run: |
           test -s site/index.html
