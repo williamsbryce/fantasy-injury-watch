@@ -21,14 +21,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Check only MFL export shapes (no write calls)
-        env:
-          MFL_API_KEY: ${{ secrets.MFL_API_KEY }}
-          MFL_CLIENT_NAME: ${{ vars.MFL_CLIENT_NAME }}
-          MFL_LEAGUE_ID: ${{ vars.MFL_LEAGUE_ID }}
-          MFL_FRANCHISE_ID: ${{ vars.MFL_FRANCHISE_ID }}
-          MFL_SEASON: ${{ vars.MFL_SEASON }}
-        run: python -m src.probe_mfl_lineups
       - name: Verify authenticated pregame Starting Lineups structure (no writes)
         env:
           MFL_OWNER_USERNAME: ${{ secrets.MFL_OWNER_USERNAME }}
