@@ -289,6 +289,74 @@ class PlayerRowShapes(HTMLParser):
         return {"player_cell_count": len(pids), "unique_players": len(set(pids))}
 
 
+
+class SafeFormShape(HTMLParser):
+    """Only counts input controls and selected lineup values; no field values logged."""
+    def __init__(self):
+        super().__init__()
+        self.form_count = 0
+        self.input_types = {}
+        self.inputs_numeric_value = 0
+        self.inputs_checked = 0
+        self.inputs_selected = 0
+        self.select_count = 0
+        self.option_count = 0
+        self.options_selected = 0
+        self.field_categories = set()
+        self.numeric_option_count = 0
+        self.numeric_option_selected = 0
+        self.form_method_get = 0
+        self.form_method_post = 0
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag == "form":
+            self.form_count += 1
+            method = (a.get("method") or "GET").lower()
+            if method == "post":
+                self.form_method_post += 1
+            elif method == "get":
+                self.form_method_get += 1
+        if tag == "input":
+            kind = (a.get("type") or "text").lower()
+            kind = kind if re.fullmatch(r"[a-z]{1,20}", kind) else "other"
+            self.input_types[kind] = self.input_types.get(kind, 0) + 1
+            if a.get("checked") is not None or "checked" in a:
+                self.inputs_checked += 1
+            val = a.get("value") or ""
+            if val.isdigit() and len(val) <= 8:
+                self.inputs_numeric_value += 1
+            name = (a.get("name") or "").lower()
+            for token in ("starter", "player", "lineup", "bench", "week", "status"):
+                if token in name:
+                    self.field_categories.add(token)
+        if tag == "select":
+            self.select_count += 1
+        if tag == "option":
+            self.option_count += 1
+            val = a.get("value") or ""
+            if val.isdigit() and len(val) <= 8:
+                self.numeric_option_count += 1
+                if a.get("selected") is not None or "selected" in a:
+                    self.numeric_option_selected += 1
+            if a.get("selected") is not None or "selected" in a:
+                self.options_selected += 1
+
+    def public(self):
+        return {
+            "forms": self.form_count, "post_forms": self.form_method_post,
+            "get_forms": self.form_method_get,
+            "input_types": self.input_types,
+            "inputs_checked": self.inputs_checked,
+            "inputs_numeric_values": self.inputs_numeric_value,
+            "selects": self.select_count, "options": self.option_count,
+            "options_selected": self.options_selected,
+            "options_numeric": self.numeric_option_count,
+            "options_numeric_selected": self.numeric_option_selected,
+            "field_categories": sorted(self.field_categories),
+        }
+
+
 def probe_owner_page(opener, year, league_id, franchise_id, week, session, report_code='06'):
     """Retrieve owner-only MFL report without displaying or committing its contents."""
     params = urlencode({
@@ -314,6 +382,8 @@ def probe_owner_page(opener, year, league_id, franchise_id, week, session, repor
     shape.feed(page)
     rows = PlayerRowShapes()
     rows.feed(page)
+    form = SafeFormShape()
+    form.feed(page)
     report = {
         "host_valid": bool(final_host and re.fullmatch(
             r"www\d+\.myfantasyleague\.com", final_host)),
@@ -329,6 +399,11 @@ def probe_owner_page(opener, year, league_id, franchise_id, week, session, repor
         "css_marker_categories": sorted(shape.markers),
         "player_id_summary": rows.player_id_summary(),
         "row_shapes": rows.public_shapes(),
+        "form_shape": form.public(),
+        "visible_submit_markers": {
+            "submit_lineup_title": bool(re.search(r"submit\s+(?:a\s+)?lineup", page, re.I)),
+            "starter_word_count": len(re.findall(r"starters?", page, re.I)),
+        },
     }
     return report
 
@@ -349,16 +424,14 @@ def run():
     try:
         cookie = owner_login(opener, season, username, password, league_id)
         print("AUTH PROBE: MFL owner login returned a session cookie (value hidden).")
-        overview = probe_owner_page(opener, season, league_id, franchise_id, week, cookie)
-        result = probe_owner_page(opener, season, league_id, franchise_id, week, cookie, report_code="07")
+        result = probe_owner_page(opener, season, league_id, franchise_id, week, cookie, report_code="02")
     except OwnerAuthError as error:
         # Every raised exception is an allowlisted, credential-free category.
         print(f"AUTH PROBE: {error}")
         return
     finally:
         cookie = ""
-    print("AUTH PROBE: lineup overview O=06 tables=", overview["html_table_count"])
-    print("AUTH PROBE: franchise lineup detail O=07")
+    print("AUTH PROBE: authenticated Submit Lineup page O=02")
     # All output is class/tag counts, not user-specific HTML or player details.
     public_fields = {k:v for k,v in result.items() if k not in ("table_shapes", "row_shapes")}
     print("AUTH PROBE: " + ", ".join(f"{key}={value}" for key, value in public_fields.items()))
