@@ -136,6 +136,18 @@ def run():
         print("LINEUP DRY RUN: available player checkbox count:", len(selection["all_selectable"]))
         print("LINEUP DRY RUN: form week fields:", selection["form_week_values"])
         print("LINEUP DRY RUN: hidden field categories:", selection["hidden_field_categories"])
+        # One signed-in session, both owner-targeted and default views.
+        # Compare only safe aggregate metadata. This avoids parallel logins.
+        from .diagnose_owner_franchise import read_default, inspect_page
+        try:
+            owner_default = read_default(opener, cookie)
+            meta, owner_ids = inspect_page(owner_default, "default_owner")
+            print("LINEUP OWNER DEFAULT:", meta)
+            print("LINEUP OWNER DEFAULT: matches_explicit_0001=",
+                  bool(owner_ids and set(owner_ids) == set(selection["starters"])))
+        except (OwnerAuthError, urllib.error.HTTPError, urllib.error.URLError,
+                OSError, TimeoutError, ValueError):
+            print("LINEUP OWNER DEFAULT: unavailable; ownership unverified")
         del page
         cookie = ""
         feeds = {}
