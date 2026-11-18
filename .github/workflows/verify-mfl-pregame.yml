@@ -1,8 +1,5 @@
 name: Verify real MFL pregame lineup data (read only)
 on:
-  push:
-    paths:
-      - '.github/workflows/verify-mfl-pregame.yml'
   pull_request:
     paths:
       - 'src/probe_mfl_lineups.py'
@@ -39,8 +36,3 @@ jobs:
           MFL_SEASON: ${{ vars.MFL_SEASON }}
           MFL_LINEUP_WEEK: '11'
         run: python -m src.live_lineup_dry_run
-      - name: Check authenticated default owner franchise (read only)
-        env:
-          MFL_OWNER_USERNAME: ${{ secrets.MFL_OWNER_USERNAME }}
-          MFL_OWNER_PASSWORD: ${{ secrets.MFL_OWNER_PASSWORD }}
-        run: python -m src.diagnose_owner_franchise
