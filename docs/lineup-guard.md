@@ -36,11 +36,16 @@ No code in this branch calls MFL's write API or changes a lineup.
 - Nevertheless, the application must preserve **every other** current starter when making a full-lineup import; stop and alert if the league refuses the change, data is stale, or no safe replacement is available.
 - Automatic lineup writing is **not active** and must not be enabled until real pregame data, complete import semantics and write authentication are verified.
 
+## Verified MFL pregame read finding (November 17, 2026)
+- The owner confirmed Week 12 starting lineup was already submitted.
+- Live API tests authenticated with the existing league-level `MFL_API_KEY` showed `weeklyResults?W=12` had the owner franchise but **no starters**. Week 11 returned 17 submitted starters. `liveScoring?W=12` likewise exposed matchups but no starters.
+- The native MFL **Starting Lineups** web report uses `options?L=40298&O=06&WEEK=12&F=0001`. An unauthenticated GitHub-hosted fetch is redirected to league web HTML with login messaging and **no table or player rows**. League API key alone is insufficient for this private pregame HTML page.
+- The next dependency is a **separate authenticated owner session**, stored only in GitHub Actions Secrets and used server-side, to read pregame starting lineups. MFL's login endpoint can issue a session cookie; do not store any owner credential or cookie in the public repo or public dashboard.
+- Until a real pregame lineup is retrieved and checked against the owner's submitted list, automatic writes must remain disabled. Never interpret missing starters as a blank user lineup.
+- MFL `playerScores?W=AVG` returned 1,599 scoring-average records, each with a numeric score and player ID. MFL `league` export returned eight starting-position rule entries; MFL `nflSchedule?W=12` returned 16 games with team IDs and kickoff data. These are sufficient inputs for designing replacement selection once the lineup read is solved.
+
 ## Still required before production activation
-1. Query a current-week `weeklyResults` export in a controlled,
-   read-only GitHub workflow to determine whether MFL exposes an
-   owner's **submitted current-week lineup** before games. Confirm that
-   the current API key has sufficient *read* permissions.
+1. Retrieve the owner's **submitted upcoming starting lineup** through an authenticated MFL Starting Lineups report or equivalent source. Compare the result to the owner's known Week 12 lineup before relying on it; the league API key and pregame weeklyResults did not return starter IDs.
 2. Fetch the league's actual starting-position limits and scoring/
    projections, then validate every proposed replacement against
    league-specific positions, FLEX/IDP rules and bye/game locks.
