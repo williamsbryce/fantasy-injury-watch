@@ -8,6 +8,7 @@ from http.cookies import SimpleCookie
 from urllib.parse import urlencode, urlsplit, parse_qs
 import os
 import re
+import json
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -460,11 +461,45 @@ class SafePageDiagnostics(HTMLParser):
         }
 
 
-def probe_owner_page(opener, year, league_id, franchise_id, week, session, report_code='06'):
+
+def verify_owner_franchise(opener, year, session, league_id, franchise_id):
+    """Return only whether this authenticated account owns the configured franchise."""
+    params = urlencode({"TYPE": "myleagues", "JSON": "1"})
+    request = urllib.request.Request(
+        f"https://api.myfantasyleague.com/{int(year)}/export?{params}",
+        headers={"Cookie": session, "Accept": "application/json",
+                 "User-Agent": "FantasyInjuryWatchBryce/1.0"}, method="GET",
+    )
+    try:
+        with opener.open(request, timeout=20) as response:
+            data = json.loads(response.read(1_000_000))
+    except (ValueError, urllib.error.HTTPError, urllib.error.URLError, OSError):
+        return {"owner_lookup_available": False}
+    root = data.get("myleagues", {}) if isinstance(data, dict) else {}
+    if not isinstance(root, dict):
+        return {"owner_lookup_available": False}
+    items = root.get("league") or []
+    leagues = items if isinstance(items, list) else [items]
+    matches = [x for x in leagues if isinstance(x, dict)
+               and str(x.get("id", "")) == str(league_id)]
+    return {
+        "owner_lookup_available": True,
+        "league_accessible": len(matches) == 1,
+        "franchise_matches": any(
+            str(m.get("franchise_id") or m.get("franchiseId") or m.get("FRANCHISE_ID") or "").zfill(4)
+            == str(franchise_id).zfill(4) for m in matches
+        ),
+    }
+
+
+def probe_owner_page(opener, year, league_id, franchise_id, week, session, report_code='06', include_f=True, include_week=True):
     """Retrieve owner-only MFL report without displaying or committing its contents."""
-    params = urlencode({
-        "L": league_id, "O": report_code, "WEEK": week, "F": franchise_id,
-    })
+    args = {"L": league_id, "O": report_code}
+    if include_week:
+        args["WEEK"] = week
+    if include_f:
+        args["F"] = franchise_id
+    params = urlencode(args)
     request = urllib.request.Request(
         f"https://www46.myfantasyleague.com/{int(year)}/options?{params}",
         headers={
@@ -530,14 +565,26 @@ def run():
     try:
         cookie = owner_login(opener, season, username, password, league_id)
         print("AUTH PROBE: MFL owner login returned a session cookie (value hidden).")
-        result = probe_owner_page(opener, season, league_id, franchise_id, week, cookie, report_code="02")
+        owner_check = verify_owner_franchise(opener, season, cookie, league_id, franchise_id)
+        result = probe_owner_page(
+            opener, season, league_id, franchise_id, week, cookie,
+            report_code="02", include_f=False, include_week=False
+        )
+        alternate = probe_owner_page(
+            opener, season, league_id, franchise_id, week, cookie,
+            report_code="02", include_f=True, include_week=False
+        )
     except OwnerAuthError as error:
         # Every raised exception is an allowlisted, credential-free category.
         print(f"AUTH PROBE: {error}")
         return
     finally:
         cookie = ""
-    print("AUTH PROBE: authenticated Submit Lineup page O=02")
+    print("AUTH PROBE: owner-account franchise mapping:", owner_check)
+    print("AUTH PROBE: Submit Lineup O=02 without F/week params")
+    print("AUTH PROBE: O=02 with F only, form_shape=", alternate["form_shape"],
+          "table_count=", alternate["html_table_count"],
+          "visible_text_chars=", alternate["page_diagnostics"]["visible_text_chars"])
     # All output is class/tag counts, not user-specific HTML or player details.
     public_fields = {k:v for k,v in result.items() if k not in ("table_shapes", "row_shapes")}
     print("AUTH PROBE: " + ", ".join(f"{key}={value}" for key, value in public_fields.items()))
