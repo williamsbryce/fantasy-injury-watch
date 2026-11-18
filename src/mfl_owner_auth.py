@@ -21,6 +21,11 @@ class OwnerAuthError(RuntimeError):
 
 class MFLOnlyRedirects(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
+        # urllib transparently converts POST to GET for HTTP 302 redirects.
+        # On an MFL import this silently discards STARTERS and the write is lost.
+        if (req.get_method() == "POST" and
+                urlsplit(req.full_url).path.rstrip("/").endswith("/import")):
+            raise OwnerAuthError("MFL import redirected; refusing to drop POST payload")
         new = urlsplit(newurl)
         if new.scheme != "https" or not new.hostname or not (
             new.hostname == "api.myfantasyleague.com"
