@@ -56,6 +56,21 @@ class NativeFormTests(unittest.TestCase):
         self.assertNotIn("104", selected)
         self.assertIn("150", selected)
 
+    def test_multiple_out_starters_replace_only_their_own_positions(self):
+        proposal = self.original.copy()
+        proposal[4] = "150"  # LB
+        proposal[5] = "151"  # QB
+        _, body = prepare_post(
+            sample_html(week="12"), originals=self.original,
+            proposed=proposal, changes=[("104", "150"), ("105", "151")],
+            expected_week=12)
+        pairs = parse_qsl(body.decode("utf-8"))
+        values = [value for name, value in pairs if name in ("LB0001", "QB0001")]
+        self.assertEqual(len(values), 17)
+        self.assertEqual(set(values), set(proposal))
+        self.assertEqual(len(set(values) & set(self.original)), 15)
+        self.assertEqual(dict(pairs)["WEEK"], "12")
+
     def test_refuses_wrong_week_or_host(self):
         for html in (
             sample_html(week="12"),
