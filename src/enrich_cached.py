@@ -1,4 +1,7 @@
-"""Enrich last verified public injury report with fresh news when MFL is unavailable."""
+"""Enrich cached public injury reports when the live MFL feed is unavailable.
+
+Never alter the timestamp of the last successful MFL injury synchronization.
+"""
 import json
 import os
 from datetime import datetime, timezone
