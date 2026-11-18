@@ -11,6 +11,8 @@ on:
       - 'tests/test_lineup_replacements.py'
       - 'src/nfl_week.py'
       - 'tests/test_nfl_week.py'
+      - 'src/manual_lineup_test.py'
+      - 'tests/test_manual_lineup_test.py'
       - 'src/model.py'
       - 'src/probe_mfl_lineups.py'
       - '.github/workflows/lineup-guard-tests.yml'
@@ -36,6 +38,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_submitted_lineup.py' -v
           python -m unittest discover -s tests -p 'test_lineup_replacements.py' -v
           python -m unittest discover -s tests -p 'test_nfl_week.py' -v
+          python -m unittest discover -s tests -p 'test_manual_lineup_test.py' -v
       - name: Run read-only MFL export probe
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         env:
