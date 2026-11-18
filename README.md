@@ -8,7 +8,7 @@ Public, passwordless, read-only fantasy injury dashboard at https://williamsbryc
 - MFL official injury designations are authoritative for this app's statuses, but they are not official kickoff inactive reports.
 - An optional RotoWire **public NFL news page** provides recent matching injury and practice headlines, with a public NFL RSS fallback. A dated headline and publisher link appear only when there is a verified player-name match and an injury-specific item. Not all injured players have recent news; the application never invents an update.
 - Each injury card links to the MFL player-news page. Access to article content on MFL's private league page may require a logged-in session.
-- Recurring injury emails configured through `EMAIL_ENABLED=true`; Thursday/Sunday after 9 a.m. Saskatchewan and urgent designation changes during scheduled polls. Delivery through Resend verified 2026-11-17; GitHub Actions timing is best-effort.
+- Recurring injury emails configured through `EMAIL_ENABLED=true`; Thursday after **5:00 p.m.** Saskatchewan and Sunday after **10:30 a.m.** Saskatchewan, with additional scheduled checks at those times (UTC 23:00 Thursday / 16:30 Sunday). Urgent designation changes still trigger during scheduled polls. Resend delivery verified 2026-11-17; GitHub Actions timing is best-effort.
 - Roster/news reports are **public JSON**; prior encrypted report migrated once using the legacy secret before removal from the branch. Historical git commits retain the old encrypted payload.
 - No roster edits, no lineup modifications, no auto-substitution.
 
