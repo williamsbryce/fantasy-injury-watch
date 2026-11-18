@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: mfl-cffl-automatic-out-starter-guard
@@ -26,7 +26,7 @@ jobs:
       - name: Checkout reviewed and tested 2026 auto guard
         uses: actions/checkout@v4
         with:
-          ref: ad132b4992272fb63a129811c587a5bfc516d718
+          ref: 17c28836395e8f3d4a6d31651ea1701fdb3a0528
           persist-credentials: false
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -38,6 +38,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_auto_lineup_integration.py' -v
           python -m unittest discover -s tests -p 'test_native_mfl_lineup.py' -v
           python -m unittest discover -s tests -p 'test_manual_lineup_test.py' -v
+          python -m unittest discover -s tests -p 'test_audit_log.py' -v
       - name: Evaluate scheduled or read-only manual CFFL lineups
         env:
           LINEUP_AUTOMATION_MODE: ${{ github.event_name == 'schedule' && 'LIVE' || 'DRY_RUN' }}
@@ -50,6 +51,7 @@ jobs:
           MFL_LEAGUE_ID: '40298'
           MFL_FRANCHISE_ID: '0001'
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          AUDIT_GITHUB_TOKEN: ${{ github.token }}
           ALERT_FROM: ${{ vars.ALERT_FROM }}
           ALERT_TO: ${{ vars.ALERT_TO }}
         run: python -m src.auto_lineup_guard
