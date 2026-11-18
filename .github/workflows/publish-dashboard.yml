@@ -36,6 +36,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install runtime dependencies for email audit tests
+        run: pip install --requirement requirements.txt
       - name: Validate dashboard HTML and inline JavaScript
         run: |
           python -m unittest discover -s tests -p 'test_dashboard_site.py' -v
