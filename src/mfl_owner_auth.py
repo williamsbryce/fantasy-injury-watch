@@ -357,6 +357,76 @@ class SafeFormShape(HTMLParser):
         }
 
 
+
+class SafePageDiagnostics(HTMLParser):
+    """Tag and wording categories only. Never emits HTML, text or link destinations."""
+    CHECKS = {
+        "login_required": r"log\s*in\s*(?:to|first|before)|must\s+be\s+logged\s+in",
+        "owner_required": r"must\s+be\s+(?:the\s+)?(?:franchise\s+)?owner|not\s+authorized|permission\s+denied",
+        "lineup_not_available": r"lineup\s+(?:is\s+)?(?:not\s+available|unavailable|locked)",
+        "lineup_not_submitted": r"(?:no|not)\s+(?:starting\s+)?lineup\s+(?:has\s+been\s+)?submitted",
+        "javascript_required": r"javascript\s+(?:must\s+be\s+enabled|is\s+required)",
+        "submit_lineup": r"submit\s+(?:your|a)?\s*lineup",
+        "starter_or_bench": r"\bstarters?\b|\bbench\b",
+        "lineup_change_disallowed": r"(?:cannot|can.t|not\s+allowed\s+to)\s+(?:make\s+)?(?:lineup|submit)",
+    }
+
+    def __init__(self):
+        super().__init__()
+        self.script_depth = 0
+        self.style_depth = 0
+        self.visible = []
+        self.scripts = 0
+        self.scripts_inline = 0
+        self.sources = {}
+        self.iframe_count = 0
+        self.divs = 0
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag == "script":
+            self.script_depth += 1
+            self.scripts += 1
+            src = a.get("src") or ""
+            if not src:
+                self.scripts_inline += 1
+            else:
+                leaf = urlsplit(src).path.rsplit("/", 1)[-1].lower()
+                for marker in ("lineup", "roster", "app", "main", "jquery", "mfl", "script"):
+                    if marker in leaf:
+                        self.sources[marker] = self.sources.get(marker, 0) + 1
+        if tag == "style":
+            self.style_depth += 1
+        if tag == "iframe":
+            self.iframe_count += 1
+        if tag == "div":
+            self.divs += 1
+
+    def handle_endtag(self, tag):
+        if tag == "script":
+            self.script_depth = max(0, self.script_depth - 1)
+        if tag == "style":
+            self.style_depth = max(0, self.style_depth - 1)
+
+    def handle_data(self, data):
+        if not self.script_depth and not self.style_depth and data.strip():
+            self.visible.append(data)
+
+    def public(self):
+        visible = " ".join(self.visible)
+        return {
+            "visible_text_chars": len(visible),
+            "visible_nodes": len(self.visible),
+            "script_count": self.scripts, "inline_scripts": self.scripts_inline,
+            "script_categories": self.sources,
+            "iframes": self.iframe_count, "divs": self.divs,
+            "marker_categories": {
+                key: bool(re.search(pattern, visible, re.I))
+                for key, pattern in self.CHECKS.items()
+            },
+        }
+
+
 def probe_owner_page(opener, year, league_id, franchise_id, week, session, report_code='06'):
     """Retrieve owner-only MFL report without displaying or committing its contents."""
     params = urlencode({
@@ -384,6 +454,8 @@ def probe_owner_page(opener, year, league_id, franchise_id, week, session, repor
     rows.feed(page)
     form = SafeFormShape()
     form.feed(page)
+    page_diagnostics = SafePageDiagnostics()
+    page_diagnostics.feed(page)
     report = {
         "host_valid": bool(final_host and re.fullmatch(
             r"www\d+\.myfantasyleague\.com", final_host)),
@@ -400,6 +472,7 @@ def probe_owner_page(opener, year, league_id, franchise_id, week, session, repor
         "player_id_summary": rows.player_id_summary(),
         "row_shapes": rows.public_shapes(),
         "form_shape": form.public(),
+        "page_diagnostics": page_diagnostics.public(),
         "visible_submit_markers": {
             "submit_lineup_title": bool(re.search(r"submit\s+(?:a\s+)?lineup", page, re.I)),
             "starter_word_count": len(re.findall(r"starters?", page, re.I)),
