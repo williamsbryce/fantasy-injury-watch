@@ -139,10 +139,20 @@ def submit_full_lineup(opener, cookie, year, league, week, proposed):
         raise ManualSwapError(f"MFL import HTTP error {error.code}") from None
     except (urllib.error.URLError,OSError,TimeoutError):
         raise ManualSwapError("MFL lineup submission network error") from None
+    kind = classify_import_body(response, mime)
+    # An HTML page may happen to be well-formed XML. Detect its type before
+    # XML parsing rather than mislabelling it as an unexpected XML status.
+    if kind["body_category"] in ("html", "empty", "plain_text", "json_like",
+                                  "binary_or_unrecognized"):
+        raise ManualSwapError(
+            "MFL import response invalid: HTTP " + str(status) +
+            ", mime=" + kind["mime_category"] +
+            ", body=" + kind["body_category"] +
+            ", bytes=" + str(kind["byte_count"])
+        )
     try:
         root = ET.fromstring(response)
     except ET.ParseError:
-        kind = classify_import_body(response, mime)
         raise ManualSwapError(
             "MFL import response invalid: HTTP " + str(status) +
             ", mime=" + kind["mime_category"] +
