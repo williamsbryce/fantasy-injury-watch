@@ -53,7 +53,7 @@ class DashboardDocumentationTests(unittest.TestCase):
             "10:30 a.m., 4:47 p.m., and 5:47 p.m.",
             "35 to under 95 minutes",
             "Questionable, Doubtful",
-            "last three available completed weekly scoring records",
+            "three available completed weekly scoring records",
             "partial",
             "17 starters",
             "read-only",
