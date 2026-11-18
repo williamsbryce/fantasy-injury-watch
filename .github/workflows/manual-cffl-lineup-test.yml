@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'CHECK reads Week 12, DRY_RUN tests swap, LIVE submits once'
+        description: 'CHECK reads Week 11, DRY_RUN tests swap, LIVE submits once'
         required: true
         default: 'CHECK'
         type: choice
@@ -12,15 +12,15 @@ on:
           - DRY_RUN
           - LIVE
       outgoing_player_id:
-        description: 'Exact current Week 12 starter MFL ID (needed for DRY_RUN/LIVE)'
+        description: 'Exact current Week 11 starter MFL ID (needed for DRY_RUN/LIVE)'
         required: false
         type: string
       incoming_player_id:
-        description: 'Exact Week 12 bench MFL ID (needed for DRY_RUN/LIVE)'
+        description: 'Exact Week 11 bench MFL ID (needed for DRY_RUN/LIVE)'
         required: false
         type: string
       approval:
-        description: 'LIVE only: APPROVE <out-id> TO <in-id> WEEK 12'
+        description: 'LIVE only: APPROVE <out-id> TO <in-id> WEEK 11'
         required: false
         type: string
 
@@ -46,7 +46,7 @@ jobs:
         run: |
           python -m unittest discover -s tests -p 'test_submitted_lineup.py' -v
           python -m unittest discover -s tests -p 'test_manual_lineup_test.py' -v
-      - name: CHECK current Week 12 starters (read only)
+      - name: CHECK current Week 11 starters (read only)
         if: ${{ inputs.mode == 'CHECK' }}
         env:
           MFL_OWNER_USERNAME: ${{ secrets.MFL_OWNER_USERNAME }}
@@ -56,7 +56,7 @@ jobs:
           MFL_LEAGUE_ID: '40298'
           MFL_FRANCHISE_ID: '0001'
           MFL_SEASON: '2026'
-          MFL_LINEUP_WEEK: '12'
+          MFL_LINEUP_WEEK: '11'
         run: python -m src.live_lineup_dry_run
       - name: Execute explicitly approved one-time manual substitution
         if: ${{ inputs.mode == 'DRY_RUN' || inputs.mode == 'LIVE' }}
@@ -66,7 +66,7 @@ jobs:
           MFL_LEAGUE_ID: '40298'
           MFL_FRANCHISE_ID: '0001'
           MFL_SEASON: '2026'
-          TEST_LINEUP_WEEK: '12'
+          TEST_LINEUP_WEEK: '11'
           TEST_OUT_PLAYER_ID: ${{ inputs.outgoing_player_id }}
           TEST_IN_PLAYER_ID: ${{ inputs.incoming_player_id }}
           TEST_SWAP_MODE: ${{ inputs.mode }}
