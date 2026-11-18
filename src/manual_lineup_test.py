@@ -89,14 +89,29 @@ def submit_full_lineup(opener, cookie, year, league, week, proposed):
             if result.status not in (200,201,202):
                 raise ManualSwapError("MFL lineup submission was not accepted")
             response = result.read(100_000)
-    except (urllib.error.HTTPError,urllib.error.URLError,OSError,TimeoutError):
-        raise ManualSwapError("MFL lineup submission failed or was interrupted") from None
+    except urllib.error.HTTPError as error:
+        raise ManualSwapError(f"MFL import HTTP error {error.code}") from None
+    except (urllib.error.URLError,OSError,TimeoutError):
+        raise ManualSwapError("MFL lineup submission network error") from None
     try:
         root = ET.fromstring(response)
     except ET.ParseError:
-        raise ManualSwapError("MFL did not confirm lineup submission with XML") from None
+        if b"<html" in response.lower() or b"<!doctype html" in response.lower():
+            raise ManualSwapError("MFL import returned HTML rather than XML") from None
+        raise ManualSwapError("MFL import returned a non-XML response") from None
+    if root.tag.lower() == "error":
+        safe = " ".join(root.itertext()).lower()
+        if "logged in" in safe or "log in" in safe or "authorization" in safe:
+            reason = "owner_authentication"
+        elif "deadline" in safe or "lock" in safe or "too late" in safe:
+            reason = "lineup_locked"
+        elif "invalid" in safe or "player" in safe or "lineup" in safe or "starter" in safe:
+            reason = "lineup_validation"
+        else:
+            reason = "unclassified"
+        raise ManualSwapError("MFL import rejected: category=" + reason)
     if root.tag.lower() != "status" or (root.text or "").strip().upper() != "OK":
-        raise ManualSwapError("MFL rejected or did not confirm the lineup change")
+        raise ManualSwapError("MFL import returned unexpected XML status")
     return True
 
 
