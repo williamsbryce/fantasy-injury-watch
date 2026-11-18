@@ -463,33 +463,48 @@ class SafePageDiagnostics(HTMLParser):
 
 
 def verify_owner_franchise(opener, year, session, league_id, franchise_id):
-    """Return only whether this authenticated account owns the configured franchise."""
-    params = urlencode({"TYPE": "myleagues", "JSON": "1"})
-    request = urllib.request.Request(
-        f"https://api.myfantasyleague.com/{int(year)}/export?{params}",
-        headers={"Cookie": session, "Accept": "application/json",
-                 "User-Agent": "FantasyInjuryWatchBryce/1.0"}, method="GET",
-    )
-    try:
-        with opener.open(request, timeout=20) as response:
-            data = json.loads(response.read(1_000_000))
-    except (ValueError, urllib.error.HTTPError, urllib.error.URLError, OSError):
-        return {"owner_lookup_available": False}
-    root = data.get("myleagues", {}) if isinstance(data, dict) else {}
-    if not isinstance(root, dict):
-        return {"owner_lookup_available": False}
-    items = root.get("league") or []
-    leagues = items if isinstance(items, list) else [items]
-    matches = [x for x in leagues if isinstance(x, dict)
-               and str(x.get("id", "")) == str(league_id)]
-    return {
-        "owner_lookup_available": True,
-        "league_accessible": len(matches) == 1,
-        "franchise_matches": any(
-            str(m.get("franchise_id") or m.get("franchiseId") or m.get("FRANCHISE_ID") or "").zfill(4)
-            == str(franchise_id).zfill(4) for m in matches
-        ),
-    }
+    """Read-only check of session ownership; return only safe, aggregate metadata."""
+    results = []
+    for with_year in (False, True):
+        params = {"TYPE": "myleagues", "JSON": "1"}
+        if with_year:
+            params["YEAR"] = str(year)
+        request = urllib.request.Request(
+            f"https://api.myfantasyleague.com/{int(year)}/export?{urlencode(params)}",
+            headers={"Cookie": session, "Accept": "application/json",
+                     "User-Agent": "FantasyInjuryWatchBryce/1.0"}, method="GET",
+        )
+        try:
+            with opener.open(request, timeout=20) as response:
+                data = json.loads(response.read(1_000_000))
+        except (ValueError, urllib.error.HTTPError, urllib.error.URLError, OSError):
+            results.append({"year_explicit": with_year, "available": False})
+            continue
+        root = data.get("myleagues", {}) if isinstance(data, dict) else {}
+        if not isinstance(root, dict):
+            results.append({"year_explicit": with_year, "available": False})
+            continue
+        items = root.get("league") or []
+        leagues = items if isinstance(items, list) else [items]
+        safe_leagues = [x for x in leagues if isinstance(x, dict)]
+        matches = [x for x in safe_leagues
+                   if str(x.get("id") or x.get("league_id") or "") == str(league_id)]
+        results.append({
+            "year_explicit": with_year, "available": True,
+            "league_rows": len(safe_leagues),
+            "league_field_present": "league" in root,
+            "league_ids_present": any("id" in x or "league_id" in x for x in safe_leagues),
+            "franchise_fields_present": any(
+                "franchise_id" in x or "franchiseId" in x or "FRANCHISE_ID" in x
+                for x in safe_leagues),
+            "league_accessible": len(matches) == 1,
+            "franchise_matches": any(
+                str(m.get("franchise_id") or m.get("franchiseId") or m.get("FRANCHISE_ID") or "").zfill(4)
+                == str(franchise_id).zfill(4) for m in matches
+            ),
+        })
+    return results
+
 
 
 def probe_owner_page(opener, year, league_id, franchise_id, week, session, report_code='06', include_f=True, include_week=True):
