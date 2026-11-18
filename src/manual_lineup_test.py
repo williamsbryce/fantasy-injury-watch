@@ -102,11 +102,11 @@ def classify_import_body(body, content_type):
 
 
 def submit_full_lineup(opener, cookie, year, league, week, proposed):
-    """One POST to league's own host; never follows redirects as successful writes."""
+    """One POST to the documented MFL API host; reject all redirects."""
     if len(proposed) != 17 or len(set(proposed)) != 17:
         raise ManualSwapError("Invalid full-lineup POST proposal")
     url = (
-        f"https://www46.myfantasyleague.com/{int(year)}/import?"
+        f"https://api.myfantasyleague.com/{int(year)}/import?"
         + urllib.parse.urlencode({"TYPE": "lineup", "L": league})
     )
     form = urllib.parse.urlencode({
