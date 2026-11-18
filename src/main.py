@@ -1,25 +1,25 @@
-"""GitHub Actions entrypoint: MFL read-only sync => encrypted Pages report + optional email."""
+"""GitHub Actions entrypoint: read-only MFL sync => public report + optional email."""
 import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .crypto import decrypt, encrypt
+from .crypto import decrypt
 from .mfl import fetch_all
+from .news import enrich_reports, fetch_recent_news
 from .model import parse_report
 from .notify import digest_key, email_text, send_resend, urgent_new_alerts
 
 ROOT = Path(__file__).resolve().parent.parent
-REPORT_PATH = ROOT / "site" / "data" / "report.enc.json"
+REPORT_PATH = ROOT / "site" / "data" / "report.json"
+LEGACY_PATH = ROOT / "site" / "data" / "report.enc.json"
 
 
 def run():
     key = os.environ.get("MFL_API_KEY", "")
     passphrase = os.environ.get("REPORT_PASSPHRASE", "")
-    if not key or not passphrase:
-        raise RuntimeError("Required MFL_API_KEY or REPORT_PASSPHRASE secret is not configured")
-    if len(passphrase) < 16:
-        raise RuntimeError("REPORT_PASSPHRASE must be at least 16 characters")
+    if not key:
+        raise RuntimeError("Required MFL_API_KEY secret is not configured")
     league_id = os.environ.get("MFL_LEAGUE_ID", "").strip()
     franchise_id = os.environ.get("MFL_FRANCHISE_ID", "").strip()
     if not league_id.isdigit() or not (len(franchise_id) == 4 and franchise_id.isdigit()):
@@ -32,8 +32,12 @@ def run():
     }]
     previous = {}
     if REPORT_PATH.exists():
-        # An incorrect/mismatched password fails rather than erasing the previous state.
-        previous = decrypt(json.loads(REPORT_PATH.read_text(encoding="utf-8")), passphrase)
+        previous = json.loads(REPORT_PATH.read_text(encoding="utf-8"))
+    elif LEGACY_PATH.exists():
+        # Preserve notification deduplication during the one-time public migration.
+        if not passphrase:
+            raise RuntimeError("Legacy migration requires existing report passphrase secret")
+        previous = decrypt(json.loads(LEGACY_PATH.read_text(encoding="utf-8")), passphrase)
     now = datetime.now(timezone.utc)
     leagues = []
     for league in leagues_config:
@@ -42,7 +46,9 @@ def run():
         feeds = fetch_all(int(league["season"]), league["id"], key,
                           (os.environ.get("MFL_CLIENT_NAME", "").strip() or "FantasyInjuryWatch"))
         leagues.append(parse_report(feeds, league, now))
-    document = {"schema": 1, "synced_at": now.isoformat(), "leagues": leagues,
+    # Public news is optional; a failed news feed must not suppress MFL injury data.
+    enrich_reports(leagues, fetch_recent_news(), checked_at=now)
+    document = {"schema": 2, "synced_at": now.isoformat(), "leagues": leagues,
                 "sent_digest_date": previous.get("sent_digest_date", "")}
     # Email first. If delivery fails, the action fails and does not mark the alert as sent.
     email_key = os.environ.get("RESEND_API_KEY", "")
@@ -79,9 +85,9 @@ def run():
                             f"Fantasy Injury Watch | New urgent status: {names}",
                             email_text(document, "New urgent injury status"))
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    REPORT_PATH.write_text(json.dumps(encrypt(document, passphrase), indent=2) + "\n", encoding="utf-8")
+    REPORT_PATH.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
     print(f"Read-only MFL sync successful. Leagues: {len(leagues)}. Total injury items: {sum(len(l['alerts']) for l in leagues)}.")
-    print("Encrypted site report written. No roster names or credentials were logged.")
+    print("Public injury report written by user request. No API credentials were logged or published.")
 
 
 if __name__ == "__main__":

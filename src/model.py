@@ -83,6 +83,7 @@ def parse_report(mfl: dict, league: dict, now=None) -> dict:
             "expected_return": str(injury.get("exp_return", "") or "")[:100],
             "source": "MyFantasyLeague injury feed",
             "source_timestamp": str(injury_data.get("timestamp", "") or ""),
+            "mfl_news_url": f"https://www.myfantasyleague.com/{int(league['season'])}/news_articles?L={league['id']}&PLAYERS={pid}",
         })
     # If identity mapping fails, fail closed. Otherwise a missing player could be reported as healthy.
     if unresolved_names:

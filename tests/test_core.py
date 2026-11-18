@@ -68,10 +68,11 @@ class TestPipeline(unittest.TestCase):
    with patch.dict(os.environ,env),patch.object(main,'REPORT_PATH',path),patch.object(main,'fetch_all',return_value=FIXTURE):
     main.run()
    text=path.read_text()
-   self.assertNotIn('Test Smith',text)
+   self.assertIn('Test Smith',text)  # Public report, by user's explicit choice.
    self.assertNotIn('synthetic-test-key',text)
-   decoded=decrypt(json.loads(text),env['REPORT_PASSPHRASE'])
+   decoded=json.loads(text)
    self.assertEqual(decoded['leagues'][0]['alerts'][0]['name'],'Test Smith')
+   self.assertIn('mfl_news_url',decoded['leagues'][0]['alerts'][0])
 
 
 class TestMFLResilience(unittest.TestCase):
@@ -124,7 +125,7 @@ class TestEmailTestMode(unittest.TestCase):
     main.run()
    self.assertEqual(send.call_count,1)
    self.assertIn('Test email',send.call_args.args[3])
-   state=decrypt(json.loads(path.read_text()),env['REPORT_PASSPHRASE'])
+   state=json.loads(path.read_text())
    self.assertEqual(state.get('sent_digest_date'),'')
  def test_manual_email_requires_configuration(self):
   from pathlib import Path
@@ -205,3 +206,41 @@ class TestSafeResendReasonClassifier(unittest.TestCase):
     send_resend('private-secret','onboarding@resend.dev','test@example.com','test','body')
   self.assertIn('reason=unclassified, response=html',str(cm.exception))
   self.assertNotIn('private internal error',str(cm.exception))
+
+
+class TestNewsIntegration(unittest.TestCase):
+ def test_player_news_attaches_to_exact_matching_player(self):
+  from src.news import enrich_reports
+  import copy
+  document=parse_report(FIXTURE,LEAGUE)
+  news=[
+   {'title':'Test Smith: Limited at Wednesday practice','published':'Wed, 18 Nov 2026','url':'https://www.rotowire.com/football/player/test-smith-123','source':'RotoWire RSS'},
+   {'title':'Different Person: Sitting out practice','published':'Wed, 18 Nov 2026','url':'https://www.rotowire.com/football/player/other-123','source':'RotoWire RSS'}
+  ]
+  enrich_reports([document],news)
+  self.assertEqual(document['alerts'][0]['news'][0]['title'],news[0]['title'])
+  self.assertIn('PLAYERS=111',document['alerts'][0]['mfl_news_url'])
+
+ def test_feed_unavailable_does_not_remove_mfl_injury_alerts(self):
+  from src.news import enrich_reports
+  document=parse_report(FIXTURE,LEAGUE)
+  enrich_reports([document],None)
+  self.assertEqual(len(document['alerts']),1)
+  self.assertEqual(document['alerts'][0]['news'],[])
+
+ def test_rss_parsing_extracts_player_practice_headline_only(self):
+  import io
+  from unittest.mock import patch
+  from src.news import fetch_recent_news
+  xml=b'''<rss><channel>
+    <item><title>Test Smith: Limited at practice</title><description>Expected to be questionable</description><link>https://www.rotowire.com/football/player/test-smith-123</link><pubDate>Wed, 18 Nov 2026 10:00:00 GMT</pubDate></item>
+    <item><title>Another Player: Big game</title><description>No injury</description><link>https://www.rotowire.com/football/player/other-123</link></item>
+  </channel></rss>'''
+  class FakeResponse:
+   def __enter__(self):return self
+   def __exit__(self,*args):return None
+   def read(self,n):return xml
+  with patch('src.news.urllib.request.urlopen',return_value=FakeResponse()):
+   result=fetch_recent_news()
+  self.assertEqual(result[0]['title'],'Test Smith: Limited at practice')
+  self.assertEqual(len(result),1)

@@ -1,5 +1,9 @@
 name: Injury Watch (read-only)
 on:
+  push:
+    branches: [main]
+    paths:
+      - "src/main.py"
   workflow_dispatch:
     inputs:
       send_test_email:
@@ -40,7 +44,11 @@ jobs:
         run: pip install --requirement requirements.txt
       - name: Check parser tests
         run: python -m unittest discover -s tests -v
-      - name: Sync MyFantasyLeague and encrypt report
+      - name: Migrate last verified encrypted report to public format
+        env:
+          REPORT_PASSPHRASE: ${{ secrets.REPORT_PASSPHRASE }}
+        run: python -m src.migrate
+      - name: Sync MyFantasyLeague and write public report
         env:
           MFL_API_KEY: ${{ secrets.MFL_API_KEY }}
           MFL_CLIENT_NAME: ${{ vars.MFL_CLIENT_NAME }}
@@ -55,17 +63,23 @@ jobs:
           ALERT_FROM: ${{ vars.ALERT_FROM }}
           ALERT_TO: ${{ vars.ALERT_TO }}
         run: python -m src.main
-      - name: Save encrypted state, never plaintext
+      - name: Save report and remove obsolete encrypted copy
+        if: ${{ always() }}
         run: |
+          if ! test -s site/data/report.json; then
+            echo "::warning::No public report available; nothing to publish."
+            exit 0
+          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add site/data/report.enc.json
+          git add site/data/report.json
+          git rm -f --ignore-unmatch site/data/report.enc.json
           if ! git diff --cached --quiet; then
-            git commit -m 'Update encrypted injury status [skip ci]'
+            git commit -m 'Update public injury status [skip ci]'
             git push
           fi
   deploy:
-    # Deploy the last verified encrypted snapshot even if the next MFL poll fails.
+    # Deploy the last verified public report even if the next MFL poll fails.
     # Never publish an empty/all-clear report when MFL is unavailable.
     needs: sync
     if: ${{ always() && (needs.sync.result == 'success' || needs.sync.result == 'failure') }}
@@ -74,12 +88,12 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Check out last saved encrypted report
+      - name: Check out last saved public report
         uses: actions/checkout@v4
         with:
           ref: main
-      - name: Require an existing encrypted report
-        run: test -s site/data/report.enc.json
+      - name: Require an existing public report
+        run: test -s site/data/report.json
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload encrypted Pages site

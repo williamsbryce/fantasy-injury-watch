@@ -1,84 +1,25 @@
 # Fantasy Injury Watch
+Public, passwordless, read-only fantasy injury dashboard at https://williamsbryce.github.io/fantasy-injury-watch/.
 
-An email-first fantasy football injury monitor. **Read-only.** It cannot change MFL lineups. The site shows only injured rostered players, not projections or team performance data.
+## User-approved configuration (November 17, 2026)
+- GitHub Pages report is intentionally **public**, with no passphrase on the website. The user explicitly accepted public roster-injury visibility to reduce friction.
+- MFL API credentials and Resend API key remain GitHub Secrets and never reach the website.
+- One MFL league, CFFL Dynasty, 2026, franchise 0001. Only active roster players are monitored; MFL IR/taxi excluded.
+- MFL official injury designations are authoritative for this app's statuses, but they are not official kickoff inactive reports.
+- An optional RotoWire NFL RSS feed provides **latest matching practice and injury headlines**. Headline, publisher, date and source link appear only if matched by player name and relevant terms. RSS feed is short and cannot guarantee every player has a news item. The app never invents news.
+- Each injury card links to the MFL player-news page. Access to article content on MFL's private league page may require a logged-in session.
+- Recurring injury emails configured through `EMAIL_ENABLED=true`; Thursday/Sunday after 9 a.m. Saskatchewan and urgent designation changes during scheduled polls. Delivery through Resend verified 2026-11-17; GitHub Actions timing is best-effort.
+- Roster/news reports are **public JSON**; prior encrypted report migrated once using the legacy secret before removal from the branch. Historical git commits retain the old encrypted payload.
+- No roster edits, no lineup modifications, no auto-substitution.
 
-## Current project status (2026-11-17)
+## Operating details
+- MFL read-only API exports: `rosters`, `players`, `injuries`. Missing feed or invalid roster identity fails closed, preserves last working report and warns if stale.
+- Public news RSS is optional: failure never suppresses actual MFL injury designations.
+- News can be stale or absent if the RSS feed only includes the five newest updates. The MFL link is provided as a secondary source.
+- GitHub Actions controls synchronization and GitHub Pages deployment.
+- Run tests: `python -m pip install -r requirements.txt && python -m unittest discover -s tests -v`.
 
-- **LIVE:** Read-only MFL synchronization verified for CFFL Dynasty (league 40298, franchise 0001): seven current injury items in the latest run.
-- **LIVE:** Dashboard is deployed to https://williamsbryce.github.io/fantasy-injury-watch/; it is unlocked locally with your existing private report passphrase.
-- **Verified:** Ten automated tests pass. Encrypted JSON is stored in the public repository, with no plaintext roster or API credentials.
-- **Reliability improvements:** Bounded retry/backoff for temporary MFL failures and separate GitHub Pages deployment job; last successful encrypted report remains available if a later MFL check fails, with a stale-data warning.
-- **NOT YET ACTIVE:** Email delivery, official NFL inactive verification, additional fantasy leagues, and any lineup changes.
-
-## How it works
-
-1. GitHub Actions requests only the MFL `rosters`, `players`, and `injuries` exports.
-2. The worker intersects injuries with your current franchise's roster by MFL player ID. Players already on MFL injured reserve or taxi squads are excluded to reduce unnecessary alerts. A missing feed, unknown franchise, or unmatched player ID causes an error instead of a false all-clear.
-3. Optional Resend emails are sent for new *Out/Inactive/IR* status changes and one consolidated Thursday/Sunday summary after approximately 9 a.m. Saskatchewan time (scheduled GitHub Actions can run late).
-4. A fresh **encrypted** report is written to `site/data/report.enc.json`. Only ciphertext is committed and served through GitHub Pages.
-5. Enter your private dashboard passphrase in the website to decrypt locally in your browser. The passphrase is not stored or transmitted by the website.
-
-## Set up in GitHub
-
-1. The repository is `williamsbryce/fantasy-injury-watch`. Source code is installed separately from your older World Cup project. Never upload a raw roster JSON or any secret. Public GitHub Pages will serve only an encrypted report.
-2. Settings → Secrets and variables → Actions → Repository secrets:
-   - `MFL_API_KEY`: MFL owner API key for **this** league and season. Do not paste it into chat, HTML, code, issue descriptions or commits. Because the original key was shared in chat, rotating it is the safer practice.
-   - `REPORT_PASSPHRASE`: A **unique, strong passphrase at least 16 characters long**. Remember it: it is required to open your dashboard. If changed, the existing encrypted state must be reset and alert deduplication will restart.
-   - (When ready for emails) `RESEND_API_KEY`: created in Resend.
-3. Settings → Secrets and variables → Actions → Repository variables (not secrets):
-   - `MFL_LEAGUE_ID`: the five-digit league ID from your MFL URL.
-   - `MFL_FRANCHISE_ID`: your four-digit franchise ID.
-   - `MFL_LEAGUE_NAME`: the friendly league name shown after unlocking the dashboard.
-   - `MFL_SEASON`: `2026`.
-   - `MFL_CLIENT_NAME`: your registered MFL API client identifier. MFL says unregistered clients may be throttled. Register in MyFantasyLeague's API client setup page.
-   - `ALERT_FROM`: verified Resend sending address.
-   - `ALERT_TO`: the email address you want alerts delivered to.
-4. Settings → Pages → Build and deployment → **Source: GitHub Actions**. This was enabled and first successful deployment completed November 17, 2026.
-5. Actions tab → **Injury Watch (read-only)** → **Run workflow**. Review the job results. If GitHub Actions permissions block committing the encrypted status, allow read/write workflow permissions under repository Settings → Actions → General.
-6. Open the Pages URL (after a successful deployment). Enter the dashboard passphrase. Confirm it shows the actual current injuries and the real sync timestamp.
-7. For Resend, create an account at https://resend.com, verify a sender domain (or use a supported test sender to your own verified email), then configure the three email settings above and run the workflow again. Verify one real email before relying on alerts.
-
-### Security limitations
-
-- **Never put `MFL_API_KEY` in front-end code.** Only GitHub Actions reads it.
-- The encrypted report file is publicly downloadable; it is protected by AES-256-GCM with PBKDF2-SHA256 (310,000 iterations) and a strong passphrase. Weak/reused passphrases create risk. The decrypted roster is visible in the browser you unlock.
-- Emails reveal the private player alerts to your email provider and recipient mailbox. Be aware of this before enabling email.
-- GitHub Actions scheduling is **best-effort**, not guaranteed at kickoff. This is **not** a substitute for official NFL inactive reports or a last-minute lineup safeguard. Recurring jobs are skipped until required league ID variables exist.
-- MFL's injury feed is not a verified official NFL inactive feed and may lag team announcements. Alerts contain data sourced from MFL, not independently verified news articles.
-- This version cannot establish who is a *starter* before kickoff. It monitors active-roster players, including bench players, but excludes MFL IR/taxi; starter detection requires a separately verified MFL lineup response.
-- No automated lineup writes, purchases, or league setting changes exist in this code.
-
-## Local testing
-
-```bash
-python -m pip install -r requirements.txt
-python -m unittest discover -s tests -v
-```
-
-To do an actual sync locally, set environment variables `MFL_API_KEY`, `REPORT_PASSPHRASE`, `MFL_LEAGUE_ID`, and `MFL_FRANCHISE_ID` in your shell (never check them in) and run `python -m src.main`.
-
-## Architecture decisions and next steps
-
-| Decision | Current choice |
-|---|---|
-| Hosting | Existing GitHub ecosystem, GitHub Pages + GitHub Actions |
-| Data source | MFL official read-only export API |
-| First team | One MFL league configured through GitHub variables; no league identifiers committed |
-| Privacy | Encrypted report served on public Pages, decrypted client-side |
-| Notifications | Resend free plan, not activated until configured |
-| Scheduled monitoring | GitHub Actions, not guaranteed real-time |
-| Auto lineup modifications | Intentionally omitted |
-| Follow-up | Add GitHub secrets/variables, run and verify actual feed shapes, connect email, add remaining leagues |
-
-The initial worker supports **one league**. For additional leagues, the next iteration will support separate MFL API keys per league or a Sleeper read-only adapter. Do not assume this initial one-key worker supports multiple leagues yet.
-
-## November 17 update: controlled email setup and MFL error diagnostics
-
-- User confirmed the current injury alerts match the real CFFL roster.
-- **EMAIL_ENABLED defaults to off.** Adding `RESEND_API_KEY`, `ALERT_FROM`, and `ALERT_TO` alone will not activate scheduled or urgent notifications.
-- The **Send one test email** checkbox in Actions > Injury Watch (read-only) > Run workflow still allows a deliberate delivery test, independent of `EMAIL_ENABLED`.
-- After receiving a test and verifying a sender domain for ongoing delivery, set GitHub repository variable `EMAIL_ENABLED` to `true`.
-- Register a MyFantasyLeague API client and set its exact client name as GitHub variable `MFL_CLIENT_NAME`. Unregistered clients may face tighter limits. Intermittent API errors have occurred; their exact cause has not been proven.
-- The worker logs only safe error categories: authorization, rate_limit, temporary, or unclassified. Raw API response text and keys are not logged.
-- Source-code commits no longer trigger live MFL polls. Only scheduled or manual checks do, reducing unnecessary requests during development.
-- If MFL sync fails, keep the last encrypted success; never declare an all-clear on missing data.
+## Follow-ups
+- Monitor first scheduled Thursday/Sunday and urgent real alerts.
+- Validate live news matching against actual injured players.
+- Later add second MFL league/Sleeper and official NFL inactives separately.
