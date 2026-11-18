@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "synced_at": "2026-11-18T00:20:59.168254+00:00",
+  "synced_at": "2026-11-18T00:59:36.372136+00:00",
   "leagues": [
     {
       "id": "40298",
@@ -10,7 +10,7 @@
       "players_checked": 53,
       "full_roster_count": 57,
       "feed_timestamp": "1794956465",
-      "synced_at": "2026-11-18T00:20:59.168254+00:00",
+      "synced_at": "2026-11-18T00:59:36.372136+00:00",
       "alerts": [
         {
           "key": "40298:17560",
@@ -147,7 +147,7 @@
         }
       ],
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-18T00:26:00.944474+00:00"
+      "news_checked_at": "2026-11-18T00:59:36.372136+00:00"
     }
   ],
   "sent_digest_date": ""
