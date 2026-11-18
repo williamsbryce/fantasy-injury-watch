@@ -127,8 +127,9 @@ def run():
         try:
             submit_full_lineup(opener, cookie, YEAR, LEAGUE, WEEK, proposal)
             print("TEST: MFL returned XML success for replacement.")
-        except ManualSwapError:
-            print("TEST: replacement response was not confirmed; inspecting live page before restoration.")
+        except ManualSwapError as issue:
+            print("TEST: replacement response classification:", str(issue))
+            print("TEST: inspecting live lineup before restoration.")
         time.sleep(2)
         after = read_week_lineup(opener, YEAR, LEAGUE, FRANCHISE, WEEK, cookie)
         if verify_list(after["starters"], proposal):
