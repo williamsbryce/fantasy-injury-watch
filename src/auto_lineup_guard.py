@@ -20,6 +20,7 @@ from .nfl_week import fetch_espn_week, eligible_teams, NFLScheduleError
 from .reversible_lineup_test import verify_list
 from .model import as_list
 from .notify import send_resend
+from .audit_log import record_event, AuditError
 
 YEAR, LEAGUE, FRANCHISE = 2026, "40298", "0001"
 
@@ -113,6 +114,17 @@ def status_email(week, status, changes, unresolved, info=""):
     return "\n".join(lines)
 
 
+def audit_guard(env, key, kind, status, title, detail, *, strict=False):
+    """Publish a curated public event; fail closed before an authorized write."""
+    try:
+        record_event(kind, status, title, detail, key=key, env=env)
+        print("AUTO GUARD: operational event recorded", key)
+    except AuditError as error:
+        print("AUTO GUARD: event history unavailable:", str(error))
+        if strict:
+            raise AutoGuardFailure("Cannot audit lineup submission; no write allowed") from None
+
+
 def notify_owner(env, subject, message):
     key = env.get("RESEND_API_KEY") or ""
     sender = env.get("ALERT_FROM") or ""
@@ -121,6 +133,11 @@ def notify_owner(env, subject, message):
         raise AutoGuardFailure("Missing critical lineup email notification configuration")
     send_resend(key, sender, recipient, subject, message)
     print("AUTO GUARD: alert email accepted by notification provider")
+    audit_guard(
+        env, "lineup-notification-email", "email", "success",
+        "Lineup notification email accepted",
+        "Resend accepted a lineup safety notification. Inbox delivery is not verified."
+    )
 
 
 def run(env=None, now=None):
@@ -161,8 +178,9 @@ def run(env=None, now=None):
         if not all((username, password, api_key)):
             raise AutoGuardFailure("Missing MFL owner session or API credentials")
         if mode == "LIVE" and not all(env.get(k) for k in
-                                      ("RESEND_API_KEY", "ALERT_FROM", "ALERT_TO")):
-            raise AutoGuardFailure("Missing critical alert settings; live writes disabled")
+                                      ("RESEND_API_KEY", "ALERT_FROM", "ALERT_TO",
+                                       "AUDIT_GITHUB_TOKEN")):
+            raise AutoGuardFailure("Missing critical alert or audit settings; live writes disabled")
 
         opener = _make_opener()
         cookie = get_session(opener, username, password)
@@ -173,6 +191,10 @@ def run(env=None, now=None):
 
         if not out_starter_ids(original, feeds):
             print("AUTO GUARD: no confirmed Out/Inactive starters; no change needed")
+            if mode == "LIVE":
+                audit_guard(env, "pregame-clear", "check", "info",
+                            "Pregame lineup check clear",
+                            f"Week {week}: no confirmed Out or Inactive starters.")
             return {"status": "healthy", "week": week}
 
         # Recent scores are collected only when an Out starter needs coverage.
@@ -215,6 +237,15 @@ def run(env=None, now=None):
             action, payload = prepare_post(
                 html, originals=original, proposed=plan["proposed_lineup"],
                 changes=changes, expected_week=week)
+            labels = "; ".join(
+                c["out_name"] + " to " + c["in_name"] for c in changed
+            )[:310]
+            audit_guard(
+                env, "lineup-submission-attempt", "lineup", "pending",
+                "Lineup submission initiated",
+                f"Week {week}: attempting {len(changed)} replacement(s): {labels}.",
+                strict=True
+            )
             sent_post = True
             response = submit_native(opener, cookie, action, payload, week=week)
             print("AUTO GUARD: native POST HTTP status=", response["http_status"])
@@ -225,6 +256,17 @@ def run(env=None, now=None):
                     "CRITICAL: write sent but saved lineup readback did not match proposal"
                 )
             print("AUTO GUARD: confirmed native MFL save; unchanged starters preserved")
+            audit_guard(
+                env, "lineup-submission-verified", "lineup", "success",
+                "Automatic lineup change verified",
+                f"Week {week}: {len(changed)} replacement(s) saved and all 17 starters confirmed. {labels}."
+            )
+        if unresolved:
+            audit_guard(
+                env, "out-starters-unresolved", "lineup", "attention",
+                "Out starter requires attention",
+                f"Week {week}: {len(unresolved)} Out or Inactive starter(s) could not be safely replaced."
+            )
         if changed or unresolved:
             details = status_email(
                 week, "VERIFIED" if changed else "ACTION REQUIRED",
@@ -245,6 +287,14 @@ def run(env=None, now=None):
               "reason=", str(ex))
         # A sent POST may have succeeded even if the readback failed.
         # Never claim the saved lineup remained unchanged after an ambiguous POST.
+        if week is not None and mode == "LIVE":
+            audit_guard(
+                env, "guard-error", "lineup" if sent_post else "system",
+                "attention", "Lineup submission unverified" if sent_post else
+                "Pregame guard needs attention",
+                f"Week {week}: a submission needs manual verification." if sent_post
+                else f"Week {week}: an automated safety check could not be completed."
+            )
         if week is not None and mode == "LIVE":
             message = status_email(
                 week, "UNVERIFIED WRITE - CHECK MFL" if sent_post else "AUTOMATION UNAVAILABLE",
