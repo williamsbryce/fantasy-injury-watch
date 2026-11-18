@@ -43,10 +43,14 @@ class TestSync(unittest.TestCase):
   self.assertEqual(len(urgent_new_alerts(now,{})),1)
   self.assertEqual(len(urgent_new_alerts(now,now)),0)
  def test_digests_regina(self):
-  # 15:17 UTC = 09:17 Saskatchewan year-round.
-  self.assertEqual(digest_key(datetime(2026,11,19,15,17,tzinfo=timezone.utc)),'2026-11-19')
-  self.assertEqual(digest_key(datetime(2026,11,22,15,17,tzinfo=timezone.utc)),'2026-11-22')
-  self.assertIsNone(digest_key(datetime(2026,11,18,15,17,tzinfo=timezone.utc)))
+  # SK is UTC-6 year-round. Thursday 17:00 = 23:00 UTC.
+  self.assertIsNone(digest_key(datetime(2026,11,19,22,59,tzinfo=timezone.utc)))
+  self.assertEqual(digest_key(datetime(2026,11,19,23,0,tzinfo=timezone.utc)),'2026-11-19')
+  # Sunday 10:30 = 16:30 UTC.
+  self.assertIsNone(digest_key(datetime(2026,11,22,16,29,tzinfo=timezone.utc)))
+  self.assertEqual(digest_key(datetime(2026,11,22,16,30,tzinfo=timezone.utc)),'2026-11-22')
+  # Other days do not trigger a digest.
+  self.assertIsNone(digest_key(datetime(2026,11,18,23,17,tzinfo=timezone.utc)))
 
 if __name__=='__main__':unittest.main()
 
