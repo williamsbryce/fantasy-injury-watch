@@ -63,6 +63,27 @@ def read_public_injuries(year, league, client):
     return doc
 
 
+
+def read_public_schedule(year, league, week, client):
+    """NFL schedule is public; bypass intermittent league-key export failures."""
+    params = urllib.parse.urlencode({
+        "TYPE": "nflSchedule", "L": league, "W": week, "JSON": "1",
+    })
+    req = urllib.request.Request(
+        f"https://api.myfantasyleague.com/{int(year)}/export?{params}",
+        headers={"User-Agent": client, "Accept": "application/json"}, method="GET",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as response:
+            doc = json.loads(response.read(4_000_000))
+    except (urllib.error.HTTPError, urllib.error.URLError, OSError, ValueError):
+        raise LineupRecommendationError("Public NFL schedule data is unavailable") from None
+    root = doc.get("nflSchedule") if isinstance(doc, dict) else None
+    if not isinstance(root, dict) or "game" not in root:
+        raise LineupRecommendationError("Public NFL schedule has no expected games")
+    return doc
+
+
 def run():
     username = os.environ.get("MFL_OWNER_USERNAME", "")
     password = os.environ.get("MFL_OWNER_PASSWORD", "")
@@ -102,7 +123,12 @@ def run():
             feeds["injuries"] = export(int(year), "injuries", league, key, client)
             print("LINEUP DRY RUN: authenticated MFL injuries export validated.")
         averages_doc = _fetch(int(year), league, key, client, "playerScores", "AVG")
-        schedule_doc = _fetch(int(year), league, key, client, "nflSchedule", week)
+        try:
+            schedule_doc = read_public_schedule(year, league, week, client)
+            print("LINEUP DRY RUN: public MFL NFL schedule validated.")
+        except LineupRecommendationError:
+            schedule_doc = _fetch(int(year), league, key, client, "nflSchedule", week)
+            print("LINEUP DRY RUN: authenticated MFL NFL schedule requested.")
         averages = score_map(averages_doc)
         teams = teams_with_games(schedule_doc)
         result = propose_out_replacements(
