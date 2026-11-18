@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'CHECK reads Week 11, DRY_RUN tests swap, LIVE submits once'
+        description: 'CHECK reads Week 11; SWAP_RESTORE tests a reversible change'
         required: true
         default: 'CHECK'
         type: choice
@@ -11,6 +11,7 @@ on:
           - CHECK
           - DRY_RUN
           - LIVE
+          - SWAP_RESTORE
       outgoing_player_id:
         description: 'Exact current Week 11 starter MFL ID (needed for DRY_RUN/LIVE)'
         required: false
@@ -20,7 +21,7 @@ on:
         required: false
         type: string
       approval:
-        description: 'LIVE only: APPROVE <out-id> TO <in-id> WEEK 11'
+        description: 'LIVE: approved IDs; SWAP_RESTORE: exact confirmation phrase'
         required: false
         type: string
 
@@ -46,6 +47,7 @@ jobs:
         run: |
           python -m unittest discover -s tests -p 'test_submitted_lineup.py' -v
           python -m unittest discover -s tests -p 'test_manual_lineup_test.py' -v
+          python -m unittest discover -s tests -p 'test_reversible_lineup_test.py' -v
       - name: CHECK current Week 11 starters (read only)
         if: ${{ inputs.mode == 'CHECK' }}
         env:
@@ -72,3 +74,13 @@ jobs:
           TEST_SWAP_MODE: ${{ inputs.mode }}
           TEST_APPROVAL: ${{ inputs.approval }}
         run: python -m src.manual_lineup_test
+
+      - name: Swap Cedric Gray for Anthony Hill Jr and immediately restore
+        if: ${{ inputs.mode == 'SWAP_RESTORE' }}
+        env:
+          MFL_OWNER_USERNAME: ${{ secrets.MFL_OWNER_USERNAME }}
+          MFL_OWNER_PASSWORD: ${{ secrets.MFL_OWNER_PASSWORD }}
+          MFL_API_KEY: ${{ secrets.MFL_API_KEY }}
+          LIVE_REVERSIBLE_TEST: AUTHORIZED_CEDRIC_GRAY_TO_ANTHONY_HILL_WEEK_11
+          CONFIRM_SWAP_RESTORE: ${{ inputs.approval }}
+        run: python -m src.reversible_lineup_test
