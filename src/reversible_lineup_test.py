@@ -25,13 +25,14 @@ EXPECTED_STARTERS = 17
 
 
 def validate_one_shot_environment(env):
-    if (env.get("GITHUB_EVENT_NAME") != "push" or
+    if (env.get("GITHUB_EVENT_NAME") != "workflow_dispatch" or
         env.get("GITHUB_REF") != "refs/heads/main" or
         env.get("GITHUB_RUN_ATTEMPT") != "1" or
-        env.get("GITHUB_RUN_NUMBER") != "1" or
         env.get("GITHUB_REPOSITORY") != "williamsbryce/fantasy-injury-watch" or
         env.get("GITHUB_ACTOR") != "williamsbryce" or
-        env.get("LIVE_REVERSIBLE_TEST") != "AUTHORIZED_CEDRIC_GRAY_TO_ANTHONY_HILL_WEEK_11"):
+        env.get("LIVE_REVERSIBLE_TEST") != "AUTHORIZED_CEDRIC_GRAY_TO_ANTHONY_HILL_WEEK_11" or
+        env.get("CONFIRM_SWAP_RESTORE") !=
+            "APPROVE CEDRIC GRAY TO ANTHONY HILL JR WEEK 11 AND RESTORE"):
         raise ManualSwapError("One-shot authorization failed; no changes permitted")
 
 
