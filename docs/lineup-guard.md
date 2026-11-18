@@ -20,6 +20,14 @@ No code in this branch calls MFL's write API or changes a lineup.
 - Tests are synthetic; real league `weeklyResults` access has **not**
   been verified, and this module is **not** wired into the live sync.
 
+## Agreed user policy (November 17, 2026)
+- The owner reports MFL already prevents changing players whose game has locked. Do not make building a separate lock manager a prerequisite for the initial feature.
+- Only run the lineup safety check roughly one hour before Thursday kickoff and one hour before Sunday early-game kickoff, rather than continuously auto-adjusting the roster.
+- If a player in the current submitted starting lineup is confirmed **Out** or **Inactive**, preserve all other starters and replace only that player with the eligible bench player who has the **highest league scoring average**.
+- Exclude candidates on bye weeks, on injured reserve or taxi squad, themselves Out/Inactive, or otherwise ineligible under league starting-position rules.
+- Never rebuild a lineup from scratch or change a healthy starter. If no eligible candidate exists or the currently submitted lineup cannot be read accurately, make no change and notify the owner.
+- The MFL website's UI restrictions are user-reported; authenticated API write semantics and full-lineup preservation still require verification before automatic writes can be safely enabled.
+
 ## Still required before production activation
 1. Query a current-week `weeklyResults` export in a controlled,
    read-only GitHub workflow to determine whether MFL exposes an
