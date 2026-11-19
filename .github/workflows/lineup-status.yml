@@ -10,6 +10,8 @@ on:
     paths:
       - 'src/lineup_snapshot.py'
       - 'tests/test_lineup_snapshot.py'
+      - 'src/mfl_article_headlines.py'
+      - 'tests/test_mfl_article_headlines.py'
       - '.github/workflows/lineup-status.yml'
 
 permissions:
@@ -39,6 +41,7 @@ jobs:
         run: |
           python -m unittest discover -s tests -p 'test_lineup_monitor.py' -v
           python -m unittest discover -s tests -p 'test_lineup_snapshot.py' -v
+          python -m unittest discover -s tests -p 'test_mfl_article_headlines.py' -v
       - name: Read current-week lineup and tag cached injuries
         env:
           MFL_API_KEY: ${{ secrets.MFL_API_KEY }}
@@ -46,13 +49,21 @@ jobs:
           MFL_FRANCHISE_ID: ${{ vars.MFL_FRANCHISE_ID }}
           MFL_SEASON: ${{ vars.MFL_SEASON }}
         run: python -m src.lineup_snapshot
-      - name: Save role labels without changing injury sync timestamp
+      - name: Fetch latest MFL article headlines (optional and read-only)
+        env:
+          MFL_OWNER_USERNAME: ${{ secrets.MFL_OWNER_USERNAME }}
+          MFL_OWNER_PASSWORD: ${{ secrets.MFL_OWNER_PASSWORD }}
+          MFL_LEAGUE_ID: ${{ vars.MFL_LEAGUE_ID }}
+          MFL_FRANCHISE_ID: ${{ vars.MFL_FRANCHISE_ID }}
+          MFL_SEASON: ${{ vars.MFL_SEASON }}
+        run: python -m src.mfl_article_headlines
+      - name: Save lineup roles and headline titles without changing injury sync
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add site/data/report.json
           if ! git diff --cached --quiet; then
-            git commit -m 'Refresh weekly lineup labels [skip ci]'
+            git commit -m 'Refresh lineup labels and MFL article titles [skip ci]'
             git pull --rebase origin main
             git push origin HEAD:main
           fi
