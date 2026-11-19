@@ -9,6 +9,12 @@ on:
       - 'site/data/events.json'
       - 'src/audit_log.py'
       - 'src/main.py'
+      - 'src/model.py'
+      - 'src/mfl.py'
+      - 'src/notify.py'
+      - 'src/lineup_monitor.py'
+      - 'tests/test_core.py'
+      - 'tests/test_lineup_monitor.py'
       - 'tests/test_audit_log.py'
       - 'tests/test_event_notifications.py'
       - '.github/workflows/publish-dashboard.yml'
@@ -38,11 +44,8 @@ jobs:
           python-version: '3.12'
       - name: Install runtime dependencies for email audit tests
         run: pip install --requirement requirements.txt
-      - name: Validate dashboard HTML and inline JavaScript
-        run: |
-          python -m unittest discover -s tests -p 'test_dashboard_site.py' -v
-          python -m unittest discover -s tests -p 'test_audit_log.py' -v
-          python -m unittest discover -s tests -p 'test_event_notifications.py' -v
+      - name: Validate dashboard and injury monitoring changes
+        run: python -m unittest discover -s tests -v
       - name: Preserve verified current injury report
         run: |
           test -s site/index.html
