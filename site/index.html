@@ -263,11 +263,48 @@ button:focus-visible,a:focus-visible{outline:3px solid #1d4ed8;outline-offset:2p
   .event-top h1{font-size:22px}
 }
 
+
+/* Compact dashboard refinements. CSS only; report and event scripts unchanged. */
+#coverage{display:none}
+#report .top{margin-bottom:12px}
+#sync{font-size:12px;line-height:1.45;color:#64748b}
+#actionSection,#watchSection{margin-top:18px}
+#actionSection h2,#watchSection h2{margin-bottom:10px}
+#actions,#watchers{gap:7px}
+.alert,.alert.urgent,.alert.watchItem{padding:12px 14px}
+.alert .line{gap:8px}
+.alert .name{font-size:16px;line-height:1.35}
+.alert .sub{margin-top:1px;font-size:12px;line-height:1.4;color:#64748b}
+.alert .status{
+  padding:3px 7px;
+  font-size:11px;
+  font-weight:700;
+  line-height:1.35;
+  letter-spacing:0;
+}
+.alert .detail{margin:7px 0 0;font-size:13px;line-height:1.45}
+.alert .news{margin-top:9px;padding-top:8px}
+.alert .newslink{margin-top:5px}
+.alert .mfl{margin-top:2px}
+.event-log-list{gap:8px}
+.event-entry{padding:12px 14px}
+.event-heading{gap:10px;align-items:center}
+.event-name{font-size:14px;font-weight:800;letter-spacing:-.15px;color:#0f172a;line-height:1.35}
+.event-status{padding:2px 6px;border-radius:999px;font-size:10px;font-weight:700;line-height:1.4}
+.event-detail{margin:6px 0;font-size:13px;line-height:1.45}
+.event-meta{margin-top:7px;font-size:12px;color:#475569}
+.event-meta>span:first-child{font-weight:650;color:#334155}
+@media(max-width:520px){
+  #report .top{margin-bottom:10px}
+  .alert,.alert.urgent,.alert.watchItem{padding:12px}
+  .event-entry{padding:12px}
+}
+
 </style>
 </head><body><main>
 <header>
   <div class="header-inner">
-    <div class="logo"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6v4"/><path d="M14 8h-4"/><path d="M14 14h-4"/><path d="M14 18h-4"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/><path d="M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18"/></svg></div><div class="brand"><span>BAW's Injury Watch Tool</span><div class="brand-subtitle">CFFL Dynasty · Franchise 0001</div></div></div>
+    <div class="logo"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6v4"/><path d="M14 8h-4"/><path d="M14 14h-4"/><path d="M14 18h-4"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/><path d="M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18"/></svg></div><div class="brand"><span>BAW's Injury Watch Tool</span><div class="brand-subtitle">CFFL Dynasty</div></div></div>
 <nav class="tabs" role="tablist" aria-label="Dashboard views">
   <button class="tab" type="button" role="tab" id="tab-injuries" aria-selected="true" aria-controls="injuriesTab" tabindex="0" data-tab="injuries">Player alerts</button>
   <button class="tab" type="button" role="tab" id="tab-events" aria-selected="false" aria-controls="eventsTab" tabindex="-1" data-tab="events">Event log</button>
@@ -279,7 +316,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #1d4ed8;outline-offset:2p
 <div id="loading" class="panel" role="status">Loading the latest injury report…</div>
 <div id="errorPanel" class="panel hidden" role="alert">Could not load the latest report. <button type="button" onclick="location.reload()">Retry</button><div id="error" class="msg"></div></div>
 <div id="report" class="hidden" aria-live="polite">
-  <div class="top"><div><h1>Player injury alerts</h1><div class="meta" id="sync">Latest update</div></div><div class="meta" id="coverage"></div></div>
+  <div class="top"><div><div class="meta" id="sync">Latest update</div></div><div class="meta" id="coverage"></div></div>
   <div id="stale" class="notice hidden">This report is out of date. Scheduled monitoring may have failed. Do not treat missing alerts as confirmation that players are healthy.</div>
   <div id="noAction" class="ok-note"><span class="ok-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>No action needed. Nobody is Out or Inactive.</div>
   <section id="actionSection"><h2><span class="dot"></span> Action needed <span id="actionCount"></span></h2><div id="actions"></div></section>
@@ -361,9 +398,8 @@ button:focus-visible,a:focus-visible{outline:3px solid #1d4ed8;outline-offset:2p
   </div>
   <div class="meta" id="eventsStatus" role="status">Open this tab to retrieve recent events.</div>
   <div id="eventsFeed" class="event-log-list" style="margin-top:13px"></div>
-  <p class="event-privacy">History begins when logging was enabled. It is publicly viewable and retains up to 200 events. “Email accepted” means the email provider accepted the message, not that it reached your inbox. No email addresses or credentials are shown.</p>
+  
 </section>
-<footer>Public injury dashboard · MFL designations and RotoWire headlines · Separate scheduled lineup guard</footer>
 </main>
 <script>
 const $=id=>document.getElementById(id);
