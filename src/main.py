@@ -124,12 +124,12 @@ def run():
             # reports no/incomplete lineup before a relevant kickoff.
             if (lineup_warnings and lineup_key and
                     lineup_key != previous.get("sent_lineup_warning_key")):
-                summary = "\\n".join(info["warning"] for _, info in lineup_warnings)
+                summary = "\n".join(info["warning"] for _, info in lineup_warnings)
                 if send_resend(
                         email_key, from_addr, to_addr,
                         "Fantasy Injury Watch | Starting lineup requires attention",
-                        summary + "\\n\\nMFL has not confirmed a complete 17-player lineup. "
-                        "Please review your starting lineup before kickoff.\\n"
+                        summary + "\n\nMFL has not confirmed a complete 17-player lineup. "
+                        "Please review your starting lineup before kickoff.\n"
                         f"https://www46.myfantasyleague.com/{leagues_config[0]['season']}/lineup?"
                         f"L={league_id}&FRANCHISE={franchise_id}"):
                     document["sent_lineup_warning_key"] = lineup_key
