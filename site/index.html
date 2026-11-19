@@ -300,6 +300,67 @@ button:focus-visible,a:focus-visible{outline:3px solid #1d4ed8;outline-offset:2p
   .event-entry{padding:12px}
 }
 
+
+/* Read-only lineup status, incident hierarchy and compact controls */
+#report .top{flex-direction:row;align-items:center;gap:12px;justify-content:space-between}
+.report-refresh{
+  margin:0;padding:8px 13px;min-height:44px;flex-shrink:0;
+  background:#fff;color:#1e40af;border:0;border-radius:10px;
+  font-size:12px;font-weight:700;box-shadow:0 1px 2px rgba(15,23,42,.06);
+}
+.report-refresh:disabled{opacity:.5}
+.health-row{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+.health-chip{
+  display:inline-flex;align-items:center;gap:6px;min-height:27px;
+  border-radius:999px;padding:4px 9px;background:#e2e8f0;color:#334155;
+  font-size:11px;font-weight:700;line-height:1.35;
+}
+.health-chip.good-health{background:#dcfce7;color:#166534}
+.health-chip.warn-health{background:#fef3c7;color:#92400e}
+.health-chip.bad-health{background:#fee2e2;color:#991b1b}
+.health-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+#lineupWarning a{display:inline-flex;align-items:center;min-height:44px;font-weight:700;color:#92400e}
+.urgent-note{
+  background:#fef2f2;border:1px solid #fecaca;border-radius:14px;
+  padding:12px 14px;color:#991b1b;font-size:13px;font-weight:750;margin:12px 0;
+}
+#actions,#watchers,#unknownPlayers{display:grid;gap:7px}
+#actionSection,#watchSection,#unknownSection{margin-top:20px}
+#actionSection h2,#watchSection h2,#unknownSection h2{margin-bottom:10px}
+#actionCount,#watchCount,#unknownCount{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;line-height:1.5;
+}
+#actionCount{background:#dbeafe;color:#1e40af}
+#watchCount{background:#e2e8f0;color:#334155}
+#unknownCount{background:#fef3c7;color:#92400e}
+.alert,.alert.urgent,.alert.watchItem{padding:12px 14px}
+.alert .name-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.alert .name{font-size:16px;line-height:1.35}
+.alert .sub{margin-top:1px;font-size:12px;line-height:1.4}
+.alert .detail{margin:7px 0 0;font-size:13px;line-height:1.45}
+.alert .news{margin-top:9px;padding-top:8px}
+.alert .newslink{margin-top:5px}
+.alert .mfl{margin-top:2px}
+.role-chip,.change-chip{
+  display:inline-flex;align-items:center;border-radius:999px;
+  font-size:10px;font-weight:750;line-height:1.4;padding:2px 7px;
+}
+.role-chip.starter{background:#dbeafe;color:#1e40af}
+.role-chip.bench{background:#e2e8f0;color:#334155}
+.role-chip.unknown{background:#fef3c7;color:#92400e}
+.change-chip{margin-top:6px;background:#ede9fe;color:#5b21b6}
+.change-chip.critical{background:#fee2e2;color:#991b1b}
+#report #noAction{display:none}
+#report #noAction.show-note{display:flex}
+#report #allClear.hidden{display:none!important}
+@media(max-width:520px){
+  #report .top{flex-direction:row;align-items:center;gap:10px}
+  .alert,.alert.urgent,.alert.watchItem{padding:12px}
+  .health-row{gap:5px}
+  .health-chip{font-size:10.5px;padding:4px 8px}
+}
+
 </style>
 </head><body><main>
 <header>
@@ -316,11 +377,15 @@ button:focus-visible,a:focus-visible{outline:3px solid #1d4ed8;outline-offset:2p
 <div id="loading" class="panel" role="status">Loading the latest injury report…</div>
 <div id="errorPanel" class="panel hidden" role="alert">Could not load the latest report. <button type="button" onclick="location.reload()">Retry</button><div id="error" class="msg"></div></div>
 <div id="report" class="hidden" aria-live="polite">
-  <div class="top"><div><div class="meta" id="sync">Latest update</div></div><div class="meta" id="coverage"></div></div>
+  <div class="top"><div><div class="meta" id="sync">Latest update</div><div class="meta" id="coverage"></div></div><button id="refreshReport" class="report-refresh" type="button" title="Reload the last published report. Does not trigger a new MFL check.">Refresh</button></div>
+  <div class="health-row" aria-label="Monitoring status"><span id="feedHealth" class="health-chip">Checking injury report</span><span id="lineupHealth" class="health-chip">Checking lineup</span><span id="guardHealth" class="health-chip">Checking guard history</span></div>
+  <div id="lineupWarning" class="notice hidden" role="alert"><span id="lineupWarningText"></span> <a href="https://www46.myfantasyleague.com/2026/lineup?L=40298&amp;FRANCHISE=0001" target="_blank" rel="noopener noreferrer">Review lineup on MFL</a></div>
+  <div id="urgentWarning" class="urgent-note hidden" role="status"></div>
   <div id="stale" class="notice hidden">This report is out of date. Scheduled monitoring may have failed. Do not treat missing alerts as confirmation that players are healthy.</div>
-  <div id="noAction" class="ok-note"><span class="ok-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>No action needed. Nobody is Out or Inactive.</div>
-  <section id="actionSection"><h2><span class="dot"></span> Action needed <span id="actionCount"></span></h2><div id="actions"></div></section>
-  <section class="watch" id="watchSection"><h2><span class="dot"></span> Keep an eye on <span id="watchCount"></span></h2><div id="watchers"></div></section>
+  <div id="noAction" class="ok-note hidden"><span class="ok-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>No action needed. Nobody is Out or Inactive.</div>
+  <section id="actionSection"><h2>Starters <span id="actionCount"></span></h2><div id="actions"></div></section>
+  <section class="watch" id="watchSection"><h2>Bench <span id="watchCount"></span></h2><div id="watchers"></div></section>
+  <section id="unknownSection" class="hidden"><h2>Lineup position unverified <span id="unknownCount"></span></h2><div id="unknownPlayers"></div></section>
   <div class="good hidden" id="allClear"><span class="ok-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>No rostered players currently have an injury designation in the latest MFL feed. This is not an official inactive confirmation.</div>
 </div>
 </div>
@@ -413,7 +478,17 @@ function element(tag,className,text){const e=document.createElement(tag);if(clas
 function card(alert){
  const outer=element('article','alert '+(alert.group==='action'?'urgent':'watchItem'));
  const line=element('div','line'), left=element('div'), name=element('div','name',alert.name);
- left.append(name,element('div','sub',[alert.position,alert.nfl_team,alert.league].filter(Boolean).join(' · ')));
+ const nameRow=element('div','name-row');nameRow.append(name);
+ const role=['starter','bench'].includes(alert.lineup_role)?alert.lineup_role:'unknown';
+ const roleLabel=role==='starter'?'Starter':role==='bench'?'Bench':'Unverified';
+ nameRow.append(element('span','role-chip '+role,roleLabel));
+ left.append(nameRow,element('div','sub',[alert.position,alert.nfl_team].filter(Boolean).join(' · ')));
+ if(alert.status_change&&alert.status_change.kind==='changed'){
+   left.append(element('div','change-chip'+(alert.group==='action'?' critical':''),
+     'Was '+String(alert.status_change.previous||'unknown').slice(0,35)));
+ }else if(alert.status_change&&alert.status_change.kind==='new'){
+   left.append(element('div','change-chip','New injury report'));
+ }
  const status=element('span','status'+(alert.group==='action'?'':' watchStatus'),String(alert.status).toUpperCase());
  line.append(left,status);outer.append(line);
  if(alert.details)outer.append(element('p','detail',alert.details));
@@ -437,31 +512,104 @@ function card(alert){
  outer.append(newsBox);
  return outer;
 }
+function reportStale(doc){
+ const leagues=Array.isArray(doc.leagues)?doc.leagues:[];
+ const feedTimes=leagues.map(l=>parsedDate(l.feed_timestamp).getTime()).filter(Number.isFinite);
+ const syncTime=parsedDate(doc.synced_at).getTime();
+ return !Number.isFinite(syncTime)||Date.now()-syncTime>6*3600_000||
+        feedTimes.length!==leagues.length||
+        feedTimes.some(t=>Date.now()-t>36*3600_000);
+}
+function setHealth(id,message,state){
+ const node=$(id);txt(node,message);node.className='health-chip'+(state?' '+state+'-health':'');
+}
+function sortAlerts(items){
+ return [...items].sort((a,b)=>
+   (a.group==='action'?0:1)-(b.group==='action'?0:1)||
+   String(a.name||'').localeCompare(String(b.name||'')));
+}
 function render(doc){
  if(!Array.isArray(doc.leagues))throw Error('Unrecognized report');
  const all=doc.leagues.flatMap(l=>l.alerts||[]);
- const reds=all.filter(a=>a.group==='action'), yellows=all.filter(a=>a.group==='watch');
- $('actions').replaceChildren(...reds.map(card));$('watchers').replaceChildren(...yellows.map(card));
- txt($('actionCount'),'('+reds.length+')');txt($('watchCount'),'('+yellows.length+')');
- $('actionSection').classList.toggle('hidden',!reds.length);$('watchSection').classList.toggle('hidden',!yellows.length);$('allClear').classList.toggle('hidden',Boolean(all.length));
+ const starters=sortAlerts(all.filter(a=>a.lineup_role==='starter'));
+ const bench=sortAlerts(all.filter(a=>a.lineup_role==='bench'));
+ const unknown=sortAlerts(all.filter(a=>!['starter','bench'].includes(a.lineup_role)));
+ $('actions').replaceChildren(...starters.map(card));
+ $('watchers').replaceChildren(...bench.map(card));
+ $('unknownPlayers').replaceChildren(...unknown.map(card));
+ txt($('actionCount'),String(starters.length));
+ txt($('watchCount'),String(bench.length));
+ txt($('unknownCount'),String(unknown.length));
+ $('actionSection').classList.toggle('hidden',!starters.length);
+ $('watchSection').classList.toggle('hidden',!bench.length);
+ $('unknownSection').classList.toggle('hidden',!unknown.length);
+ const stale=reportStale(doc);
+ $('stale').classList.toggle('hidden',!stale);
+ $('allClear').classList.toggle('hidden',Boolean(all.length)||stale);
+ const urgents=all.filter(a=>a.group==='action');
+ const urgentStarters=urgents.filter(a=>a.lineup_role==='starter');
+ const urgentUnverified=urgents.filter(a=>a.lineup_role!=='starter'&&a.lineup_role!=='bench');
+ $('urgentWarning').classList.toggle('hidden',!(urgentStarters.length||urgentUnverified.length));
+ if(urgentStarters.length||urgentUnverified.length){
+   txt($('urgentWarning'),[
+     urgentStarters.length?urgentStarters.length+' confirmed starter(s) Out or Inactive.':'',
+     urgentUnverified.length?urgentUnverified.length+' urgent injury designation(s) with unverified lineup position.':''
+   ].filter(Boolean).join(' '));
+ }
+ // A stale/unverified feed must never show a reassuring green banner.
+ const lineupKnown=doc.leagues.every(l=>['submitted','not_submitted','incomplete'].includes((l.lineup||{}).state));
+ const safeMessage=!stale&&lineupKnown&&all.length>0&&urgents.length===0;
+ $('noAction').classList.toggle('show-note',safeMessage);
+ $('noAction').classList.toggle('hidden',!safeMessage);
+ const lineups=doc.leagues.map(l=>l.lineup||{});
+ const warnings=lineups.map(l=>l.warning).filter(Boolean);
+ $('lineupWarning').classList.toggle('hidden',stale||!warnings.length);
+ txt($('lineupWarningText'),warnings.join(' '));
  txt($('sync'),'Last successful sync: '+readableDate(doc.synced_at));
  txt($('coverage'),doc.leagues.length+' league'+(doc.leagues.length===1?'':'s'));
- const feedTimes=doc.leagues.map(l=>parsedDate(l.feed_timestamp).getTime()).filter(x=>Number.isFinite(x));
- const oldFeed=feedTimes.some(x=>Date.now()-x>36*3600_000);
- const oldSync=!Number.isFinite(Date.parse(doc.synced_at))||Date.now()-Date.parse(doc.synced_at)>6*3600_000;
- $('stale').classList.toggle('hidden',!(oldSync||oldFeed));
- $('loading').classList.add('hidden');$('report').classList.remove('hidden');
+ const missing=doc.leagues.some(l=>(l.lineup||{}).state==='not_submitted');
+ const incomplete=doc.leagues.some(l=>(l.lineup||{}).state==='incomplete');
+ const allSubmitted=doc.leagues.length>0&&doc.leagues.every(l=>(l.lineup||{}).state==='submitted');
+ setHealth('feedHealth',stale?'Injury feed stale':'Injury feed current',stale?'bad':'good');
+ setHealth('lineupHealth',missing?'Lineup not submitted':incomplete?'Lineup incomplete':
+   allSubmitted?'Lineup verified':'Lineup unverified',missing||incomplete?'warn':allSubmitted?'good':'');
+ $('loading').classList.add('hidden');
+ $('report').classList.remove('hidden');
+ updateGuardHealth();
+}
+async function updateGuardHealth(){
+ try{
+   const response=await fetch(eventsSource+'?t='+Date.now(),{cache:'no-store'});
+   if(!response.ok)throw Error('Unavailable');
+   const history=await response.json();
+   if(!Array.isArray(history.events))throw Error('Invalid history');
+   const rows=history.events.filter(e=>e&&typeof e==='object'&&
+       (e.kind==='check'||e.kind==='lineup'||
+        (e.kind==='system'&&/guard/i.test(e.title||''))));
+   rows.sort((a,b)=>Date.parse(b.timestamp)-Date.parse(a.timestamp));
+   if(!rows.length){setHealth('guardHealth','Guard: no check recorded','');return;}
+   const latest=rows[0],ts=parsedDate(latest.timestamp).getTime();
+   const recent=Number.isFinite(ts)&&Date.now()-ts<8*86400000;
+   if(!recent){setHealth('guardHealth','Guard: no recent logged check','');return;}
+   const bad=latest.status==='attention';
+   setHealth('guardHealth',(bad?'Guard needs review: ':'Last guard event: ')+
+      readableDate(latest.timestamp),bad?'warn':'good');
+ }catch(error){setHealth('guardHealth','Guard history unavailable','');}
 }
 async function loadReport(){
+ const refresh=$('refreshReport');
+ refresh.disabled=true;
  try{
    const response=await fetch('data/report.json?'+Date.now(),{cache:'no-store'});
    if(!response.ok)throw Error('The public report has not been published yet. Check the latest GitHub deployment.');
    const doc=await response.json();render(doc);
+   $('errorPanel').classList.add('hidden');
  }catch(e){
    $('loading').classList.add('hidden');$('errorPanel').classList.remove('hidden');
    txt($('error'),e.message||'Unable to load report.');
- }
+ }finally{refresh.disabled=false;}
 }
+$('refreshReport').addEventListener('click',loadReport);
 const eventKinds={email:'Email',lineup:'Lineup',check:'Check',system:'System'};
 const eventStatuses={success:'Verified',attention:'Needs attention',pending:'Pending',info:'Recorded'};
 const eventsSource='https://raw.githubusercontent.com/williamsbryce/fantasy-injury-watch/main/site/data/events.json';
