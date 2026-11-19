@@ -31,6 +31,13 @@ def email_text(document, title):
     total = 0
     for league in document.get("leagues", []):
         lines.append(f"{league['name']} ({league['players_checked']} rostered players checked)")
+        lineup = league.get("lineup") or {}
+        if lineup.get("warning"):
+            lines.append("  STARTING LINEUP WARNING: " + lineup["warning"])
+        elif lineup.get("state") == "submitted":
+            lines.append("  MFL weekly starting lineup: 17 selected starters confirmed")
+        elif lineup.get("state") == "unknown":
+            lines.append("  MFL weekly lineup: unable to verify")
         alerts = league.get("alerts", [])
         if not alerts:
             lines.append("  No current injuries reported by MFL.")
