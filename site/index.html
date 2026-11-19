@@ -68,11 +68,12 @@ h2 .dot{display:none}small,.meta{color:var(--muted)}.meta{font-size:12px}
 .alert .source{display:none}
 .news{margin-top:7px;padding-top:5px;border-top:1px solid var(--soft)}
 .news:not(:has(.newslink)):not(:has(.mfl)){display:none}
-.news>.newssub:first-child{display:none}
 .newshead{margin:0 0 3px;color:var(--quiet);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
-.newslink{display:block;min-height:44px;margin:0;padding:7px 0;border:0;border-radius:0;background:transparent;color:var(--link);font-size:13px;font-weight:650;line-height:1.5;text-decoration:none;overflow-wrap:anywhere}
-.newslink:has(+ .newssub){border-radius:0;padding-bottom:3px}
-.newslink+.newssub{margin:0;padding:0 0 6px;background:none;border:0;border-radius:0;color:var(--quiet);font-size:11px}
+/* Article headline, publisher and date share one text flow; wrap naturally on phones. */
+.news-item{display:block;font-size:13px;line-height:1.55}
+.news-item .newslink{display:inline;min-height:0;margin:0;padding:0;background:transparent;color:var(--link);font-size:13px;font-weight:650;line-height:inherit;text-decoration:none;overflow-wrap:anywhere}
+.news-item .newssub{display:inline;margin-left:9px;padding:0;color:var(--quiet);font-size:11px;line-height:inherit;white-space:nowrap}
+.newslink:hover{text-decoration:underline}
 .mfl{display:inline-flex;align-items:center;min-height:44px;margin:0;padding:6px 0;color:var(--link);font-size:12px;font-weight:650;text-decoration:none}
 .newslink:hover,.mfl:hover{text-decoration:underline}
 /* Colour is reserved for real exceptions */
@@ -290,20 +291,25 @@ function card(alert){
  if(mflStory&&typeof mflStory.title==='string'&&mflStory.title.trim()&&
     typeof alert.mfl_news_url==='string'&&
     /^https:\/\/www\.myfantasyleague\.com\/\d{4}\/news_articles\?/.test(alert.mfl_news_url)){
-   newsBox.append(element('div','newshead','Latest MFL article'));
+   const newsItem=element('div','news-item');
    const article=element('a','newslink',mflStory.title);
-   article.href=alert.mfl_news_url;article.target='_blank';article.rel='noopener noreferrer';newsBox.append(article);
+   article.href=alert.mfl_news_url;article.target='_blank';article.rel='noopener noreferrer';
+   newsItem.append(article);
    const published=[mflStory.source,mflStory.published].filter(Boolean).join(' · ');
-   if(published)newsBox.append(element('div','newssub',published));
+   if(published)newsItem.append(element('span','newssub',published));
+   newsBox.append(newsItem);
  }else{
    const stories=Array.isArray(alert.news)?alert.news:[];
    const story=stories.find(item=>typeof item.url==='string'&&
       /^https:\/\/(www\.)?rotowire\.com\//i.test(item.url)&&item.title);
    if(story){
-     newsBox.append(element('div','newshead','Latest injury article'));
+     const newsItem=element('div','news-item');
      const link=element('a','newslink',story.title);
-     link.href=story.url;link.target='_blank';link.rel='noopener noreferrer';newsBox.append(link);
-     newsBox.append(element('div','newssub',[story.source,story.published].filter(Boolean).join(' · ')));
+     link.href=story.url;link.target='_blank';link.rel='noopener noreferrer';
+     newsItem.append(link);
+     const published=[story.source,story.published].filter(Boolean).join(' · ');
+     if(published)newsItem.append(element('span','newssub',published));
+     newsBox.append(newsItem);
    }
  }
  if(alert.mfl_news_url&&/^https:\/\/www\.myfantasyleague\.com\//.test(alert.mfl_news_url)){
