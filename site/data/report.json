@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "synced_at": "2026-11-19T02:37:30.388037+00:00",
+  "synced_at": "2026-11-19T20:43:15.635014+00:00",
   "leagues": [
     {
       "id": "40298",
@@ -9,8 +9,8 @@
       "franchise_id": "0001",
       "players_checked": 53,
       "full_roster_count": 57,
-      "feed_timestamp": "1795050063",
-      "synced_at": "2026-11-19T02:37:30.388037+00:00",
+      "feed_timestamp": "1795114864",
+      "synced_at": "2026-11-19T20:43:15.635014+00:00",
       "alerts": [
         {
           "key": "40298:17560",
@@ -26,8 +26,9 @@
           "details": "Neck",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795050063",
+          "source_timestamp": "1795114864",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17560",
+          "lineup_role": "starter",
           "news": [
             {
               "title": "Anthony Hill: Logs limited practice Wednesday",
@@ -35,8 +36,7 @@
               "url": "https://www.rotowire.com/football/headlines/anthony-hill-injury-logs-limited-practice-wednesday-648557",
               "source": "RotoWire"
             }
-          ],
-          "lineup_role": "starter"
+          ]
         },
         {
           "key": "40298:14251",
@@ -52,8 +52,9 @@
           "details": "Concussion",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795050063",
+          "source_timestamp": "1795114864",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14251",
+          "lineup_role": "bench",
           "news": [
             {
               "title": "Blake Cashman: Trending in right direction",
@@ -61,8 +62,7 @@
               "url": "https://www.rotowire.com/football/headlines/blake-cashman-injury-trending-in-right-direction-648581",
               "source": "RotoWire"
             }
-          ],
-          "lineup_role": "bench"
+          ]
         },
         {
           "key": "40298:14910",
@@ -78,8 +78,9 @@
           "details": "Hamstring",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795050063",
+          "source_timestamp": "1795114864",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14910",
+          "lineup_role": "starter",
           "news": [
             {
               "title": "Brandon Jones: Still working through hamstring issue",
@@ -87,8 +88,7 @@
               "url": "https://www.rotowire.com/football/headlines/brandon-jones-injury-still-working-through-hamstring-issue-648591",
               "source": "RotoWire"
             }
-          ],
-          "lineup_role": "starter"
+          ]
         },
         {
           "key": "40298:16195",
@@ -104,17 +104,17 @@
           "details": "Ankle",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795050063",
+          "source_timestamp": "1795114864",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=16195",
+          "lineup_role": "bench",
           "news": [
             {
-              "title": "Dontayvion Wicks: Practices in limited fashion",
-              "published": "November 18, 2026",
-              "url": "https://www.rotowire.com/football/headlines/dontayvion-wicks-injury-practices-in-limited-fashion-648537",
+              "title": "Dontayvion Wicks: Practicing Thursday",
+              "published": "November 19, 2026",
+              "url": "https://www.rotowire.com/football/headlines/dontayvion-wicks-injury-practicing-thursday-648662",
               "source": "RotoWire"
             }
-          ],
-          "lineup_role": "bench"
+          ]
         },
         {
           "key": "40298:16608",
@@ -130,8 +130,9 @@
           "details": "Knee - MCL",
           "expected_return": "Nov 29, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795050063",
+          "source_timestamp": "1795114864",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=16608",
+          "lineup_role": "bench",
           "news": [
             {
               "title": "George Holani: Likely to miss time with MCL sprain",
@@ -139,8 +140,7 @@
               "url": "https://www.rotowire.com/football/headlines/george-holani-injury-likely-to-miss-time-with-mcl-sprain-648172",
               "source": "RotoWire"
             }
-          ],
-          "lineup_role": "bench"
+          ]
         },
         {
           "key": "40298:14073",
@@ -156,8 +156,9 @@
           "details": "Finger",
           "expected_return": "Nov 25, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795050063",
+          "source_timestamp": "1795114864",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14073",
+          "lineup_role": "bench",
           "news": [
             {
               "title": "Josh Jacobs: Could be back for Week 12",
@@ -165,21 +166,21 @@
               "url": "https://www.rotowire.com/football/headlines/josh-jacobs-injury-could-be-back-for-week-12-648321",
               "source": "RotoWire"
             }
-          ],
-          "lineup_role": "bench"
+          ]
         }
       ],
-      "news_source": "RotoWire",
-      "news_checked_at": "2026-11-19T19:21:00.141960+00:00",
       "lineup": {
-        "state": "submitted",
         "week": 11,
-        "checked_at": "2026-11-19T19:20:56.382025+00:00",
-        "starters_count": 17,
+        "state": "submitted",
+        "checked_at": "2026-11-19T20:43:15.635014+00:00",
         "warning": null,
-        "kickoff": null
-      }
+        "kickoff": null,
+        "starters_count": 17
+      },
+      "news_source": "RotoWire",
+      "news_checked_at": "2026-11-19T20:43:15.635014+00:00"
     }
   ],
-  "sent_digest_date": ""
+  "sent_digest_date": "",
+  "sent_lineup_warning_key": ""
 }
