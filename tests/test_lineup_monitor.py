@@ -53,6 +53,16 @@ class LineupMonitorTests(unittest.TestCase):
             {"weeklyResults": {"franchise": {"id": "9999"}}}, "0001"))
         self.assertIsNone(submitted_starter_ids(results("111,111"), "0001"))
 
+    def test_incomplete_lineup_does_not_guess_bench_membership(self):
+        feeds = fixture()
+        now = datetime(2026, 11, 19, 21, 0, tzinfo=timezone.utc)
+        report = parse_report(feeds, LEAGUE, now)
+        enrich_lineup(report, feeds, LEAGUE,
+                      {"week": 12, "games": []}, "secret", now,
+                      fetcher=lambda *args: results("333"))
+        self.assertEqual(report["lineup"]["state"], "incomplete")
+        self.assertEqual(report["alerts"][0]["lineup_role"], "unknown")
+
     def test_empty_lineup_warns_only_near_relevant_thursday_kickoff(self):
         feeds = fixture()
         now = datetime(2026, 11, 19, 21, 0, tzinfo=timezone.utc)  # 3 PM SK
