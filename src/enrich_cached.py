@@ -32,7 +32,9 @@ def run():
                     f"https://www.myfantasyleague.com/{season}/news_articles?"
                     f"L={lid}&PLAYERS={pid}"
                 )
-    enrich_reports(leagues, fetch_recent_news(), checked_at=datetime.now(timezone.utc))
+    enrich_reports(leagues, fetch_recent_news(
+        [alert for lg in leagues for alert in lg.get("alerts", [])]
+    ), checked_at=datetime.now(timezone.utc))
     PUBLIC_PATH.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
     matched = sum(bool(a.get("news")) for league in leagues for a in league.get("alerts", []))
     print(f"Cached report news links updated; RSS headlines matched: {matched}.")
