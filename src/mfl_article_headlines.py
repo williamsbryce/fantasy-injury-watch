@@ -76,11 +76,11 @@ def find_headline(html, player_name):
         return None
     # Exact player identity before the colon avoids false matches when a
     # player is merely mentioned in someone else's story or summary.
-    pattern = re.compile(r"^(?:(?:[A-Z]{1,3}|D/ST)\\s+)?" + name +
-                         r"\\s*:\\s*(.{8,160})$", re.I)
+    pattern = re.compile(r"^(?:(?:[A-Z]{1,3}|D/ST)\s+)?" + name +
+                         r"\s*:\s*(.{8,160})$", re.I)
     for title in parser.links[:100]:
         m = pattern.fullmatch(title)
-        if m and not re.search(r"[<>\\r\\n]", m.group(1)):
+        if m and not re.search(r"[<>\r\n]", m.group(1)):
             return title[:190]
     return None
 
@@ -130,7 +130,7 @@ def _session(opener, year, league_id, username, password):
             cookies[key] = root.get(key)
     if not cookies.get("MFL_USER_ID"):
         raise MFLNewsError("MFL owner session cookie missing")
-    if any(re.search(r"[;\\r\\n\\s]", v) for v in cookies.values()):
+    if any(re.search(r"[;\r\n\s]", v) for v in cookies.values()):
         raise MFLNewsError("Unexpected MFL cookie format")
     return "; ".join(k + "=" + cookies[k] for k in ("MFL_USER_ID", "MFL_PW_SEQ")
                      if k in cookies)
