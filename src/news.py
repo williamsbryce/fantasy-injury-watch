@@ -84,9 +84,9 @@ def _parse_news_page(html):
     return articles
 
 
-def _fetch_news_page():
+def _fetch_news_page(url=PAGE_URL):
     """The public page lists more player updates than the five-item RSS feed."""
-    request = urllib.request.Request(PAGE_URL, method="GET", headers={
+    request = urllib.request.Request(url, method="GET", headers={
         "User-Agent": "Mozilla/5.0 (compatible; FantasyInjuryWatchBryce/1.0)",
         "Accept": "text/html",
     })
@@ -132,12 +132,41 @@ def _fetch_rss():
     return result
 
 
-def fetch_recent_news():
-    """Prefer the broader public headlines page; fall back to official RSS."""
-    page_items = _fetch_news_page()
-    if page_items:
-        return page_items
-    return _fetch_rss()
+TEAM_ALIASES = {
+    "ARZ": "ARI", "GBP": "GB", "KCC": "KC", "NEP": "NE",
+    "NOS": "NO", "SFO": "SF", "TBB": "TB", "JAC": "JAX",
+    "WAS": "WSH", "LVR": "LV", "RAM": "LAR",
+}
+
+
+def fetch_recent_news(alerts=None):
+    """Use public league-wide news plus targeted team pages for missed players.
+
+    The generic page is newest-first but only contains a subset of the NFL.
+    MFL often republishes RotoWire titles from deeper team-specific pages.
+    Never guess a title from the injured player's designation.
+    """
+    global_items = _fetch_news_page()
+    if not global_items:
+        global_items = _fetch_rss() or []
+    items = list(global_items)
+    if not alerts:
+        return items or None
+    missing = [a for a in alerts if isinstance(a, dict) and
+               not any(_matches_player(n["title"], a.get("name", ""))
+                       for n in items)]
+    teams = []
+    for alert in missing:
+        raw = str(alert.get("nfl_team") or "").upper().strip()
+        team = TEAM_ALIASES.get(raw, raw)
+        if re.fullmatch(r"[A-Z]{2,3}", team) and team not in teams:
+            teams.append(team)
+    for team in teams[:10]:
+        page = _fetch_news_page(PAGE_URL + "?team=" + team)
+        for article in page:
+            if not any(article["title"] == n["title"] for n in items):
+                items.append(article)
+    return items or None
 
 
 def _matches_player(title, name):
