@@ -74,7 +74,9 @@ def run():
                                           "previous": str(before.get("status", ""))[:35]}
         leagues.append(result)
     # News is optional and must never suppress official MFL injury designations.
-    enrich_reports(leagues, fetch_recent_news(), checked_at=now)
+    enrich_reports(leagues, fetch_recent_news(
+        [alert for lg in leagues for alert in lg.get("alerts", [])]
+    ), checked_at=now)
     document = {"schema": 2, "synced_at": now.isoformat(), "leagues": leagues,
                 "sent_digest_date": previous.get("sent_digest_date", ""),
                 "sent_lineup_warning_key": previous.get("sent_lineup_warning_key", "")}
