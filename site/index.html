@@ -707,8 +707,8 @@ async function updateGuardHealth(){
    const recent=Number.isFinite(ts)&&Date.now()-ts<8*86400000;
    if(!recent){setHealth('guardHealth','Guard: no recent logged check','');return;}
    const bad=latest.status==='attention';
-   setHealth('guardHealth',(bad?'Guard needs review: ':'Last guard event: ')+
-      readableDate(latest.timestamp),bad?'warn':'good');
+   setHealth('guardHealth',(bad?'Guard needs review: ':'Guard last logged: ')+
+      readableDate(latest.timestamp),bad?'warn':'');
  }catch(error){setHealth('guardHealth','Guard history unavailable','');}
 }
 async function loadReport(){
