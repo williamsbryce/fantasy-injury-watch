@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from src.lineup_monitor import (
     submitted_starter_ids, enrich_lineup, current_week_context, EXPECTED_STARTERS,
 )
-from tests.test_core import FIXTURE, LEAGUE
+from test_core import FIXTURE, LEAGUE
 from src.model import parse_report
 
 
@@ -49,9 +49,8 @@ class LineupMonitorTests(unittest.TestCase):
                       fetcher=lambda *args: {"weeklyResults": {"franchise": {"id": "0022"}}})
         self.assertEqual(report["lineup"]["state"], "unknown")
         self.assertEqual(report["alerts"][0]["lineup_role"], "unknown")
-        self.assertIsNone(submitted_starter_ids(results("222,111"), "0001")
-                          if False else submitted_starter_ids(
-                              {"weeklyResults": {"franchise": {"id": "9999"}}}, "0001"))
+        self.assertIsNone(submitted_starter_ids(
+            {"weeklyResults": {"franchise": {"id": "9999"}}}, "0001"))
         self.assertIsNone(submitted_starter_ids(results("111,111"), "0001"))
 
     def test_empty_lineup_warns_only_near_relevant_thursday_kickoff(self):
