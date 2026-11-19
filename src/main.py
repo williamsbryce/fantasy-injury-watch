@@ -8,6 +8,7 @@ from .crypto import decrypt
 from .mfl import fetch_all
 from .news import enrich_reports, fetch_recent_news
 from .model import parse_report
+from .lineup_monitor import current_week_context, enrich_lineup
 from .notify import digest_key, email_text, send_resend, urgent_new_alerts
 from .audit_log import record_event, AuditError
 
@@ -50,23 +51,44 @@ def run():
             raise RuntimeError("Legacy migration requires existing report passphrase secret")
         previous = decrypt(json.loads(LEGACY_PATH.read_text(encoding="utf-8")), passphrase)
     now = datetime.now(timezone.utc)
+    # Optional, read-only context. Missing ESPN/MFL lineup data must not
+    # suppress injury monitoring or be interpreted as a valid submission.
+    week_context = current_week_context(leagues_config[0]["season"], now)
     leagues = []
     for league in leagues_config:
         if league["platform"] != "mfl":
             raise RuntimeError("Only MFL read-only integration has been implemented")
         feeds = fetch_all(int(league["season"]), league["id"], key,
                           (os.environ.get("MFL_CLIENT_NAME", "").strip() or "FantasyInjuryWatch"))
-        leagues.append(parse_report(feeds, league, now))
+        result = parse_report(feeds, league, now)
+        enrich_lineup(result, feeds, league, week_context, key, now)
+        previously = {a.get("key"): a for old in previous.get("leagues", [])
+                      if isinstance(old, dict) for a in old.get("alerts", [])
+                      if isinstance(a, dict)}
+        for alert in result["alerts"]:
+            before = previously.get(alert["key"])
+            if before is None:
+                alert["status_change"] = {"kind": "new"}
+            elif str(before.get("status", "")).lower() != str(alert["status"]).lower():
+                alert["status_change"] = {"kind": "changed",
+                                          "previous": str(before.get("status", ""))[:35]}
+        leagues.append(result)
     # News is optional and must never suppress official MFL injury designations.
     enrich_reports(leagues, fetch_recent_news(), checked_at=now)
     document = {"schema": 2, "synced_at": now.isoformat(), "leagues": leagues,
-                "sent_digest_date": previous.get("sent_digest_date", "")}
+                "sent_digest_date": previous.get("sent_digest_date", ""),
+                "sent_lineup_warning_key": previous.get("sent_lineup_warning_key", "")}
     # Email first. If delivery fails, the action fails and does not mark the alert as sent.
     email_key = os.environ.get("RESEND_API_KEY", "")
     from_addr = os.environ.get("ALERT_FROM", "")
     to_addr = os.environ.get("ALERT_TO", "")
     test_email = os.environ.get("SEND_TEST_EMAIL", "").strip().lower() in {"true", "1", "yes"}
     email_enabled = os.environ.get("EMAIL_ENABLED", "").strip().lower() in {"true", "1", "yes"}
+    lineup_warnings = [
+        (league, info) for league in leagues
+        for info in [league.get("lineup") or {}] if info.get("warning")
+    ]
+    lineup_key = ("week-" + str(week_context["week"])) if week_context else ""
     if test_email:
         if not all((email_key, from_addr, to_addr)):
             raise RuntimeError("Test email requested but RESEND_API_KEY, ALERT_FROM or ALERT_TO is missing")
@@ -90,12 +112,30 @@ def run():
                            "Fantasy Injury Watch | Thursday" if now.astimezone(__import__('zoneinfo').ZoneInfo('America/Regina')).weekday() == 3 else "Fantasy Injury Watch | Sunday",
                            email_text(document, "Your fantasy injury summary")):
                 document["sent_digest_date"] = due
+                if lineup_warnings:
+                    document["sent_lineup_warning_key"] = lineup_key
                 day = now.astimezone(__import__('zoneinfo').ZoneInfo('America/Regina')).weekday()
                 log_accepted_email(
                     "scheduled-digest", "Scheduled injury summary accepted",
                     ("Thursday" if day == 3 else "Sunday") +
                     " summary accepted by Resend. Inbox delivery is not verified.")
         else:
+            # A single extra warning per NFL week, only when MFL explicitly
+            # reports no/incomplete lineup before a relevant kickoff.
+            if (lineup_warnings and lineup_key and
+                    lineup_key != previous.get("sent_lineup_warning_key")):
+                summary = "\\n".join(info["warning"] for _, info in lineup_warnings)
+                if send_resend(
+                        email_key, from_addr, to_addr,
+                        "Fantasy Injury Watch | Starting lineup requires attention",
+                        summary + "\\n\\nMFL has not confirmed a complete 17-player lineup. "
+                        "Please review your starting lineup before kickoff.\\n"
+                        f"https://www46.myfantasyleague.com/{leagues_config[0]['season']}/lineup?"
+                        f"L={league_id}&FRANCHISE={franchise_id}"):
+                    document["sent_lineup_warning_key"] = lineup_key
+                    log_accepted_email(
+                        "missing-lineup-warning", "Incomplete weekly lineup warning accepted",
+                        "Resend accepted a pregame warning that MFL had not confirmed a complete lineup.")
             new_urgent = urgent_new_alerts(document, previous)
             if new_urgent:
                 names = ", ".join(a["name"] for a in new_urgent[:4])
