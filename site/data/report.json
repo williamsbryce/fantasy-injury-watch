@@ -28,7 +28,14 @@
           "source": "MyFantasyLeague injury feed",
           "source_timestamp": "1795050063",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17560",
-          "news": [],
+          "news": [
+            {
+              "title": "Anthony Hill: Logs limited practice Wednesday",
+              "published": "November 18, 2026",
+              "url": "https://www.rotowire.com/football/headlines/anthony-hill-injury-logs-limited-practice-wednesday-648557",
+              "source": "RotoWire"
+            }
+          ],
           "lineup_role": "starter"
         },
         {
@@ -47,7 +54,14 @@
           "source": "MyFantasyLeague injury feed",
           "source_timestamp": "1795050063",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14251",
-          "news": [],
+          "news": [
+            {
+              "title": "Blake Cashman: Trending in right direction",
+              "published": "November 18, 2026",
+              "url": "https://www.rotowire.com/football/headlines/blake-cashman-injury-trending-in-right-direction-648581",
+              "source": "RotoWire"
+            }
+          ],
           "lineup_role": "bench"
         },
         {
@@ -66,7 +80,14 @@
           "source": "MyFantasyLeague injury feed",
           "source_timestamp": "1795050063",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14910",
-          "news": [],
+          "news": [
+            {
+              "title": "Brandon Jones: Still working through hamstring issue",
+              "published": "November 18, 2026",
+              "url": "https://www.rotowire.com/football/headlines/brandon-jones-injury-still-working-through-hamstring-issue-648591",
+              "source": "RotoWire"
+            }
+          ],
           "lineup_role": "starter"
         },
         {
@@ -111,7 +132,14 @@
           "source": "MyFantasyLeague injury feed",
           "source_timestamp": "1795050063",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=16608",
-          "news": [],
+          "news": [
+            {
+              "title": "George Holani: Likely to miss time with MCL sprain",
+              "published": "November 16, 2026",
+              "url": "https://www.rotowire.com/football/headlines/george-holani-injury-likely-to-miss-time-with-mcl-sprain-648172",
+              "source": "RotoWire"
+            }
+          ],
           "lineup_role": "bench"
         },
         {
@@ -130,16 +158,23 @@
           "source": "MyFantasyLeague injury feed",
           "source_timestamp": "1795050063",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14073",
-          "news": [],
+          "news": [
+            {
+              "title": "Josh Jacobs: Could be back for Week 12",
+              "published": "November 17, 2026",
+              "url": "https://www.rotowire.com/football/headlines/josh-jacobs-injury-could-be-back-for-week-12-648321",
+              "source": "RotoWire"
+            }
+          ],
           "lineup_role": "bench"
         }
       ],
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-19T11:47:59.796748+00:00",
+      "news_checked_at": "2026-11-19T19:21:00.141960+00:00",
       "lineup": {
         "state": "submitted",
         "week": 11,
-        "checked_at": "2026-11-19T19:18:30.907824+00:00",
+        "checked_at": "2026-11-19T19:20:56.382025+00:00",
         "starters_count": 17,
         "warning": null,
         "kickoff": null
