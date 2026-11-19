@@ -176,8 +176,12 @@ def enrich_lineup(report, feeds, league, context, api_key, now=None,
     if submitted:
         starter_set = set(submitted)
         for alert in report["alerts"]:
+            pid = str(alert.get("player_id"))
+            # In an incomplete lineup, selected starters are known but
+            # every unselected player may still be an intended starter.
             alert["lineup_role"] = (
-                "starter" if str(alert.get("player_id")) in starter_set else "bench")
+                "starter" if pid in starter_set else
+                "bench" if info["state"] == "submitted" else "unknown")
     # A pregame warning is valid only when MFL explicitly reported a missing
     # or incomplete current-week lineup, the kickoff is near, and the affected
     # Thursday game includes at least one active roster player.
