@@ -46,7 +46,7 @@ h2 .dot{display:none}small,.meta{color:var(--muted)}.meta{font-size:12px}
 .health-chip.good-health::before{background:#4a9972}.health-chip.warn-health::before{background:#c38b39}.health-chip.bad-health::before{background:#c45a60}
 /* Compact, individually separated player cards */
 #actionSection,#watchSection,#unknownSection{margin-top:23px}
-#actionSection h2,#watchSection h2,#unknownSection h2{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:14px;font-weight:750;letter-spacing:-.12px}
+#actionSection h2,#watchSection h2,#unknownSection h2{display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:21px;font-weight:750;letter-spacing:-.35px;line-height:1.35}
 #actionCount,#watchCount,#unknownCount{display:inline;min-height:0;padding:0;background:none!important;border:0;border-radius:0;color:var(--quiet)!important;font-size:12px;font-weight:600;line-height:inherit}
 #actions,#watchers,#unknownPlayers{display:flex;flex-direction:column;gap:9px;overflow:visible;background:transparent;border:0;border-radius:0;box-shadow:none}
 .alert,.alert.urgent,.alert.watchItem{display:block;margin:0;padding:11px 13px;border:1px solid var(--line)!important;border-radius:8px;background:#fff;box-shadow:none}
@@ -140,6 +140,7 @@ h2 .dot{display:none}small,.meta{color:var(--muted)}.meta{font-size:12px}
  #report .top{gap:8px;margin-bottom:10px}
  .health-row{column-gap:12px;row-gap:4px}.health-chip{font-size:11px}
  #actions,#watchers,#unknownPlayers{border-radius:7px}
+ #actionSection h2,#watchSection h2,#unknownSection h2{font-size:19px}
  .alert,.alert.urgent,.alert.watchItem{padding:10px 12px}
  .line{gap:8px}.name,.alert .name{font-size:15px}
  .status,.alert .status{font-size:10px;padding:2px 5px}
@@ -285,16 +286,25 @@ function card(alert){
  if(alert.details)outer.append(element('p','detail',alert.details));
  outer.append(element('div','source','MFL injury feed'+(alert.source_timestamp?' · Feed time: '+readableDate(alert.source_timestamp):' · Feed time not provided')));
  const newsBox=element('div','news');
- const stories=Array.isArray(alert.news)?alert.news:[];
- if(stories.length){
-   newsBox.append(element('div','newshead','Latest practice / injury news'));
-   for(const story of stories.slice(0,1)){
-     if(typeof story.url!=='string'||!/^https:\/\/(www\.)?rotowire\.com\//i.test(story.url))continue;
-     const link=element('a','newslink',story.title);link.href=story.url;link.target='_blank';link.rel='noopener noreferrer';newsBox.append(link);
+ const mflStory=alert.mfl_headline;
+ if(mflStory&&typeof mflStory.title==='string'&&mflStory.title.trim()&&
+    typeof alert.mfl_news_url==='string'&&
+    /^https:\/\/www\.myfantasyleague\.com\/\d{4}\/news_articles\?/.test(alert.mfl_news_url)){
+   newsBox.append(element('div','newshead','Latest MFL article'));
+   const article=element('a','newslink',mflStory.title);
+   article.href=alert.mfl_news_url;article.target='_blank';article.rel='noopener noreferrer';newsBox.append(article);
+   const published=[mflStory.source,mflStory.published].filter(Boolean).join(' · ');
+   if(published)newsBox.append(element('div','newssub',published));
+ }else{
+   const stories=Array.isArray(alert.news)?alert.news:[];
+   const story=stories.find(item=>typeof item.url==='string'&&
+      /^https:\/\/(www\.)?rotowire\.com\//i.test(item.url)&&item.title);
+   if(story){
+     newsBox.append(element('div','newshead','Latest injury article'));
+     const link=element('a','newslink',story.title);
+     link.href=story.url;link.target='_blank';link.rel='noopener noreferrer';newsBox.append(link);
      newsBox.append(element('div','newssub',[story.source,story.published].filter(Boolean).join(' · ')));
    }
- }else{
-   newsBox.append(element('div','newssub','No recent matching report in the public news feed.'));
  }
  if(alert.mfl_news_url&&/^https:\/\/www\.myfantasyleague\.com\//.test(alert.mfl_news_url)){
    const link=element('a','mfl','See player news on MFL ↗');
