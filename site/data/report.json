@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "synced_at": "2026-11-20T02:22:13.547109+00:00",
+  "synced_at": "2026-11-20T03:44:54.645910+00:00",
   "leagues": [
     {
       "id": "40298",
@@ -10,7 +10,7 @@
       "players_checked": 53,
       "full_roster_count": 57,
       "feed_timestamp": "1795136355",
-      "synced_at": "2026-11-20T02:22:13.547109+00:00",
+      "synced_at": "2026-11-20T03:44:54.645910+00:00",
       "alerts": [
         {
           "key": "40298:17560",
@@ -170,15 +170,15 @@
         }
       ],
       "lineup": {
-        "state": "submitted",
         "week": 11,
-        "checked_at": "2026-11-20T02:31:27.293054+00:00",
-        "starters_count": 17,
+        "state": "submitted",
+        "checked_at": "2026-11-20T03:44:54.645910+00:00",
         "warning": null,
-        "kickoff": null
+        "kickoff": null,
+        "starters_count": 17
       },
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-20T02:31:34.852740+00:00"
+      "news_checked_at": "2026-11-20T03:44:54.645910+00:00"
     }
   ],
   "sent_digest_date": "2026-11-19",
