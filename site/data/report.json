@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "synced_at": "2026-11-19T20:43:15.635014+00:00",
+  "synced_at": "2026-11-20T02:22:13.547109+00:00",
   "leagues": [
     {
       "id": "40298",
@@ -9,8 +9,8 @@
       "franchise_id": "0001",
       "players_checked": 53,
       "full_roster_count": 57,
-      "feed_timestamp": "1795114864",
-      "synced_at": "2026-11-19T20:43:15.635014+00:00",
+      "feed_timestamp": "1795136355",
+      "synced_at": "2026-11-20T02:22:13.547109+00:00",
       "alerts": [
         {
           "key": "40298:17560",
@@ -26,9 +26,9 @@
           "details": "Neck",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795114864",
+          "source_timestamp": "1795136355",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17560",
-          "lineup_role": "starter",
+          "lineup_role": "bench",
           "news": [
             {
               "title": "Anthony Hill: Logs limited practice Wednesday",
@@ -52,14 +52,14 @@
           "details": "Concussion",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795114864",
+          "source_timestamp": "1795136355",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14251",
           "lineup_role": "bench",
           "news": [
             {
-              "title": "Blake Cashman: Trending in right direction",
-              "published": "November 18, 2026",
-              "url": "https://www.rotowire.com/football/headlines/blake-cashman-injury-trending-in-right-direction-648581",
+              "title": "Blake Cashman: Logs another full practice Thursday",
+              "published": "November 19, 2026",
+              "url": "https://www.rotowire.com/football/headlines/blake-cashman-injury-logs-another-full-practice-thursday-648732",
               "source": "RotoWire"
             }
           ]
@@ -78,7 +78,7 @@
           "details": "Hamstring",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795114864",
+          "source_timestamp": "1795136355",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14910",
           "lineup_role": "starter",
           "news": [
@@ -104,14 +104,14 @@
           "details": "Ankle",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795114864",
+          "source_timestamp": "1795136355",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=16195",
           "lineup_role": "bench",
           "news": [
             {
-              "title": "Dontayvion Wicks: Practicing Thursday",
+              "title": "Dontayvion Wicks: Remains limited Thursday",
               "published": "November 19, 2026",
-              "url": "https://www.rotowire.com/football/headlines/dontayvion-wicks-injury-practicing-thursday-648662",
+              "url": "https://www.rotowire.com/football/headlines/dontayvion-wicks-injury-remains-limited-thursday-648702",
               "source": "RotoWire"
             }
           ]
@@ -130,7 +130,7 @@
           "details": "Knee - MCL",
           "expected_return": "Nov 29, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795114864",
+          "source_timestamp": "1795136355",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=16608",
           "lineup_role": "bench",
           "news": [
@@ -156,7 +156,7 @@
           "details": "Finger",
           "expected_return": "Nov 25, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795114864",
+          "source_timestamp": "1795136355",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14073",
           "lineup_role": "bench",
           "news": [
@@ -172,15 +172,15 @@
       "lineup": {
         "week": 11,
         "state": "submitted",
-        "checked_at": "2026-11-19T20:43:15.635014+00:00",
+        "checked_at": "2026-11-20T02:22:13.547109+00:00",
         "warning": null,
         "kickoff": null,
         "starters_count": 17
       },
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-19T20:43:15.635014+00:00"
+      "news_checked_at": "2026-11-20T02:22:13.547109+00:00"
     }
   ],
-  "sent_digest_date": "",
+  "sent_digest_date": "2026-11-19",
   "sent_lineup_warning_key": ""
 }
