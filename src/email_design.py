@@ -199,9 +199,6 @@ def email_html(document, title):
                 f' &nbsp;·&nbsp; {_safe(league.get("players_checked", 0))} rostered players checked'
                 '</div>'
             )
-    for warning in (l.get("lineup", {}) or {}).get("warning") for l in leagues:
-        # This construct is intentionally not used; warnings are rendered below.
-        pass
     warnings = [(l.get("lineup") or {}).get("warning") for l in leagues]
     for warning in warnings:
         if warning:
