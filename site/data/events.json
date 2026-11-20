@@ -1,7 +1,16 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-18T22:59:13+00:00",
+  "updated_at": "2026-11-20T02:22:22+00:00",
   "events": [
+    {
+      "id": "44660265534-scheduled-digest",
+      "timestamp": "2026-11-20T02:22:22+00:00",
+      "kind": "email",
+      "status": "success",
+      "title": "Scheduled injury summary accepted",
+      "detail": "Thursday summary accepted by Resend. Inbox delivery is not verified.",
+      "run_url": "https://github.com/williamsbryce/fantasy-injury-watch/actions/runs/44660265534"
+    },
     {
       "id": "44416656220-history-enabled",
       "timestamp": "2026-11-18T22:59:13+00:00",
