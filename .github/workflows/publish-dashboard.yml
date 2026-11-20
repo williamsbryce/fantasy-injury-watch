@@ -12,6 +12,8 @@ on:
       - 'src/model.py'
       - 'src/mfl.py'
       - 'src/notify.py'
+      - 'src/email_design.py'
+      - 'tests/test_email_design.py'
       - 'src/lineup_monitor.py'
       - 'tests/test_core.py'
       - 'tests/test_lineup_monitor.py'
