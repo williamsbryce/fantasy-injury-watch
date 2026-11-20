@@ -9,7 +9,7 @@ from .mfl import fetch_all
 from .news import enrich_reports, fetch_recent_news
 from .model import parse_report
 from .lineup_monitor import current_week_context, enrich_lineup
-from .notify import digest_key, email_text, send_resend, urgent_new_alerts
+from .notify import digest_key, email_text, email_html, message_html, send_resend, urgent_new_alerts
 from .audit_log import record_event, AuditError
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -94,14 +94,10 @@ def run():
     if test_email:
         if not all((email_key, from_addr, to_addr)):
             raise RuntimeError("Test email requested but RESEND_API_KEY, ALERT_FROM or ALERT_TO is missing")
-        count = sum(len(l["alerts"]) for l in leagues)
         send_resend(email_key, from_addr, to_addr,
-                    "Fantasy Injury Watch | Test email",
-                    "This is a test notification from Fantasy Injury Watch.\n"
-                    f"Latest CFFL Dynasty sync: {now.isoformat()}\n"
-                    f"Current MFL injury items: {count}\n"
-                    "No lineup changes are enabled.\n"
-                    "The test does not count as a Thursday or Sunday summary.")
+                    "BAWs Fantasy Injury Watch | Test email",
+                    email_text(document, "Test notification"),
+                    html_body=email_html(document, "Test notification"))
         print("A single email test request was accepted by the provider. Inbox receipt not verified.")
         log_accepted_email("test-email", "Test email accepted",
                            "Resend accepted the Injury Watch test email. Inbox delivery is not verified.")
@@ -110,9 +106,12 @@ def run():
             raise RuntimeError("EMAIL_ENABLED is set, but email configuration is missing")
         due = digest_key(now)
         if due and due != previous.get("sent_digest_date"):
+            day = now.astimezone(__import__('zoneinfo').ZoneInfo('America/Regina')).weekday()
+            title = "Thursday injury summary" if day == 3 else "Sunday injury summary"
             if send_resend(email_key, from_addr, to_addr,
-                           "Fantasy Injury Watch | Thursday" if now.astimezone(__import__('zoneinfo').ZoneInfo('America/Regina')).weekday() == 3 else "Fantasy Injury Watch | Sunday",
-                           email_text(document, "Your fantasy injury summary")):
+                           "BAWs Fantasy Injury Watch",
+                           email_text(document, title),
+                           html_body=email_html(document, title)):
                 document["sent_digest_date"] = due
                 if lineup_warnings:
                     document["sent_lineup_warning_key"] = lineup_key
@@ -129,11 +128,15 @@ def run():
                 summary = "\n".join(info["warning"] for _, info in lineup_warnings)
                 if send_resend(
                         email_key, from_addr, to_addr,
-                        "Fantasy Injury Watch | Starting lineup requires attention",
+                        "BAWs Fantasy Injury Watch | Lineup warning",
                         summary + "\n\nMFL has not confirmed a complete 17-player lineup. "
                         "Please review your starting lineup before kickoff.\n"
                         f"https://www46.myfantasyleague.com/{leagues_config[0]['season']}/lineup?"
-                        f"L={league_id}&FRANCHISE={franchise_id}"):
+                        f"L={league_id}&FRANCHISE={franchise_id}",
+                        html_body=message_html(
+                            "Starting lineup warning",
+                            summary + "\nMFL has not confirmed a complete starting lineup. "
+                            "Please review the starting lineup before kickoff.")):
                     document["sent_lineup_warning_key"] = lineup_key
                     log_accepted_email(
                         "missing-lineup-warning", "Incomplete weekly lineup warning accepted",
@@ -142,8 +145,9 @@ def run():
             if new_urgent:
                 names = ", ".join(a["name"] for a in new_urgent[:4])
                 if send_resend(email_key, from_addr, to_addr,
-                               f"Fantasy Injury Watch | New urgent status: {names}",
-                               email_text(document, "New urgent injury status")):
+                               f"BAWs Fantasy Injury Watch | Urgent: {names}",
+                               email_text(document, "Urgent injury update"),
+                               html_body=email_html(document, "Urgent injury update")):
                     log_accepted_email(
                         "urgent-email", "Urgent injury email accepted",
                         f"Resend accepted an alert for {len(new_urgent)} new urgent injury status(es). Inbox delivery is not verified.")
