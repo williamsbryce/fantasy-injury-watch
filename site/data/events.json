@@ -1,7 +1,16 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-20T02:22:22+00:00",
+  "updated_at": "2026-11-21T02:24:06+00:00",
   "events": [
+    {
+      "id": "44855649394-urgent-email",
+      "timestamp": "2026-11-21T02:24:06+00:00",
+      "kind": "email",
+      "status": "success",
+      "title": "Urgent injury email accepted",
+      "detail": "Resend accepted an alert for 1 new urgent injury status(es). Inbox delivery is not verified.",
+      "run_url": "https://github.com/williamsbryce/fantasy-injury-watch/actions/runs/44855649394"
+    },
     {
       "id": "44660265534-scheduled-digest",
       "timestamp": "2026-11-20T02:22:22+00:00",
