@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "synced_at": "2026-11-20T20:27:45.470064+00:00",
+  "synced_at": "2026-11-21T02:23:57.823527+00:00",
   "leagues": [
     {
       "id": "40298",
@@ -9,9 +9,39 @@
       "franchise_id": "0001",
       "players_checked": 53,
       "full_roster_count": 57,
-      "feed_timestamp": "1795201264",
-      "synced_at": "2026-11-20T20:27:45.470064+00:00",
+      "feed_timestamp": "1795222863",
+      "synced_at": "2026-11-21T02:23:57.823527+00:00",
       "alerts": [
+        {
+          "key": "40298:16195",
+          "player_id": "16195",
+          "name": "Dontayvion Wicks",
+          "position": "WR",
+          "nfl_team": "PHI",
+          "league": "CFFL Dynasty",
+          "league_id": "40298",
+          "roster_status": "ROSTER",
+          "status": "Out",
+          "group": "action",
+          "details": "Ankle",
+          "expected_return": "Nov 26, 2026",
+          "source": "MyFantasyLeague injury feed",
+          "source_timestamp": "1795222863",
+          "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=16195",
+          "lineup_role": "bench",
+          "status_change": {
+            "kind": "changed",
+            "previous": "Questionable"
+          },
+          "news": [
+            {
+              "title": "Dontayvion Wicks: Ruled out for Sunday's game",
+              "published": "November 20, 2026",
+              "url": "https://www.rotowire.com/football/headlines/dontayvion-wicks-injury-ruled-out-for-sundays-game-648836",
+              "source": "RotoWire"
+            }
+          ]
+        },
         {
           "key": "40298:17560",
           "player_id": "17560",
@@ -26,40 +56,14 @@
           "details": "Neck",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795201264",
+          "source_timestamp": "1795222863",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17560",
           "lineup_role": "bench",
           "news": [
             {
-              "title": "Anthony Hill: Logs limited practice Wednesday",
-              "published": "November 18, 2026",
-              "url": "https://www.rotowire.com/football/headlines/anthony-hill-injury-logs-limited-practice-wednesday-648557",
-              "source": "RotoWire"
-            }
-          ]
-        },
-        {
-          "key": "40298:14251",
-          "player_id": "14251",
-          "name": "Blake Cashman",
-          "position": "LB",
-          "nfl_team": "MIN",
-          "league": "CFFL Dynasty",
-          "league_id": "40298",
-          "roster_status": "ROSTER",
-          "status": "Questionable",
-          "group": "watch",
-          "details": "Concussion",
-          "expected_return": "Nov 22, 2026",
-          "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795201264",
-          "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14251",
-          "lineup_role": "bench",
-          "news": [
-            {
-              "title": "Blake Cashman: Logs another full practice Thursday",
-              "published": "November 19, 2026",
-              "url": "https://www.rotowire.com/football/headlines/blake-cashman-injury-logs-another-full-practice-thursday-648732",
+              "title": "Anthony Hill: Logs full practice, questionable for Week 11",
+              "published": "November 20, 2026",
+              "url": "https://www.rotowire.com/football/headlines/anthony-hill-injury-logs-full-practice-questionable-for-week-11-648876",
               "source": "RotoWire"
             }
           ]
@@ -78,40 +82,14 @@
           "details": "Hamstring",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795201264",
+          "source_timestamp": "1795222863",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14910",
           "lineup_role": "starter",
           "news": [
             {
-              "title": "Brandon Jones: Still working through hamstring issue",
-              "published": "November 18, 2026",
-              "url": "https://www.rotowire.com/football/headlines/brandon-jones-injury-still-working-through-hamstring-issue-648591",
-              "source": "RotoWire"
-            }
-          ]
-        },
-        {
-          "key": "40298:16195",
-          "player_id": "16195",
-          "name": "Dontayvion Wicks",
-          "position": "WR",
-          "nfl_team": "PHI",
-          "league": "CFFL Dynasty",
-          "league_id": "40298",
-          "roster_status": "ROSTER",
-          "status": "Questionable",
-          "group": "watch",
-          "details": "Ankle",
-          "expected_return": "Nov 22, 2026",
-          "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795201264",
-          "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=16195",
-          "lineup_role": "bench",
-          "news": [
-            {
-              "title": "Dontayvion Wicks: Practicing again Friday",
+              "title": "Brandon Jones: Questionable for Week 11",
               "published": "November 20, 2026",
-              "url": "https://www.rotowire.com/football/headlines/dontayvion-wicks-injury-practicing-again-friday-648794",
+              "url": "https://www.rotowire.com/football/headlines/brandon-jones-injury-questionable-for-week-11-648895",
               "source": "RotoWire"
             }
           ]
@@ -130,7 +108,7 @@
           "details": "Knee - MCL",
           "expected_return": "Nov 29, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795201264",
+          "source_timestamp": "1795222863",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=16608",
           "lineup_role": "bench",
           "news": [
@@ -156,7 +134,7 @@
           "details": "Finger",
           "expected_return": "Nov 25, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795201264",
+          "source_timestamp": "1795222863",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14073",
           "lineup_role": "bench",
           "news": [
@@ -170,15 +148,15 @@
         }
       ],
       "lineup": {
-        "state": "submitted",
         "week": 11,
-        "checked_at": "2026-11-20T20:40:12.770162+00:00",
-        "starters_count": 17,
+        "state": "submitted",
+        "checked_at": "2026-11-21T02:23:57.823527+00:00",
         "warning": null,
-        "kickoff": null
+        "kickoff": null,
+        "starters_count": 17
       },
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-20T20:40:16.228138+00:00"
+      "news_checked_at": "2026-11-21T02:23:57.823527+00:00"
     }
   ],
   "sent_digest_date": "2026-11-19",
