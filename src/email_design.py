@@ -73,6 +73,9 @@ def email_text(document, title):
         lines.append(f"{league.get('name', 'MFL League')} | {league.get('players_checked', 0)} rostered players checked")
     for note in _lineup_notes(document):
         lines.append(note)
+    if document.get("delivery_warning"):
+        lines.append("")
+        lines.append("DATA FRESHNESS WARNING: " + str(document["delivery_warning"]))
     lines.append("")
     labels = [
         ("starter", "INJURED STARTERS"),
@@ -190,6 +193,15 @@ def email_html(document, title):
     leagues = document.get("leagues", [])
     subtitle = "Last successful injury sync: " + _local_time(document.get("synced_at"))
     content = ""
+    if document.get("delivery_warning"):
+        content += (
+            '<div role="alert" style="margin-top:13px;padding:12px 13px;'
+            'background-color:#FFF5E5;border:1px solid #E7CF9F;'
+            'font-family:Arial,sans-serif;font-size:13px;line-height:20px;'
+            'color:#855119;">'
+            '<strong>Injury data may be out of date.</strong> '
+            + _safe(document["delivery_warning"]) + '</div>'
+        )
     if leagues:
         for league in leagues:
             content += (
