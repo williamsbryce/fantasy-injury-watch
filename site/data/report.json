@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "synced_at": "2026-11-21T02:23:57.823527+00:00",
+  "synced_at": "2026-11-22T11:33:51.504090+00:00",
   "leagues": [
     {
       "id": "40298",
@@ -9,8 +9,8 @@
       "franchise_id": "0001",
       "players_checked": 53,
       "full_roster_count": 57,
-      "feed_timestamp": "1795222863",
-      "synced_at": "2026-11-21T02:23:57.823527+00:00",
+      "feed_timestamp": "1795322822",
+      "synced_at": "2026-11-22T11:33:51.504090+00:00",
       "alerts": [
         {
           "key": "40298:16195",
@@ -21,17 +21,17 @@
           "league": "CFFL Dynasty",
           "league_id": "40298",
           "roster_status": "ROSTER",
-          "status": "Out",
+          "status": "IR",
           "group": "action",
           "details": "Ankle",
-          "expected_return": "Nov 26, 2026",
+          "expected_return": "Dec 19, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795222863",
+          "source_timestamp": "1795322822",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=16195",
           "lineup_role": "bench",
           "status_change": {
             "kind": "changed",
-            "previous": "Questionable"
+            "previous": "Out"
           },
           "news": [
             {
@@ -56,7 +56,7 @@
           "details": "Neck",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795222863",
+          "source_timestamp": "1795322822",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17560",
           "lineup_role": "bench",
           "news": [
@@ -82,7 +82,7 @@
           "details": "Hamstring",
           "expected_return": "Nov 22, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795222863",
+          "source_timestamp": "1795322822",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14910",
           "lineup_role": "starter",
           "news": [
@@ -108,7 +108,7 @@
           "details": "Knee - MCL",
           "expected_return": "Nov 29, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795222863",
+          "source_timestamp": "1795322822",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=16608",
           "lineup_role": "bench",
           "news": [
@@ -134,7 +134,7 @@
           "details": "Finger",
           "expected_return": "Nov 25, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795222863",
+          "source_timestamp": "1795322822",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14073",
           "lineup_role": "bench",
           "news": [
@@ -148,15 +148,15 @@
         }
       ],
       "lineup": {
-        "state": "submitted",
         "week": 11,
-        "checked_at": "2026-11-22T01:32:10.021372+00:00",
-        "starters_count": 17,
+        "state": "submitted",
+        "checked_at": "2026-11-22T11:33:51.504090+00:00",
         "warning": null,
-        "kickoff": null
+        "kickoff": null,
+        "starters_count": 17
       },
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-22T01:32:13.349810+00:00"
+      "news_checked_at": "2026-11-22T11:33:51.504090+00:00"
     }
   ],
   "sent_digest_date": "2026-11-19",
