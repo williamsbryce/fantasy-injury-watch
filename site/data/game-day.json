@@ -190,49 +190,7 @@
       "injury_watch": false
     }
   ],
-  "pending_batch": {
-    "items": [
-      {
-        "key": "2026-11-22-15708-eligible",
-        "name": "Breece Hall",
-        "position": "RB",
-        "nfl_team": "NYJ",
-        "state": "eligible",
-        "lineup_role": "starter",
-        "kickoff": "2026-11-22T21:05:00+00:00"
-      },
-      {
-        "key": "2026-11-22-16585-eligible",
-        "name": "Joe Milton",
-        "position": "QB",
-        "nfl_team": "PHI",
-        "state": "eligible",
-        "lineup_role": "starter",
-        "kickoff": "2026-11-22T18:00:00+00:00"
-      },
-      {
-        "key": "2026-11-22-17072-eligible",
-        "name": "Tre Harris",
-        "position": "WR",
-        "nfl_team": "LAC",
-        "state": "eligible",
-        "lineup_role": "starter",
-        "kickoff": "2026-11-22T21:05:00+00:00"
-      },
-      {
-        "key": "2026-11-22-14910-inactive",
-        "name": "Brandon Jones",
-        "position": "S",
-        "nfl_team": "DEN",
-        "state": "inactive",
-        "lineup_role": "bench",
-        "kickoff": "2026-11-22T21:25:00+00:00"
-      }
-    ],
-    "text": "Official NFL Sunday game-day availability | 2026-11-22\n\nBreece Hall (RB, NYJ) - ELIGIBLE (NOT INACTIVE) | STARTER\nJoe Milton (QB, PHI) - ELIGIBLE (NOT INACTIVE) | STARTER\nTre Harris (WR, LAC) - ELIGIBLE (NOT INACTIVE) | STARTER\nBrandon Jones (S, DEN) - INACTIVE | BENCH\n\nEligible means not named on the confirmed NFL inactive list. It does NOT prove the player took a snap.\nOfficial NFL inactives: https://www.nfl.com/news/nfl-week-11-inactives-players-ruled-out-sunday-2026-season\nInjury Watch: https://williamsbryce.github.io/fantasy-injury-watch/",
-    "html": "<!doctype html><html><body style=\"font-family:Arial,sans-serif;color:#182435;line-height:1.5;max-width:600px;padding:16px\"><h2 style=\"background:#182435;color:white;padding:17px\">BAWs Fantasy Injury Watch \u00b7 Game day</h2><p>New official NFL player availability confirmations:</p><ul><li style=\"margin:10px 0\"><strong>Breece Hall</strong> \u00b7 Eligible to play \u00b7 Starter</li><li style=\"margin:10px 0\"><strong>Joe Milton</strong> \u00b7 Eligible to play \u00b7 Starter</li><li style=\"margin:10px 0\"><strong>Tre Harris</strong> \u00b7 Eligible to play \u00b7 Starter</li><li style=\"margin:10px 0\"><strong>Brandon Jones</strong> \u00b7 Inactive \u00b7 Bench</li></ul><p>Eligible means not listed as inactive, not proof of playing snaps.</p><p><a href=\"https://www.nfl.com/news/nfl-week-11-inactives-players-ruled-out-sunday-2026-season\">Official NFL inactive list</a> \u00b7 <a href=\"https://williamsbryce.github.io/fantasy-injury-watch/\">Open Injury Watch</a></p></body></html>",
-    "idempotency_key": "baw-gameday-1ba9a6c5c9951f70197e989c"
-  },
+  "pending_batch": null,
   "notified_keys": [
     "2026-11-22-15287-eligible",
     "2026-11-22-16667-eligible",
@@ -242,11 +200,15 @@
     "2026-11-22-14157-eligible",
     "2026-11-22-14095-eligible",
     "2026-11-22-14983-eligible",
-    "2026-11-22-17560-eligible"
+    "2026-11-22-17560-eligible",
+    "2026-11-22-15708-eligible",
+    "2026-11-22-16585-eligible",
+    "2026-11-22-17072-eligible",
+    "2026-11-22-14910-inactive"
   ],
   "last_accepted": {
-    "run_id": "45055862927",
-    "count": 9,
+    "run_id": "45085685337",
+    "count": 4,
     "date": "2026-11-22"
   }
 }
