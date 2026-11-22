@@ -162,6 +162,7 @@ def send(now=None):
         raise RuntimeError("Digest was not accepted by the email provider")
     state["sent_dates"] = (state["sent_dates"] + [date])[-40:]
     state["last_accepted"] = {"date": date, "label": label,
+                              "run_id": os.environ.get("GITHUB_RUN_ID", ""),
                               "at": now.astimezone(timezone.utc).isoformat()}
     state["pending"] = None
     _save(state)
@@ -177,7 +178,9 @@ def audit(now=None):
     state = _state()
     date, label = due
     last = state.get("last_accepted") or {}
-    if last.get("date") != date:
+    if (last.get("date") != date or
+            not os.environ.get("GITHUB_RUN_ID") or
+            last.get("run_id") != os.environ.get("GITHUB_RUN_ID")):
         return
     try:
         record_event(
