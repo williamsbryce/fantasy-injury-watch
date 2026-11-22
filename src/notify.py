@@ -26,17 +26,24 @@ def digest_key(now):
     return None
 
 
-def send_resend(api_key, from_addr, to_addr, subject, body, html_body=None):
+def send_resend(api_key, from_addr, to_addr, subject, body, html_body=None, idempotency_key=None):
     if not all((api_key, from_addr, to_addr)):
         return False
     message = {"from": from_addr, "to": [to_addr], "subject": subject, "text": body}
     if html_body is not None:
         message["html"] = html_body
     payload = json.dumps(message, ensure_ascii=False).encode("utf-8")
-    request = urllib.request.Request("https://api.resend.com/emails", data=payload, method="POST", headers={
+    headers = {
         "Authorization": f"Bearer {api_key}", "Content-Type": "application/json",
         "User-Agent": "FantasyInjuryWatch/1.0", "Accept": "application/json",
-    })
+    }
+    if idempotency_key is not None:
+        import re
+        if not re.fullmatch(r"[a-zA-Z0-9_-]{1,120}", idempotency_key):
+            raise ValueError("Invalid email idempotency key")
+        headers["Idempotency-Key"] = idempotency_key
+    request = urllib.request.Request("https://api.resend.com/emails", data=payload,
+                                     method="POST", headers=headers)
     try:
         with urllib.request.urlopen(request, timeout=20) as response:
             if response.status not in (200, 201, 202):
