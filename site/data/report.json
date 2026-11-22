@@ -84,7 +84,7 @@
           "source": "MyFantasyLeague injury feed",
           "source_timestamp": "1795322822",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14910",
-          "lineup_role": "starter",
+          "lineup_role": "bench",
           "news": [
             {
               "title": "Brandon Jones: Questionable for Week 11",
@@ -150,13 +150,13 @@
       "lineup": {
         "state": "submitted",
         "week": 11,
-        "checked_at": "2026-11-22T11:54:35.210113+00:00",
+        "checked_at": "2026-11-22T19:56:00.919878+00:00",
         "starters_count": 17,
         "warning": null,
         "kickoff": null
       },
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-22T19:47:16.918199+00:00"
+      "news_checked_at": "2026-11-22T19:56:04.831351+00:00"
     }
   ],
   "sent_digest_date": "2026-11-19",
