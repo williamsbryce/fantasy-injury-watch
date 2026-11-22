@@ -56,19 +56,39 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add site/data/game-day.json 2>/dev/null || true
-          if ! git diff --cached --quiet; then
-            git commit -m 'Update official NFL game-day availability [skip ci]'
-            git pull --rebase origin main
-            git push origin HEAD:main
+          git fetch origin main
+          # Don't overwrite a newer game-day file written after checkout.
+          # The next scheduled check will reconcile from that latest version.
+          if ! git diff --quiet HEAD origin/main -- site/data/game-day.json; then
+            echo "Newer official game-day state already exists; skip stale write and send."
+            echo "NFL_GAME_DAY_SKIP_SEND=1" >> "$GITHUB_ENV"
+            git reset --hard origin/main
+          else
+            git add site/data/game-day.json 2>/dev/null || true
+            if ! git diff --cached --quiet; then
+              git commit -m 'Update official NFL game-day availability [skip ci]'
+              git fetch origin main
+              if ! git rebase origin/main; then
+                git rebase --abort
+                echo "NFL_GAME_DAY_SKIP_SEND=1" >> "$GITHUB_ENV"
+                git reset --hard origin/main
+              elif ! git push origin HEAD:main; then
+                echo "Concurrent update; skip stale notification and retry on next check."
+                echo "NFL_GAME_DAY_SKIP_SEND=1" >> "$GITHUB_ENV"
+                git fetch origin main
+                git reset --hard origin/main
+              fi
+            fi
           fi
       - name: Email newly confirmed game-day availability
+        if: ${{ env.NFL_GAME_DAY_SKIP_SEND != '1' }}
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           ALERT_FROM: ${{ vars.ALERT_FROM }}
           ALERT_TO: ${{ vars.ALERT_TO }}
         run: python -m src.nfl_game_day send
       - name: Persist accepted email notification
+        if: ${{ env.NFL_GAME_DAY_SKIP_SEND != '1' }}
         run: |
           git add site/data/game-day.json 2>/dev/null || true
           if ! git diff --cached --quiet; then
@@ -77,6 +97,7 @@ jobs:
             git push origin HEAD:main
           fi
       - name: Record game-day email in Event log
+        if: ${{ env.NFL_GAME_DAY_SKIP_SEND != '1' }}
         env:
           AUDIT_GITHUB_TOKEN: ${{ github.token }}
         run: python -m src.nfl_game_day audit
