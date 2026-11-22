@@ -61,9 +61,9 @@
           "lineup_role": "bench",
           "news": [
             {
-              "title": "Anthony Hill: Logs full practice, questionable for Week 11",
-              "published": "November 20, 2026",
-              "url": "https://www.rotowire.com/football/headlines/anthony-hill-injury-logs-full-practice-questionable-for-week-11-648876",
+              "title": "Anthony Hill: Cleared to play in Week 11",
+              "published": "November 22, 2026",
+              "url": "https://www.rotowire.com/football/headlines/anthony-hill-news-cleared-to-play-in-week-11-649060",
               "source": "RotoWire"
             }
           ]
@@ -139,9 +139,9 @@
           "lineup_role": "bench",
           "news": [
             {
-              "title": "Josh Jacobs: Practicing Saturday",
-              "published": "November 21, 2026",
-              "url": "https://www.rotowire.com/football/headlines/josh-jacobs-injury-practicing-saturday-648967",
+              "title": "Josh Jacobs: Taking part in practice Sunday",
+              "published": "November 22, 2026",
+              "url": "https://www.rotowire.com/football/headlines/josh-jacobs-injury-taking-part-in-practice-sunday-649096",
               "source": "RotoWire"
             }
           ]
@@ -156,7 +156,7 @@
         "kickoff": null
       },
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-22T11:54:39.430876+00:00"
+      "news_checked_at": "2026-11-22T19:47:16.918199+00:00"
     }
   ],
   "sent_digest_date": "2026-11-19",
