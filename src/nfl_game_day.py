@@ -271,17 +271,28 @@ def prepare(now=None, *, context=None, official=None, roster=None):
         print("GAME DAY: full MFL roster unavailable; only cached injury players checked")
     if not current:
         raise RuntimeError("No trustworthy roster identities available for NFL check")
-    injured = {
-        str(a.get("player_id")) for league in doc["leagues"]
-        for a in league.get("alerts", [])
+    injury_alerts = {
+        str(a.get("player_id")): a for league in doc["leagues"]
+        for a in league.get("alerts", []) if isinstance(a, dict)
     }
+    injured = set(injury_alerts)
+    nfl_ir = {"ir", "injured reserve", "pup", "nfi", "non football injury",
+              "suspended", "physically unable to perform"}
     player_rows = []
     for player in current:
         if player["nfl_team"] not in TEAM_NAMES:
             continue
+        if player["player_id"] not in injured and player["lineup_role"] != "starter":
+            continue  # Never publish unrelated healthy bench roster names.
         status = classify_player(player, today_games, official)
         if status["state"] == "no_game":
             continue
+        # Players on NFL injured reserve are not necessarily named in weekly
+        # game-day inactive lists. Never label them eligible from absence alone.
+        injury_status = str(injury_alerts.get(player["player_id"], {}).get(
+            "status", "")).lower().strip()
+        if injury_status in nfl_ir:
+            status["state"] = "unavailable"
         player_rows.append({
             **player, **status,
             "injury_watch": player["player_id"] in injured
