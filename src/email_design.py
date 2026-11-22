@@ -101,7 +101,7 @@ def email_text(document, title):
             lines.append(line)
         lines.append("")
     lines.extend([
-        f"{total} reported injury item(s).",
+        f"{total} reported injury item" + ("" if total == 1 else "s") + ".",
         "View dashboard: " + DASHBOARD_URL,
         "",
         "Source: MyFantasyLeague. Designations are not official NFL inactive confirmations.",
@@ -222,9 +222,11 @@ def email_html(document, title):
     if total:
         stats = []
         if groups["starter"]:
-            stats.append(f'{len(groups["starter"])} injured starter(s)')
+            count = len(groups["starter"])
+            stats.append(f'{count} injured starter' + ('' if count == 1 else 's'))
         if groups["bench"]:
-            stats.append(f'{len(groups["bench"])} injured bench player(s)')
+            count = len(groups["bench"])
+            stats.append(f'{count} injured bench player' + ('' if count == 1 else 's'))
         if groups["unknown"]:
             stats.append(f'{len(groups["unknown"])} with unverified lineup position')
         content += (
