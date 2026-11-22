@@ -149,6 +149,44 @@ class SnapshotTests(unittest.TestCase):
             self.assertFalse(game.send())
             sender.assert_not_called()
 
+    def test_missing_official_list_near_kickoff_sends_warning_not_false_active(self):
+        close_to_kickoff = datetime(2026, 11, 22, 17, 30, tzinfo=timezone.utc)
+        game.prepare(close_to_kickoff, context=GAME,
+                     official=({}, game.official_sunday_url(2026, 11)),
+                     roster=PLAYERS)
+        state = json.loads(self.snapshot.read_text())
+        self.assertEqual({p["state"] for p in state["players"]}, {"pending"})
+        self.assertEqual(len(state["pending_batch"]["items"]), 1)
+        self.assertIn("STATUS UNVERIFIED - CHECK NFL",
+                      state["pending_batch"]["text"])
+        self.assertNotIn("ELIGIBLE (NOT INACTIVE)", state["pending_batch"]["text"])
+
+    def test_injured_reserve_is_not_mistaken_for_eligible(self):
+        report = json.loads(self.report.read_text())
+        report["leagues"][0]["alerts"].append({
+            "player_id": "200", "name": "Nick Singleton", "nfl_team": "TEN",
+            "status": "IR", "lineup_role": "starter",
+        })
+        self.report.write_text(json.dumps(report))
+        lists = game.parse_nfl_inactives(HTML, 2026, 11)
+        game.prepare(NOW, context=GAME,
+                     official=(lists, game.official_sunday_url(2026, 11)),
+                     roster=PLAYERS)
+        state = json.loads(self.snapshot.read_text())
+        person = next(p for p in state["players"] if p["name"] == "Nick Singleton")
+        self.assertEqual(person["state"], "unavailable")
+        self.assertNotIn("Nick Singleton", state["pending_batch"]["text"])
+
+    def test_regular_healthy_bench_players_are_not_published(self):
+        players = PLAYERS + [{
+            "player_id": "999", "name": "Healthy Bench", "position": "RB",
+            "nfl_team": "TEN", "lineup_role": "bench",
+        }]
+        game.prepare(NOW, context=GAME, official=({}, game.official_sunday_url(2026, 11)),
+                     roster=players)
+        names = [p["name"] for p in json.loads(self.snapshot.read_text())["players"]]
+        self.assertNotIn("Healthy Bench", names)
+
     def test_keeps_verified_status_during_short_source_outage(self):
         lists = game.parse_nfl_inactives(HTML, 2026, 11)
         game.prepare(NOW, context=GAME,
