@@ -315,17 +315,35 @@ def prepare(now=None, *, context=None, official=None, roster=None):
             row["state"] = prior["state"]
     notified = previous.get("notified_keys", [])
     queue = []
+    warning_teams = set()
     for p in player_rows:
-        if p["state"] not in ("inactive", "eligible"):
-            continue
         relevant = p["lineup_role"] == "starter" or p["injury_watch"]
         if not relevant:
             continue
-        key = f"{date}-{p['player_id']}-{p['state']}"
-        if key not in notified and previous_roles.get(p["player_id"], {}).get("state") != p["state"]:
+        state = p["state"]
+        if state == "pending" and p["lineup_role"] in ("starter", "unknown"):
+            # Teams normally post inactives ~90 minutes before kickoff. If a
+            # relevant unconfirmed team is still missing in the final 45
+            # minutes, send a one-time failure warning rather than silence.
+            kickoff = datetime.fromisoformat(p["kickoff"])
+            if timedelta(0) <= kickoff - now <= timedelta(minutes=45):
+                team = p["nfl_team"]
+                key = f"{date}-{team}-unverified"
+                if key not in notified and team not in warning_teams:
+                    warning_teams.add(team)
+                    queue.append({
+                        "key": key, "name": "NFL list unavailable for " + team,
+                        "position": "", "nfl_team": team, "state": "unverified",
+                        "lineup_role": p["lineup_role"], "kickoff": p["kickoff"],
+                    })
+            continue
+        if state not in ("inactive", "eligible"):
+            continue
+        key = f"{date}-{p['player_id']}-{state}"
+        if key not in notified and previous_roles.get(p["player_id"], {}).get("state") != state:
             queue.append({
                 "key": key, "name": p["name"], "position": p["position"],
-                "nfl_team": p["nfl_team"], "state": p["state"],
+                "nfl_team": p["nfl_team"], "state": state,
                 "lineup_role": p["lineup_role"], "kickoff": p["kickoff"],
             })
     pending = previous.get("pending_batch")
@@ -339,7 +357,9 @@ def prepare(now=None, *, context=None, official=None, roster=None):
         items = sorted(queue, key=lambda p: (p["lineup_role"] != "starter", p["name"]))
         summary = []
         for p in items:
-            flag = "INACTIVE" if p["state"] == "inactive" else "ELIGIBLE (NOT INACTIVE)"
+            flag = ("INACTIVE" if p["state"] == "inactive" else
+                    "STATUS UNVERIFIED - CHECK NFL BEFORE KICKOFF" if p["state"] == "unverified"
+                    else "ELIGIBLE (NOT INACTIVE)")
             role = p["lineup_role"].upper()
             summary.append(f"{p['name']} ({p['position']}, {p['nfl_team']}) - {flag} | {role}")
         body = (
@@ -359,7 +379,9 @@ def prepare(now=None, *, context=None, official=None, roster=None):
             '<ul>' + "".join(
                 '<li style="margin:10px 0"><strong>' +
                 __import__("html").escape(p["name"]) + '</strong> · ' +
-                ('Inactive' if p["state"] == "inactive" else 'Eligible to play') +
+                ('Inactive' if p["state"] == "inactive" else
+                 'Official list unavailable - verify manually' if p["state"] == "unverified"
+                 else 'Eligible to play') +
                 ' · ' + __import__("html").escape(p["lineup_role"].title())
                 + '</li>' for p in items
             ) + '</ul>'
