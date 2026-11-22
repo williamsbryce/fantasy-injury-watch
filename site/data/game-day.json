@@ -1,0 +1,416 @@
+{
+  "schema": 1,
+  "season": 2026,
+  "week": 11,
+  "date": "2026-11-22",
+  "checked_at": "2026-11-22T18:34:46.575498+00:00",
+  "official_confirmed_at": "2026-11-22T18:34:46.575498+00:00",
+  "source": "https://www.nfl.com/news/nfl-week-11-inactives-players-ruled-out-sunday-2026-season",
+  "confirmed_teams": [
+    "ARI",
+    "BAL",
+    "BUF",
+    "CAR",
+    "CHI",
+    "DAL",
+    "DET",
+    "KC",
+    "MIA",
+    "NO",
+    "PIT",
+    "TB",
+    "TEN"
+  ],
+  "players": [
+    {
+      "player_id": "15708",
+      "name": "Breece Hall",
+      "position": "RB",
+      "nfl_team": "NYJ",
+      "lineup_role": "starter",
+      "state": "pending",
+      "kickoff": "2026-11-22T21:05:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "16166",
+      "name": "Sean Tucker",
+      "position": "RB",
+      "nfl_team": "TB",
+      "lineup_role": "bench",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "14235",
+      "name": "Drue Tranquill",
+      "position": "LB",
+      "nfl_team": "KC",
+      "lineup_role": "starter",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "14910",
+      "name": "Brandon Jones",
+      "position": "S",
+      "nfl_team": "DEN",
+      "lineup_role": "bench",
+      "state": "pending",
+      "kickoff": "2026-11-22T21:25:00+00:00",
+      "injury_watch": true
+    },
+    {
+      "player_id": "16650",
+      "name": "Dallas Turner",
+      "position": "DE",
+      "nfl_team": "MIN",
+      "lineup_role": "starter",
+      "state": "pending",
+      "kickoff": "2026-11-23T01:20:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "15287",
+      "name": "Amon-Ra St. Brown",
+      "position": "WR",
+      "nfl_team": "DET",
+      "lineup_role": "starter",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "16585",
+      "name": "Joe Milton",
+      "position": "QB",
+      "nfl_team": "PHI",
+      "lineup_role": "starter",
+      "state": "pending",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "16667",
+      "name": "Cedric Gray",
+      "position": "LB",
+      "nfl_team": "TEN",
+      "lineup_role": "starter",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "13671",
+      "name": "Mark Andrews",
+      "position": "TE",
+      "nfl_team": "BAL",
+      "lineup_role": "starter",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "17123",
+      "name": "Jihaad Campbell",
+      "position": "LB",
+      "nfl_team": "PHI",
+      "lineup_role": "bench",
+      "state": "pending",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "17112",
+      "name": "Abdul Carter",
+      "position": "DE",
+      "nfl_team": "NYG",
+      "lineup_role": "bench",
+      "state": "pending",
+      "kickoff": "2026-11-22T21:25:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "17132",
+      "name": "Malaki Starks",
+      "position": "S",
+      "nfl_team": "BAL",
+      "lineup_role": "starter",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "14251",
+      "name": "Blake Cashman",
+      "position": "LB",
+      "nfl_team": "MIN",
+      "lineup_role": "starter",
+      "state": "pending",
+      "kickoff": "2026-11-23T01:20:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "13115",
+      "name": "Mitchell Trubisky",
+      "position": "QB",
+      "nfl_team": "TEN",
+      "lineup_role": "bench",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "13879",
+      "name": "Kyle Allen",
+      "position": "QB",
+      "nfl_team": "BUF",
+      "lineup_role": "bench",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "14095",
+      "name": "Ty Johnson",
+      "position": "RB",
+      "nfl_team": "BUF",
+      "lineup_role": "starter",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "16149",
+      "name": "Will Levis",
+      "position": "QB",
+      "nfl_team": "NYJ",
+      "lineup_role": "bench",
+      "state": "pending",
+      "kickoff": "2026-11-22T21:05:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "14983",
+      "name": "Tyler Bass",
+      "position": "PK",
+      "nfl_team": "BUF",
+      "lineup_role": "starter",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "17072",
+      "name": "Tre Harris",
+      "position": "WR",
+      "nfl_team": "LAC",
+      "lineup_role": "starter",
+      "state": "pending",
+      "kickoff": "2026-11-22T21:05:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "13268",
+      "name": "Alex Anzalone",
+      "position": "LB",
+      "nfl_team": "TB",
+      "lineup_role": "bench",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "17560",
+      "name": "Anthony Hill Jr.",
+      "position": "LB",
+      "nfl_team": "TEN",
+      "lineup_role": "bench",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": true
+    },
+    {
+      "player_id": "17567",
+      "name": "Oscar Delp",
+      "position": "TE",
+      "nfl_team": "NO",
+      "lineup_role": "bench",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "17654",
+      "name": "Cole Payton",
+      "position": "QB",
+      "nfl_team": "PHI",
+      "lineup_role": "bench",
+      "state": "pending",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "15693",
+      "name": "Sam Howell",
+      "position": "QB",
+      "nfl_team": "DAL",
+      "lineup_role": "bench",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "14995",
+      "name": "Josh Metellus",
+      "position": "S",
+      "nfl_team": "MIN",
+      "lineup_role": "starter",
+      "state": "pending",
+      "kickoff": "2026-11-23T01:20:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "17541",
+      "name": "Barion Brown",
+      "position": "WR",
+      "nfl_team": "NO",
+      "lineup_role": "bench",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "13066",
+      "name": "Kalif Raymond",
+      "position": "WR",
+      "nfl_team": "CHI",
+      "lineup_role": "bench",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "12140",
+      "name": "Jameis Winston",
+      "position": "QB",
+      "nfl_team": "NYG",
+      "lineup_role": "bench",
+      "state": "pending",
+      "kickoff": "2026-11-22T21:25:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "10948",
+      "name": "Case Keenum",
+      "position": "QB",
+      "nfl_team": "CHI",
+      "lineup_role": "bench",
+      "state": "inactive",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    },
+    {
+      "player_id": "14157",
+      "name": "Quinnen Williams",
+      "position": "DT",
+      "nfl_team": "DAL",
+      "lineup_role": "starter",
+      "state": "eligible",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": false
+    }
+  ],
+  "pending_batch": {
+    "items": [
+      {
+        "key": "2026-11-22-15287-eligible",
+        "name": "Amon-Ra St. Brown",
+        "position": "WR",
+        "nfl_team": "DET",
+        "state": "eligible",
+        "lineup_role": "starter",
+        "kickoff": "2026-11-22T18:00:00+00:00"
+      },
+      {
+        "key": "2026-11-22-16667-eligible",
+        "name": "Cedric Gray",
+        "position": "LB",
+        "nfl_team": "TEN",
+        "state": "eligible",
+        "lineup_role": "starter",
+        "kickoff": "2026-11-22T18:00:00+00:00"
+      },
+      {
+        "key": "2026-11-22-14235-eligible",
+        "name": "Drue Tranquill",
+        "position": "LB",
+        "nfl_team": "KC",
+        "state": "eligible",
+        "lineup_role": "starter",
+        "kickoff": "2026-11-22T18:00:00+00:00"
+      },
+      {
+        "key": "2026-11-22-17132-eligible",
+        "name": "Malaki Starks",
+        "position": "S",
+        "nfl_team": "BAL",
+        "state": "eligible",
+        "lineup_role": "starter",
+        "kickoff": "2026-11-22T18:00:00+00:00"
+      },
+      {
+        "key": "2026-11-22-13671-eligible",
+        "name": "Mark Andrews",
+        "position": "TE",
+        "nfl_team": "BAL",
+        "state": "eligible",
+        "lineup_role": "starter",
+        "kickoff": "2026-11-22T18:00:00+00:00"
+      },
+      {
+        "key": "2026-11-22-14157-eligible",
+        "name": "Quinnen Williams",
+        "position": "DT",
+        "nfl_team": "DAL",
+        "state": "eligible",
+        "lineup_role": "starter",
+        "kickoff": "2026-11-22T18:00:00+00:00"
+      },
+      {
+        "key": "2026-11-22-14095-eligible",
+        "name": "Ty Johnson",
+        "position": "RB",
+        "nfl_team": "BUF",
+        "state": "eligible",
+        "lineup_role": "starter",
+        "kickoff": "2026-11-22T18:00:00+00:00"
+      },
+      {
+        "key": "2026-11-22-14983-eligible",
+        "name": "Tyler Bass",
+        "position": "PK",
+        "nfl_team": "BUF",
+        "state": "eligible",
+        "lineup_role": "starter",
+        "kickoff": "2026-11-22T18:00:00+00:00"
+      },
+      {
+        "key": "2026-11-22-17560-eligible",
+        "name": "Anthony Hill Jr.",
+        "position": "LB",
+        "nfl_team": "TEN",
+        "state": "eligible",
+        "lineup_role": "bench",
+        "kickoff": "2026-11-22T18:00:00+00:00"
+      }
+    ],
+    "text": "Official NFL Sunday game-day availability | 2026-11-22\n\nAmon-Ra St. Brown (WR, DET) - ELIGIBLE (NOT INACTIVE) | STARTER\nCedric Gray (LB, TEN) - ELIGIBLE (NOT INACTIVE) | STARTER\nDrue Tranquill (LB, KC) - ELIGIBLE (NOT INACTIVE) | STARTER\nMalaki Starks (S, BAL) - ELIGIBLE (NOT INACTIVE) | STARTER\nMark Andrews (TE, BAL) - ELIGIBLE (NOT INACTIVE) | STARTER\nQuinnen Williams (DT, DAL) - ELIGIBLE (NOT INACTIVE) | STARTER\nTy Johnson (RB, BUF) - ELIGIBLE (NOT INACTIVE) | STARTER\nTyler Bass (PK, BUF) - ELIGIBLE (NOT INACTIVE) | STARTER\nAnthony Hill Jr. (LB, TEN) - ELIGIBLE (NOT INACTIVE) | BENCH\n\nEligible means not named on the confirmed NFL inactive list. It does NOT prove the player took a snap.\nOfficial NFL inactives: https://www.nfl.com/news/nfl-week-11-inactives-players-ruled-out-sunday-2026-season\nInjury Watch: https://williamsbryce.github.io/fantasy-injury-watch/",
+    "html": "<!doctype html><html><body style=\"font-family:Arial,sans-serif;color:#182435;line-height:1.5;max-width:600px;padding:16px\"><h2 style=\"background:#182435;color:white;padding:17px\">BAWs Fantasy Injury Watch \u00b7 Game day</h2><p>New official NFL player availability confirmations:</p><ul><li style=\"margin:10px 0\"><strong>Amon-Ra St. Brown</strong> \u00b7 Eligible to play \u00b7 Starter</li><li style=\"margin:10px 0\"><strong>Cedric Gray</strong> \u00b7 Eligible to play \u00b7 Starter</li><li style=\"margin:10px 0\"><strong>Drue Tranquill</strong> \u00b7 Eligible to play \u00b7 Starter</li><li style=\"margin:10px 0\"><strong>Malaki Starks</strong> \u00b7 Eligible to play \u00b7 Starter</li><li style=\"margin:10px 0\"><strong>Mark Andrews</strong> \u00b7 Eligible to play \u00b7 Starter</li><li style=\"margin:10px 0\"><strong>Quinnen Williams</strong> \u00b7 Eligible to play \u00b7 Starter</li><li style=\"margin:10px 0\"><strong>Ty Johnson</strong> \u00b7 Eligible to play \u00b7 Starter</li><li style=\"margin:10px 0\"><strong>Tyler Bass</strong> \u00b7 Eligible to play \u00b7 Starter</li><li style=\"margin:10px 0\"><strong>Anthony Hill Jr.</strong> \u00b7 Eligible to play \u00b7 Bench</li></ul><p>Eligible means not listed as inactive, not proof of playing snaps.</p><p><a href=\"https://www.nfl.com/news/nfl-week-11-inactives-players-ruled-out-sunday-2026-season\">Official NFL inactive list</a> \u00b7 <a href=\"https://williamsbryce.github.io/fantasy-injury-watch/\">Open Injury Watch</a></p></body></html>",
+    "idempotency_key": "baw-gameday-4e169486248956a66560d460"
+  },
+  "notified_keys": [],
+  "last_accepted": null
+}
