@@ -113,7 +113,7 @@ def prepare(now=None):
     if age > timedelta(hours=6):
         local_sync = synced_at.astimezone(TZ)
         snapshot["delivery_warning"] = (
-            "Injury data may be outdated. Last verified refresh was "
+            "Last verified refresh: "
             + local_sync.strftime("%b %d at %I:%M %p")
             + " Saskatchewan time. Review the dashboard before relying on these statuses."
         )
