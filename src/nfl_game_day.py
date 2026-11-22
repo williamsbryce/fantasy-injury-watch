@@ -295,6 +295,13 @@ def prepare(now=None, *, context=None, official=None, roster=None):
         a["player_id"]: a for a in previous.get("players", [])
         if isinstance(a, dict) and a.get("player_id")
     }
+    # An official-source outage must not erase previously confirmed statuses.
+    for row in player_rows:
+        prior = previous_roles.get(row["player_id"]) or {}
+        if (row["state"] == "pending" and
+                prior.get("nfl_team") == row.get("nfl_team") and
+                prior.get("state") in ("eligible", "inactive")):
+            row["state"] = prior["state"]
     notified = previous.get("notified_keys", [])
     queue = []
     for p in player_rows:
@@ -358,7 +365,13 @@ def prepare(now=None, *, context=None, official=None, roster=None):
     state = {
         "schema": 1, "season": season, "week": week, "date": date,
         "checked_at": now.astimezone(timezone.utc).isoformat(),
-        "source": url, "confirmed_teams": sorted(official.keys()),
+        "official_confirmed_at": (
+            now.astimezone(timezone.utc).isoformat() if official
+            else previous.get("official_confirmed_at")
+        ),
+        "source": url,
+        "confirmed_teams": sorted(set(official.keys()) | set(
+            previous.get("confirmed_teams", []))),
         "players": player_rows,
         "pending_batch": pending, "notified_keys": notified[-200:],
         "last_accepted": previous.get("last_accepted"),
