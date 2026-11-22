@@ -230,16 +230,30 @@ h2 .dot{display:none}small,.meta{color:var(--muted)}.meta{font-size:12px}
   </div>
 
   <div class="guide-card">
+    <div class="section-kicker"><span class="mini-dot"></span> Official NFL game-day availability</div>
+    <h2>Sunday active and inactive checks</h2>
+    <p class="guide-desc">MyFantasyLeague injury designations and confirmed NFL game-day availability are separate. A player can remain Questionable on MFL but be eligible to dress for an NFL game.</p>
+    <div class="schedule-list">
+      <div class="schedule-row"><div class="schedule-label">Sunday checks</div><div class="schedule-body">About <strong>every 15 minutes</strong> from 9 a.m. into the evening, Saskatchewan time, subject to GitHub scheduling delays. The checker does not require a successful MFL injury export.</div></div>
+      <div class="schedule-row"><div class="schedule-label">Official source</div><div class="schedule-body">The <strong>NFL.com weekly team inactive lists</strong> are checked independently. A team's confirmed list is typically published about 90 minutes before its kickoff. Until then, its players remain Pending.</div></div>
+      <div class="schedule-row"><div class="schedule-label">Who is checked</div><div class="schedule-body">Current MFL starting players and rostered players with injury designations. If the current MFL roster cannot be verified, checks fall back to the previously reported injured players without guessing lineup positions.</div></div>
+      <div class="schedule-row"><div class="schedule-label">NFL availability</div><div class="schedule-body"><strong>Inactive:</strong> named on that team's confirmed game-day inactive list. <strong>Eligible:</strong> not listed as inactive on the confirmed list. <strong>Pending:</strong> the verified team list is not yet available. Players known to be on IR are not labelled Eligible based on absence from a game-day list.</div></div>
+      <div class="schedule-row"><div class="schedule-label">Game-day email</div><div class="schedule-body">A separate email groups newly confirmed official statuses, with fantasy starters first. Repeated checks suppress duplicate confirmations. This is separate from the Thursday/Sunday injury digest.</div></div>
+    </div>
+    <p class="schedule-note"><strong>Important:</strong> Eligible means the player was not listed as inactive. It does <strong>not</strong> prove the player took a snap. Official NFL checks do not automatically change your MFL starting lineup; the existing substitution guard has separate rules and still uses MFL designations.</p>
+  </div>
+
+  <div class="guide-card">
     <div class="section-kicker"><span class="mini-dot"></span> Your inbox</div>
     <h2>Email notification rules</h2>
     <div class="schedule-list">
-      <div class="schedule-row"><div class="schedule-label">Thursday summary</div><div class="schedule-body"><strong>5:00 p.m.</strong> onward. One scheduled injury digest per day if email is enabled and delivery succeeds.</div></div>
-      <div class="schedule-row"><div class="schedule-label">Sunday summary</div><div class="schedule-body"><strong>10:30 a.m.</strong> onward. One scheduled injury digest per day if email is enabled and delivery succeeds.</div></div>
-      <div class="schedule-row"><div class="schedule-label">New urgent injury</div><div class="schedule-body">Outside a scheduled digest, a newly urgent Out/Inactive-type status detected by the next MFL poll can trigger a separate email. At digest time, it is included in the regular summary instead. This is <strong>not an instant news alert</strong>.</div></div>
+      <div class="schedule-row"><div class="schedule-label">Thursday summary</div><div class="schedule-body"><strong>5:00 p.m.</strong> Saskatchewan time onward, through an independent email workflow with retry checks and next-day recovery. The last verified injury report is used even if a new MFL poll fails, with a stale-data warning when applicable.</div></div>
+      <div class="schedule-row"><div class="schedule-label">Sunday summary</div><div class="schedule-body"><strong>10:30 a.m.</strong> Saskatchewan time onward. This may arrive before official NFL inactive lists are published. The separate game-day checker sends later availability confirmations as they become available.</div></div>
+      <div class="schedule-row"><div class="schedule-label">New urgent injury</div><div class="schedule-body">A newly urgent MFL Out/Inactive designation can trigger an extra email when the next injury poll succeeds. It can arrive separately from the scheduled digest. This is <strong>not an instant official NFL inactive alert</strong>.</div></div>
       <div class="schedule-row"><div class="schedule-label">Automatic swap</div><div class="schedule-body">A separate email after a lineup substitution is <strong>verified on MFL</strong>, identifying the players moved and the replacement's recent scoring.</div></div>
       <div class="schedule-row"><div class="schedule-label">Unable to resolve</div><div class="schedule-body">An action-required email if an Out starter has no safe replacement, or if authentication, lineup validation, submission or readback cannot be confirmed.</div></div>
     </div>
-    <p class="schedule-note">Routine injury summary emails and the automatic substitution emails are separate. No email is required when the lineup guard finds no Out/Inactive starters.</p>
+    <p class="schedule-note">Scheduled injury digests, official NFL game-day confirmations, MFL urgent-status emails and automatic substitution notices are distinct. The lineup guard does not email when there is no action to take.</p>
   </div>
 
   <div class="guide-card">
