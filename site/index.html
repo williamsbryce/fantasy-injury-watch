@@ -156,6 +156,26 @@ h2 .dot{display:none}small,.meta{color:var(--muted)}.meta{font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
 
+
+/* NFL game-day facts are visually distinct from MFL injury designations. */
+.game-day-section{margin:17px 0 23px;padding:15px 16px;border:1px solid #cfd9e5;border-radius:8px;background:#fff}
+.game-day-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.game-day-heading h2{font-size:19px;font-weight:750;margin:0}
+#gameDayChecked{font-size:11px;color:#65768a}
+.game-day-summary{margin:7px 0 8px;color:#526277;font-size:12px;line-height:1.5}
+.game-day-players{margin-top:10px}
+.game-day-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-top:1px solid #edf0f4}
+.game-day-person{min-width:0}
+.game-day-name{font-weight:700;font-size:13px;color:#243044}
+.game-day-meta{font-size:11px;color:#657388;margin-top:2px}
+.nfl-chip{display:inline-block;flex-shrink:0;padding:2px 6px;font-size:10px;line-height:1.4;border:1px solid #d8dfe9;border-radius:4px;background:#f0f3f6;color:#506178;font-weight:700}
+.nfl-chip.eligible{background:#e9f4ee;border-color:#c9e0d0;color:#286044}
+.nfl-chip.inactive{background:#fbeaec;border-color:#efc4c8;color:#992b38}
+.nfl-chip.pending{background:#f2f4f7;color:#697586}
+.game-day-footnote{margin:11px 0 0;color:#687589;font-size:11px;line-height:1.55}
+.game-day-footnote a{color:#27558d}
+@media(max-width:520px){.game-day-section{padding:13px 12px}.game-day-heading h2{font-size:18px}.game-day-row{gap:9px}.nfl-chip{font-size:10px}}
+
 </style>
 </head><body><main>
 <header>
@@ -174,11 +194,17 @@ h2 .dot{display:none}small,.meta{color:var(--muted)}.meta{font-size:12px}
 <div id="report" class="hidden" aria-live="polite">
   <div class="report-overview">
   <div class="top"><div><div class="meta" id="sync">Latest update</div><div class="meta" id="coverage"></div></div><button id="refreshReport" class="report-refresh" type="button" title="Reload the last published report. Does not trigger a new MFL check.">Refresh</button></div>
-  <div class="health-row" aria-label="Monitoring status"><span id="feedHealth" class="health-chip">Checking injury report</span><span id="lineupHealth" class="health-chip">Checking lineup</span><span id="guardHealth" class="health-chip">Checking guard history</span></div>
+  <div class="health-row" aria-label="Monitoring status"><span id="feedHealth" class="health-chip">Checking injury report</span><span id="lineupHealth" class="health-chip">Checking lineup</span><span id="gameDayHealth" class="health-chip">NFL: awaiting update</span><span id="guardHealth" class="health-chip">Checking guard history</span></div>
   </div>
   <div id="lineupWarning" class="notice hidden" role="alert"><span id="lineupWarningText"></span> <a href="https://www46.myfantasyleague.com/2026/lineup?L=40298&amp;FRANCHISE=0001" target="_blank" rel="noopener noreferrer">Review lineup on MFL</a></div>
   <div id="urgentWarning" class="urgent-note hidden" role="status"></div>
   <div id="stale" class="notice hidden">This report is out of date. Scheduled monitoring may have failed. Do not treat missing alerts as confirmation that players are healthy.</div>
+  <section id="gameDaySection" class="game-day-section hidden" aria-label="Official NFL game-day availability">
+    <div class="game-day-heading"><h2>Sunday game-day availability</h2><span id="gameDayChecked"></span></div>
+    <p id="gameDaySummary" class="game-day-summary"></p>
+    <div id="gameDayPlayers" class="game-day-players"></div>
+    <p class="game-day-footnote">Eligible means not listed as inactive by the NFL. It does not prove the player took a snap. <a id="gameDaySource" href="https://www.nfl.com/" target="_blank" rel="noopener noreferrer">NFL inactive list</a></p>
+  </section>
   <div id="noAction" class="ok-note hidden"><span class="ok-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>No action needed. Nobody is Out or Inactive.</div>
   <section id="actionSection"><h2>Starters <span id="actionCount"></span></h2><div id="actions"></div></section>
   <section class="watch" id="watchSection"><h2>Bench <span id="watchCount"></span></h2><div id="watchers"></div></section>
@@ -265,6 +291,7 @@ h2 .dot{display:none}small,.meta{color:var(--muted)}.meta{font-size:12px}
 </main>
 <script>
 const $=id=>document.getElementById(id);
+let gameDayByPlayerId=new Map(),currentGameDay=null,currentReportDoc=null;
 const txt=(node,s)=>{node.textContent=String(s??'');};
 function parsedDate(value){
  const v=String(value||'');if(/^\d{10}$/.test(v))return new Date(Number(v)*1000);
@@ -279,6 +306,11 @@ function card(alert){
  const role=['starter','bench'].includes(alert.lineup_role)?alert.lineup_role:'unknown';
  const roleLabel=role==='starter'?'Starter':role==='bench'?'Bench':'Unverified';
  nameRow.append(element('span','role-chip '+role,roleLabel));
+ const nfl=gameDayByPlayerId.get(String(alert.player_id));
+ if(nfl&&['eligible','inactive','pending'].includes(nfl.state)){
+   const nflLabel=nfl.state==='eligible'?'NFL: Eligible':nfl.state==='inactive'?'NFL: Inactive':'NFL: Pending';
+   nameRow.append(element('span','nfl-chip '+nfl.state,nflLabel));
+ }
  left.append(nameRow,element('div','sub',[alert.position,alert.nfl_team].filter(Boolean).join(' · ')));
  if(alert.status_change&&alert.status_change.kind==='changed'){
    left.append(element('div','change-chip'+(alert.group==='action'?' critical':''),
@@ -341,7 +373,10 @@ function sortAlerts(items){
 }
 function render(doc){
  if(!Array.isArray(doc.leagues))throw Error('Unrecognized report');
+ currentReportDoc=doc;
  const all=doc.leagues.flatMap(l=>l.alerts||[]);
+ const nflInactives=[...gameDayByPlayerId.values()].filter(p=>
+   p.state==='inactive'&&p.lineup_role==='starter');
  const starters=sortAlerts(all.filter(a=>a.lineup_role==='starter'));
  const bench=sortAlerts(all.filter(a=>a.lineup_role==='bench'));
  const unknown=sortAlerts(all.filter(a=>!['starter','bench'].includes(a.lineup_role)));
@@ -356,20 +391,22 @@ function render(doc){
  $('unknownSection').classList.toggle('hidden',!unknown.length);
  const stale=reportStale(doc);
  $('stale').classList.toggle('hidden',!stale);
- $('allClear').classList.toggle('hidden',Boolean(all.length)||stale);
+ $('allClear').classList.toggle('hidden',Boolean(all.length)||stale||nflInactives.length>0);
  const urgents=all.filter(a=>a.group==='action');
  const urgentStarters=urgents.filter(a=>a.lineup_role==='starter');
  const urgentUnverified=urgents.filter(a=>a.lineup_role!=='starter'&&a.lineup_role!=='bench');
- $('urgentWarning').classList.toggle('hidden',!(urgentStarters.length||urgentUnverified.length));
- if(urgentStarters.length||urgentUnverified.length){
+ $('urgentWarning').classList.toggle('hidden',
+   !(urgentStarters.length||urgentUnverified.length||nflInactives.length));
+ if(urgentStarters.length||urgentUnverified.length||nflInactives.length){
    txt($('urgentWarning'),[
-     urgentStarters.length?urgentStarters.length+' confirmed starter(s) Out or Inactive.':'',
-     urgentUnverified.length?urgentUnverified.length+' urgent injury designation(s) with unverified lineup position.':''
+     nflInactives.length?nflInactives.map(p=>p.name).join(', ')+' confirmed NFL inactive.':'',
+     urgentStarters.length?urgentStarters.length+' MFL starter designation(s) Out or Inactive.':'',
+     urgentUnverified.length?urgentUnverified.length+' urgent MFL designation(s) with unverified lineup position.':''
    ].filter(Boolean).join(' '));
  }
  // A stale/unverified feed must never show a reassuring green banner.
  const lineupKnown=doc.leagues.every(l=>['submitted','not_submitted','incomplete'].includes((l.lineup||{}).state));
- const safeMessage=!stale&&all.length>0&&urgents.length===0&&
+ const safeMessage=!stale&&all.length>0&&urgents.length===0&&nflInactives.length===0&&
    doc.leagues.every(l=>(l.lineup||{}).state==='submitted');
  $('noAction').classList.toggle('show-note',safeMessage);
  $('noAction').classList.toggle('hidden',!safeMessage);
@@ -408,6 +445,74 @@ async function updateGuardHealth(){
       readableDate(latest.timestamp),bad?'warn':'');
  }catch(error){setHealth('guardHealth','Guard history unavailable','');}
 }
+function reginaDate(){
+ const parts=new Intl.DateTimeFormat('en-CA',{
+   timeZone:'America/Regina',year:'numeric',month:'2-digit',day:'2-digit'
+ }).formatToParts(new Date());
+ const value=type=>parts.find(p=>p.type===type)?.value||'';
+ return value('year')+'-'+value('month')+'-'+value('day');
+}
+function renderGameDay(){
+ const doc=currentGameDay;
+ const section=$('gameDaySection');
+ section.classList.toggle('hidden',!doc);
+ if(!doc){setHealth('gameDayHealth','NFL: unavailable','');return;}
+ const age=Date.now()-parsedDate(doc.checked_at).getTime();
+ const stale=!Number.isFinite(age)||age<0||age>90*60*1000;
+ const verified=Array.isArray(doc.confirmed_teams)?doc.confirmed_teams.length:0;
+ txt($('gameDayChecked'),'Checked '+readableDate(doc.checked_at));
+ const starters=(doc.players||[]).filter(p=>p.lineup_role==='starter');
+ const eligible=starters.filter(p=>p.state==='eligible').length;
+ const inactive=starters.filter(p=>p.state==='inactive').length;
+ const pending=starters.filter(p=>p.state==='pending').length;
+ txt($('gameDaySummary'),
+    verified+' NFL teams confirmed · Fantasy starters: '+eligible+' eligible, '+
+    inactive+' inactive, '+pending+' awaiting team lists'+
+    (stale?' · Checks delayed':''));
+ setHealth('gameDayHealth',verified?(stale?'NFL: check delayed':'NFL: '+verified+' teams confirmed'):
+   'NFL: awaiting inactive lists',stale?'warn':verified?'good':'');
+ const nodes=$('gameDayPlayers');
+ nodes.replaceChildren();
+ const highlights=(doc.players||[]).filter(p=>
+   p.state!=='no_game'&&(p.injury_watch||p.state==='inactive'&&p.lineup_role==='starter'));
+ highlights.sort((a,b)=>
+   (a.lineup_role==='starter'?0:1)-(b.lineup_role==='starter'?0:1)||
+   (a.state==='inactive'?0:1)-(b.state==='inactive'?0:1)||
+   String(a.name).localeCompare(String(b.name)));
+ for(const player of highlights.slice(0,18)){
+   const row=element('div','game-day-row');
+   const left=element('div','game-day-person');
+   left.append(element('div','game-day-name',player.name));
+   left.append(element('div','game-day-meta',
+     [player.position,player.nfl_team,
+       player.lineup_role==='starter'?'Fantasy starter':
+       player.lineup_role==='bench'?'Fantasy bench':'Lineup unverified'
+     ].filter(Boolean).join(' · ')));
+   const label=player.state==='eligible'?'Eligible':
+      player.state==='inactive'?'Inactive':'Awaiting list';
+   row.append(left,element('span','nfl-chip '+player.state,label));
+   nodes.append(row);
+ }
+ const source=$('gameDaySource');
+ if(typeof doc.source==='string'&&
+    /^https:\/\/www\.nfl\.com\/news\/nfl-week-\d+-inactives-/.test(doc.source))
+   source.href=doc.source;
+}
+async function loadGameDay(){
+ try{
+   const resp=await fetch('data/game-day.json?'+Date.now(),{cache:'no-store'});
+   if(!resp.ok)throw Error('No status report published');
+   const data=await resp.json();
+   if(data.schema!==1||data.date!==reginaDate()||
+      !Array.isArray(data.players))throw Error('No current game day');
+   gameDayByPlayerId=new Map(data.players.map(p=>[String(p.player_id),p]));
+   currentGameDay=data;
+ }catch(e){
+   gameDayByPlayerId=new Map();currentGameDay=null;
+ }
+ renderGameDay();
+ if(currentReportDoc)render(currentReportDoc);
+}
 async function loadReport(){
  const refresh=$('refreshReport');
  refresh.disabled=true;
@@ -415,6 +520,7 @@ async function loadReport(){
    const response=await fetch('data/report.json?'+Date.now(),{cache:'no-store'});
    if(!response.ok)throw Error('The public report has not been published yet. Check the latest GitHub deployment.');
    const doc=await response.json();render(doc);
+   await loadGameDay();
    $('errorPanel').classList.add('hidden');
  }catch(e){
    $('loading').classList.add('hidden');$('errorPanel').classList.remove('hidden');
