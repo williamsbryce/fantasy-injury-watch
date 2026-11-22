@@ -1,7 +1,16 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-22T18:34:50+00:00",
+  "updated_at": "2026-11-22T23:53:57+00:00",
   "events": [
+    {
+      "id": "45085685337-nfl-gameday",
+      "timestamp": "2026-11-22T23:53:57+00:00",
+      "kind": "email",
+      "status": "success",
+      "title": "NFL game-day status email accepted",
+      "detail": "Resend accepted official NFL game-day updates for 4 players.",
+      "run_url": "https://github.com/williamsbryce/fantasy-injury-watch/actions/runs/45085685337"
+    },
     {
       "id": "45055862927-nfl-gameday",
       "timestamp": "2026-11-22T18:34:50+00:00",
