@@ -303,10 +303,12 @@ function card(alert){
  const outer=element('article','alert '+(alert.group==='action'?'urgent':'watchItem'));
  const line=element('div','line'), left=element('div'), name=element('div','name',alert.name);
  const nameRow=element('div','name-row');nameRow.append(name);
- const role=['starter','bench'].includes(alert.lineup_role)?alert.lineup_role:'unknown';
+ const nfl=gameDayByPlayerId.get(String(alert.player_id));
+ const knownRole=nfl&&['starter','bench'].includes(nfl.lineup_role)?
+   nfl.lineup_role:alert.lineup_role;
+ const role=['starter','bench'].includes(knownRole)?knownRole:'unknown';
  const roleLabel=role==='starter'?'Starter':role==='bench'?'Bench':'Unverified';
  nameRow.append(element('span','role-chip '+role,roleLabel));
- const nfl=gameDayByPlayerId.get(String(alert.player_id));
  if(nfl&&['eligible','inactive','pending'].includes(nfl.state)){
    const nflLabel=nfl.state==='eligible'?'NFL: Eligible':nfl.state==='inactive'?'NFL: Inactive':'NFL: Pending';
    nameRow.append(element('span','nfl-chip '+nfl.state,nflLabel));
@@ -377,9 +379,14 @@ function render(doc){
  const all=doc.leagues.flatMap(l=>l.alerts||[]);
  const nflInactives=[...gameDayByPlayerId.values()].filter(p=>
    p.state==='inactive'&&p.lineup_role==='starter');
- const starters=sortAlerts(all.filter(a=>a.lineup_role==='starter'));
- const bench=sortAlerts(all.filter(a=>a.lineup_role==='bench'));
- const unknown=sortAlerts(all.filter(a=>!['starter','bench'].includes(a.lineup_role)));
+ const roleFor=a=>{
+   const nfl=gameDayByPlayerId.get(String(a.player_id));
+   return nfl&&['starter','bench'].includes(nfl.lineup_role)?
+     nfl.lineup_role:a.lineup_role;
+ };
+ const starters=sortAlerts(all.filter(a=>roleFor(a)==='starter'));
+ const bench=sortAlerts(all.filter(a=>roleFor(a)==='bench'));
+ const unknown=sortAlerts(all.filter(a=>!['starter','bench'].includes(roleFor(a))));
  $('actions').replaceChildren(...starters.map(card));
  $('watchers').replaceChildren(...bench.map(card));
  $('unknownPlayers').replaceChildren(...unknown.map(card));
@@ -457,7 +464,7 @@ function renderGameDay(){
  const section=$('gameDaySection');
  section.classList.toggle('hidden',!doc);
  if(!doc){setHealth('gameDayHealth','NFL: unavailable','');return;}
- const age=Date.now()-parsedDate(doc.checked_at).getTime();
+ const age=Date.now()-parsedDate(doc.official_confirmed_at||doc.checked_at).getTime();
  const stale=!Number.isFinite(age)||age<0||age>90*60*1000;
  const verified=Array.isArray(doc.confirmed_teams)?doc.confirmed_teams.length:0;
  txt($('gameDayChecked'),'Checked '+readableDate(doc.checked_at));
@@ -474,7 +481,8 @@ function renderGameDay(){
  const nodes=$('gameDayPlayers');
  nodes.replaceChildren();
  const highlights=(doc.players||[]).filter(p=>
-   p.state!=='no_game'&&(p.injury_watch||p.state==='inactive'&&p.lineup_role==='starter'));
+   ['eligible','inactive','pending'].includes(p.state)&&
+   (p.injury_watch||p.state==='inactive'&&p.lineup_role==='starter'));
  highlights.sort((a,b)=>
    (a.lineup_role==='starter'?0:1)-(b.lineup_role==='starter'?0:1)||
    (a.state==='inactive'?0:1)-(b.state==='inactive'?0:1)||
