@@ -9,7 +9,7 @@ from .mfl import fetch_all
 from .news import enrich_reports, fetch_recent_news
 from .model import parse_report
 from .lineup_monitor import current_week_context, enrich_lineup
-from .notify import digest_key, email_text, email_html, message_html, send_resend, urgent_new_alerts
+from .notify import email_text, email_html, message_html, send_resend, urgent_new_alerts
 from .audit_log import record_event, AuditError
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -104,53 +104,37 @@ def run():
     elif email_enabled:
         if not all((email_key, from_addr, to_addr)):
             raise RuntimeError("EMAIL_ENABLED is set, but email configuration is missing")
-        due = digest_key(now)
-        if due and due != previous.get("sent_digest_date"):
-            day = now.astimezone(__import__('zoneinfo').ZoneInfo('America/Regina')).weekday()
-            title = "Thursday injury summary" if day == 3 else "Sunday injury summary"
-            if send_resend(email_key, from_addr, to_addr,
-                           "BAWs Fantasy Injury Watch",
-                           email_text(document, title),
-                           html_body=email_html(document, title)):
-                document["sent_digest_date"] = due
-                if lineup_warnings:
-                    document["sent_lineup_warning_key"] = lineup_key
-                day = now.astimezone(__import__('zoneinfo').ZoneInfo('America/Regina')).weekday()
+        # Thursday/Sunday digests are handled exclusively by the separate
+        # durable workflow. Injury API failures must never suppress a digest.
+        # This workflow continues immediate urgent and lineup alerts only.
+        if (lineup_warnings and lineup_key and
+                lineup_key != previous.get("sent_lineup_warning_key")):
+            summary = "\n".join(info["warning"] for _, info in lineup_warnings)
+            if send_resend(
+                    email_key, from_addr, to_addr,
+                    "BAWs Fantasy Injury Watch | Lineup warning",
+                    summary + "\n\nMFL has not confirmed a complete 17-player lineup. "
+                    "Please review your starting lineup before kickoff.\n"
+                    f"https://www46.myfantasyleague.com/{leagues_config[0]['season']}/lineup?"
+                    f"L={league_id}&FRANCHISE={franchise_id}",
+                    html_body=message_html(
+                        "Starting lineup warning",
+                        summary + "\nMFL has not confirmed a complete starting lineup. "
+                        "Please review the starting lineup before kickoff.")):
+                document["sent_lineup_warning_key"] = lineup_key
                 log_accepted_email(
-                    "scheduled-digest", "Scheduled injury summary accepted",
-                    ("Thursday" if day == 3 else "Sunday") +
-                    " summary accepted by Resend. Inbox delivery is not verified.")
-        else:
-            # A single extra warning per NFL week, only when MFL explicitly
-            # reports no/incomplete lineup before a relevant kickoff.
-            if (lineup_warnings and lineup_key and
-                    lineup_key != previous.get("sent_lineup_warning_key")):
-                summary = "\n".join(info["warning"] for _, info in lineup_warnings)
-                if send_resend(
-                        email_key, from_addr, to_addr,
-                        "BAWs Fantasy Injury Watch | Lineup warning",
-                        summary + "\n\nMFL has not confirmed a complete 17-player lineup. "
-                        "Please review your starting lineup before kickoff.\n"
-                        f"https://www46.myfantasyleague.com/{leagues_config[0]['season']}/lineup?"
-                        f"L={league_id}&FRANCHISE={franchise_id}",
-                        html_body=message_html(
-                            "Starting lineup warning",
-                            summary + "\nMFL has not confirmed a complete starting lineup. "
-                            "Please review the starting lineup before kickoff.")):
-                    document["sent_lineup_warning_key"] = lineup_key
-                    log_accepted_email(
-                        "missing-lineup-warning", "Incomplete weekly lineup warning accepted",
-                        "Resend accepted a pregame warning that MFL had not confirmed a complete lineup.")
-            new_urgent = urgent_new_alerts(document, previous)
-            if new_urgent:
-                names = ", ".join(a["name"] for a in new_urgent[:4])
-                if send_resend(email_key, from_addr, to_addr,
-                               f"BAWs Fantasy Injury Watch | Urgent: {names}",
-                               email_text(document, "Urgent injury update"),
-                               html_body=email_html(document, "Urgent injury update")):
-                    log_accepted_email(
-                        "urgent-email", "Urgent injury email accepted",
-                        f"Resend accepted an alert for {len(new_urgent)} new urgent injury status(es). Inbox delivery is not verified.")
+                    "missing-lineup-warning", "Incomplete weekly lineup warning accepted",
+                    "Resend accepted a pregame warning that MFL had not confirmed a complete lineup.")
+        new_urgent = urgent_new_alerts(document, previous)
+        if new_urgent:
+            names = ", ".join(a["name"] for a in new_urgent[:4])
+            if send_resend(email_key, from_addr, to_addr,
+                           f"BAWs Fantasy Injury Watch | Urgent: {names}",
+                           email_text(document, "Urgent injury update"),
+                           html_body=email_html(document, "Urgent injury update")):
+                log_accepted_email(
+                    "urgent-email", "Urgent injury email accepted",
+                    f"Resend accepted an alert for {len(new_urgent)} new urgent injury status(es). Inbox delivery is not verified.")
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
     REPORT_PATH.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
     print(f"Read-only MFL sync successful. Leagues: {len(leagues)}. Total injury items: {sum(len(l['alerts']) for l in leagues)}.")
