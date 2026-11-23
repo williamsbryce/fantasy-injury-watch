@@ -28,7 +28,7 @@ OUT = re.compile(
 # confirmed decisions. Avoid alerts on those phrases.
 FALSE_POSITIVE = re.compile(
     r"\b(?:not ruled out|questionable to return|"
-    r"out for the remainder|out for rest of|could be ruled out|"
+    r"(?:ruled )?out for (?:the )?remainder|out for (?:the )?rest of|could be ruled out|"
     r"if ruled out|was ruled out|previously ruled out)\b", re.I,
 )
 MAX_AGE_DAYS = 2
