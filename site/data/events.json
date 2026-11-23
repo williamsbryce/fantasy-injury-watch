@@ -1,7 +1,16 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-22T23:53:57+00:00",
+  "updated_at": "2026-11-23T01:48:07+00:00",
   "events": [
+    {
+      "id": "45096571437-urgent-email",
+      "timestamp": "2026-11-23T01:48:07+00:00",
+      "kind": "email",
+      "status": "success",
+      "title": "Urgent injury email accepted",
+      "detail": "Resend accepted an alert for 3 new urgent injury status(es). Inbox delivery is not verified.",
+      "run_url": "https://github.com/williamsbryce/fantasy-injury-watch/actions/runs/45096571437"
+    },
     {
       "id": "45085685337-nfl-gameday",
       "timestamp": "2026-11-22T23:53:57+00:00",
