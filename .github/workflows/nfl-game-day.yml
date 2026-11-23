@@ -125,6 +125,8 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: ./site
+      - name: Allow GitHub Pages artifact metadata to propagate
+        run: sleep 15
       - name: Publish game-day status dashboard
         id: deployment
         uses: actions/deploy-pages@v4
