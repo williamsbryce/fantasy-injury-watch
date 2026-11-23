@@ -164,6 +164,14 @@ class SnapshotTests(unittest.TestCase):
             sender.assert_not_called()
 
     def test_eligible_starter_and_inactive_bench_do_not_send(self):
+        # Bench players only appear in the published game-day view when
+        # rostered with a tracked injury, as a real bench injury would.
+        report = json.loads(self.report.read_text())
+        report["leagues"][0]["alerts"].append({
+            "player_id": "200", "name": "Nick Singleton", "nfl_team": "TEN",
+            "status": "Out", "lineup_role": "bench",
+        })
+        self.report.write_text(json.dumps(report))
         players = [
             {**PLAYERS[0], "lineup_role": "starter"},
             {**PLAYERS[1], "lineup_role": "bench"},
