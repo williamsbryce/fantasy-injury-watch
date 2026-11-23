@@ -171,6 +171,8 @@ h2 .dot{display:none}small,.meta{color:var(--muted)}.meta{font-size:12px}
 .nfl-chip{display:inline-block;flex-shrink:0;padding:2px 6px;font-size:10px;line-height:1.4;border:1px solid #d8dfe9;border-radius:4px;background:#f0f3f6;color:#506178;font-weight:700}
 .nfl-chip.eligible{background:#e9f4ee;border-color:#c9e0d0;color:#286044}
 .nfl-chip.inactive{background:#fbeaec;border-color:#efc4c8;color:#992b38}
+.nfl-chip.reported_out{background:#fff0de;border-color:#eed3a9;color:#865218}
+.game-day-news{display:block;font-size:11px;margin-top:5px;color:#805219;text-decoration:underline}
 .nfl-chip.pending{background:#f2f4f7;color:#697586}
 .game-day-footnote{margin:11px 0 0;color:#687589;font-size:11px;line-height:1.55}
 .game-day-footnote a{color:#27558d}
@@ -203,7 +205,7 @@ h2 .dot{display:none}small,.meta{color:var(--muted)}.meta{font-size:12px}
     <div class="game-day-heading"><h2>Sunday game-day availability</h2><span id="gameDayChecked"></span></div>
     <p id="gameDaySummary" class="game-day-summary"></p>
     <div id="gameDayPlayers" class="game-day-players"></div>
-    <p class="game-day-footnote">Eligible means not listed as inactive by the NFL. It does not prove the player took a snap. <a id="gameDaySource" href="https://www.nfl.com/" target="_blank" rel="noopener noreferrer">NFL inactive list</a></p>
+    <p class="game-day-footnote">Eligible means not listed as inactive by the NFL. Reported OUT is an attributed news report, not an official inactive designation. Eligibility does not prove a player took a snap. <a id="gameDaySource" href="https://www.nfl.com/" target="_blank" rel="noopener noreferrer">NFL inactive list</a></p>
   </section>
   <div id="noAction" class="ok-note hidden"><span class="ok-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>No action needed. Nobody is Out or Inactive.</div>
   <section id="actionSection"><h2>Starters <span id="actionCount"></span></h2><div id="actions"></div></section>
@@ -234,11 +236,11 @@ h2 .dot{display:none}small,.meta{color:var(--muted)}.meta{font-size:12px}
     <h2>Sunday active and inactive checks</h2>
     <p class="guide-desc">MyFantasyLeague injury designations and confirmed NFL game-day availability are separate. A player can remain Questionable on MFL but be eligible to dress for an NFL game.</p>
     <div class="schedule-list">
-      <div class="schedule-row"><div class="schedule-label">Sunday checks</div><div class="schedule-body">About <strong>every 15 minutes</strong> from 9 a.m. into the evening, Saskatchewan time, subject to GitHub scheduling delays. The checker does not require a successful MFL injury export.</div></div>
-      <div class="schedule-row"><div class="schedule-label">Official source</div><div class="schedule-body">The <strong>NFL.com weekly team inactive lists</strong> are checked independently. A team's confirmed list is typically published about 90 minutes before its kickoff. Until then, its players remain Pending.</div></div>
+      <div class="schedule-row"><div class="schedule-label">Sunday checks</div><div class="schedule-body">About <strong>every 15 minutes from 7 a.m.</strong> into the evening, Saskatchewan time, subject to GitHub scheduling delays. The checker does not require a successful MFL injury export.</div></div>
+      <div class="schedule-row"><div class="schedule-label">Official and news sources</div><div class="schedule-body">The <strong>NFL.com weekly team inactive lists</strong> are authoritative and generally appear about 90 minutes before kickoff. Before that, the monitor also checks <strong>NFL.com Sunday pregame injury news</strong> and relevant <strong>RotoWire team player headlines</strong> for explicit current-week ruled-out reports.</div></div>
       <div class="schedule-row"><div class="schedule-label">Who is checked</div><div class="schedule-body">Current MFL starting players and rostered players with injury designations. If the current MFL roster cannot be verified, checks fall back to the previously reported injured players without guessing lineup positions.</div></div>
-      <div class="schedule-row"><div class="schedule-label">NFL availability</div><div class="schedule-body"><strong>Inactive:</strong> named on that team's confirmed game-day inactive list. <strong>Eligible:</strong> not listed as inactive on the confirmed list. <strong>Pending:</strong> the verified team list is not yet available. Players known to be on IR are not labelled Eligible based on absence from a game-day list.</div></div>
-      <div class="schedule-row"><div class="schedule-label">Game-day email</div><div class="schedule-body">Only a player in your <strong>verified current fantasy starting lineup</strong> who is <strong>officially NFL inactive</strong> can trigger an urgent email, and only when more than 10 minutes remain before his kickoff. No emails for eligible, pending, bench or post-kickoff updates. Those statuses remain visible on the dashboard.</div></div>
+      <div class="schedule-row"><div class="schedule-label">Player status labels</div><div class="schedule-body"><strong>Inactive:</strong> on the official NFL inactive list. <strong>Eligible:</strong> not listed inactive on a confirmed team list. <strong>Reported OUT:</strong> an explicit, recent NFL.com or RotoWire report, not yet official. <strong>Pending:</strong> no verified decision. Official NFL lists override contradictory media reports. Players on IR are not labelled Eligible based on absence from a game-day list.</div></div>
+      <div class="schedule-row"><div class="schedule-label">Game-day email</div><div class="schedule-body">Only a player in your <strong>verified current fantasy starting lineup</strong> who is <strong>officially NFL inactive</strong> or explicitly <strong>reported OUT</strong> by NFL.com/RotoWire can trigger a pregame email, and only with more than 10 minutes remaining before kickoff. The email identifies the original source. No emails for eligible, pending, bench or post-kickoff updates.</div></div>
     </div>
     <p class="schedule-note"><strong>Important:</strong> Eligible means the player was not listed as inactive. It does <strong>not</strong> prove the player took a snap. Official NFL checks do not automatically change your MFL starting lineup; the existing substitution guard has separate rules and still uses MFL designations.</p>
   </div>
@@ -323,8 +325,10 @@ function card(alert){
  const role=['starter','bench'].includes(knownRole)?knownRole:'unknown';
  const roleLabel=role==='starter'?'Starter':role==='bench'?'Bench':'Unverified';
  nameRow.append(element('span','role-chip '+role,roleLabel));
- if(nfl&&['eligible','inactive','pending'].includes(nfl.state)){
-   const nflLabel=nfl.state==='eligible'?'NFL: Eligible':nfl.state==='inactive'?'NFL: Inactive':'NFL: Pending';
+ if(nfl&&['eligible','inactive','pending','reported_out'].includes(nfl.state)){
+   const nflLabel=nfl.state==='eligible'?'NFL: Eligible':
+     nfl.state==='inactive'?'NFL: Inactive':
+     nfl.state==='reported_out'?'News: Reported OUT':'NFL: Pending';
    nameRow.append(element('span','nfl-chip '+nfl.state,nflLabel));
  }
  left.append(nameRow,element('div','sub',[alert.position,alert.nfl_team].filter(Boolean).join(' · ')));
@@ -393,6 +397,8 @@ function render(doc){
  const all=doc.leagues.flatMap(l=>l.alerts||[]);
  const nflInactives=[...gameDayByPlayerId.values()].filter(p=>
    p.state==='inactive'&&p.lineup_role==='starter');
+ const newsOuts=[...gameDayByPlayerId.values()].filter(p=>
+   p.state==='reported_out'&&p.lineup_role==='starter');
  const roleFor=a=>{
    const nfl=gameDayByPlayerId.get(String(a.player_id));
    return nfl&&['starter','bench'].includes(nfl.lineup_role)?
@@ -412,22 +418,26 @@ function render(doc){
  $('unknownSection').classList.toggle('hidden',!unknown.length);
  const stale=reportStale(doc);
  $('stale').classList.toggle('hidden',!stale);
- $('allClear').classList.toggle('hidden',Boolean(all.length)||stale||nflInactives.length>0);
+ $('allClear').classList.toggle('hidden',Boolean(all.length)||stale||
+   nflInactives.length>0||newsOuts.length>0);
  const urgents=all.filter(a=>a.group==='action');
  const urgentStarters=urgents.filter(a=>a.lineup_role==='starter');
  const urgentUnverified=urgents.filter(a=>a.lineup_role!=='starter'&&a.lineup_role!=='bench');
  $('urgentWarning').classList.toggle('hidden',
-   !(urgentStarters.length||urgentUnverified.length||nflInactives.length));
- if(urgentStarters.length||urgentUnverified.length||nflInactives.length){
+   !(urgentStarters.length||urgentUnverified.length||
+     nflInactives.length||newsOuts.length));
+ if(urgentStarters.length||urgentUnverified.length||nflInactives.length||newsOuts.length){
    txt($('urgentWarning'),[
      nflInactives.length?nflInactives.map(p=>p.name).join(', ')+' confirmed NFL inactive.':'',
+     newsOuts.length?newsOuts.map(p=>p.name).join(', ')+' reported OUT in pregame news; verify the source.':'',
      urgentStarters.length?urgentStarters.length+' MFL starter designation(s) Out or Inactive.':'',
      urgentUnverified.length?urgentUnverified.length+' urgent MFL designation(s) with unverified lineup position.':''
    ].filter(Boolean).join(' '));
  }
  // A stale/unverified feed must never show a reassuring green banner.
  const lineupKnown=doc.leagues.every(l=>['submitted','not_submitted','incomplete'].includes((l.lineup||{}).state));
- const safeMessage=!stale&&all.length>0&&urgents.length===0&&nflInactives.length===0&&
+ const safeMessage=!stale&&all.length>0&&urgents.length===0&&
+   nflInactives.length===0&&newsOuts.length===0&&
    doc.leagues.every(l=>(l.lineup||{}).state==='submitted');
  $('noAction').classList.toggle('show-note',safeMessage);
  $('noAction').classList.toggle('hidden',!safeMessage);
@@ -486,17 +496,18 @@ function renderGameDay(){
  const eligible=starters.filter(p=>p.state==='eligible').length;
  const inactive=starters.filter(p=>p.state==='inactive').length;
  const pending=starters.filter(p=>p.state==='pending').length;
+ const reported=starters.filter(p=>p.state==='reported_out').length;
  txt($('gameDaySummary'),
     verified+' NFL teams confirmed · Fantasy starters: '+eligible+' eligible, '+
-    inactive+' inactive, '+pending+' awaiting team lists'+
+    inactive+' inactive, '+reported+' reported OUT, '+pending+' awaiting team lists'+
     (stale?' · Checks delayed':''));
  setHealth('gameDayHealth',verified?(stale?'NFL: check delayed':'NFL: '+verified+' teams confirmed'):
    'NFL: awaiting inactive lists',stale?'warn':verified?'good':'');
  const nodes=$('gameDayPlayers');
  nodes.replaceChildren();
  const highlights=(doc.players||[]).filter(p=>
-   ['eligible','inactive','pending'].includes(p.state)&&
-   (p.injury_watch||p.state==='inactive'&&p.lineup_role==='starter'));
+   ['eligible','inactive','pending','reported_out'].includes(p.state)&&
+   (p.injury_watch||['inactive','reported_out'].includes(p.state)&&p.lineup_role==='starter'));
  highlights.sort((a,b)=>
    (a.lineup_role==='starter'?0:1)-(b.lineup_role==='starter'?0:1)||
    (a.state==='inactive'?0:1)-(b.state==='inactive'?0:1)||
@@ -511,8 +522,16 @@ function renderGameDay(){
        player.lineup_role==='bench'?'Fantasy bench':'Lineup unverified'
      ].filter(Boolean).join(' · ')));
    const label=player.state==='eligible'?'Eligible':
-      player.state==='inactive'?'Inactive':'Awaiting list';
+      player.state==='inactive'?'NFL inactive':
+      player.state==='reported_out'?'Reported OUT':'Awaiting list';
    row.append(left,element('span','nfl-chip '+player.state,label));
+   if(player.state==='reported_out'&&player.news_report&&
+      /^https:\/\/(?:www\.rotowire\.com|www\.nfl\.com)\//.test(player.news_report.url||'')){
+      const link=element('a','game-day-news',player.news_report.source+' · Read report');
+      link.href=player.news_report.url;
+      link.target='_blank';link.rel='noopener noreferrer';
+      left.append(link);
+   }
    nodes.append(row);
  }
  const source=$('gameDaySource');
