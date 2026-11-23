@@ -32,6 +32,7 @@ ROOT = Path(__file__).resolve().parent.parent
 REPORT_PATH = ROOT / "site/data/report.json"
 GAME_DAY_PATH = ROOT / "site/data/game-day.json"
 REGINA = ZoneInfo("America/Regina")
+MIN_EMAIL_LEAD = timedelta(minutes=10)  # No notification at or after kickoff.
 TEAM_NAMES = {
     "ARI": "CARDINALS", "ATL": "FALCONS", "BAL": "RAVENS",
     "BUF": "BILLS", "CAR": "PANTHERS", "CHI": "BEARS",
@@ -203,11 +204,13 @@ def roster_from_mfl(year, league_id, franchise_id, api_key, week):
 
 
 def cached_players(doc, year, week):
-    """Conservative fallback: only alert players from the verified MFL injury report."""
+    """Display cached injured players, but never assert they are current starters.
+
+    An old injury snapshot is not proof of this week's current MFL lineup.
+    It may support the dashboard but cannot authorize a game-day email.
+    """
     out = []
     for league in doc.get("leagues", []):
-        lineup = league.get("lineup") or {}
-        confirmed = lineup.get("state") == "submitted" and lineup.get("week") == week
         for a in league.get("alerts", []):
             raw_team = str(a.get("nfl_team", "")).upper()
             team = ALIASES.get(raw_team, raw_team)
@@ -218,7 +221,7 @@ def cached_players(doc, year, week):
                 "name": str(a.get("name")),
                 "position": str(a.get("position", "")),
                 "nfl_team": team,
-                "lineup_role": (a.get("lineup_role") or "unknown") if confirmed else "unknown",
+                "lineup_role": "unknown",
             })
     return out
 
@@ -236,6 +239,17 @@ def classify_player(player, today_games, inactive_lists):
     matches = [n for n in inactive_lists[team] if _name(n) == normalized]
     return {"state": "inactive" if matches else "eligible",
             "kickoff": kickoff.isoformat()}
+
+
+def actionable_starter_out(player, now):
+    """Only official inactive, verified starter and strictly before kickoff."""
+    if player.get("state") != "inactive" or player.get("lineup_role") != "starter":
+        return False
+    try:
+        kickoff = datetime.fromisoformat(str(player["kickoff"]))
+    except (KeyError, TypeError, ValueError):
+        return False
+    return bool(kickoff.tzinfo and kickoff - now > MIN_EMAIL_LEAD)
 
 
 def prepare(now=None, *, context=None, official=None, roster=None):
@@ -315,86 +329,81 @@ def prepare(now=None, *, context=None, official=None, roster=None):
             row["state"] = prior["state"]
     notified = previous.get("notified_keys", [])
     queue = []
-    warning_teams = set()
     for p in player_rows:
-        relevant = p["lineup_role"] == "starter" or p["injury_watch"]
-        if not relevant:
+        # Email only about a CONFIRMED fantasy starter who is OFFICIALLY
+        # INACTIVE, with enough time left to act before his NFL kickoff.
+        if not actionable_starter_out(p, now):
             continue
-        state = p["state"]
-        if state == "pending" and p["lineup_role"] in ("starter", "unknown"):
-            # Teams normally post inactives ~90 minutes before kickoff. If a
-            # relevant unconfirmed team is still missing in the final 45
-            # minutes, send a one-time failure warning rather than silence.
-            kickoff = datetime.fromisoformat(p["kickoff"])
-            if timedelta(0) <= kickoff - now <= timedelta(minutes=45):
-                team = p["nfl_team"]
-                key = f"{date}-{team}-unverified"
-                if key not in notified and team not in warning_teams:
-                    warning_teams.add(team)
-                    queue.append({
-                        "key": key, "name": "NFL list unavailable for " + team,
-                        "position": "", "nfl_team": team, "state": "unverified",
-                        "lineup_role": p["lineup_role"], "kickoff": p["kickoff"],
-                    })
+        key = f"{date}-{p['player_id']}-starter-out"
+        if key in notified:
             continue
-        if state not in ("inactive", "eligible"):
-            continue
-        key = f"{date}-{p['player_id']}-{state}"
-        if key not in notified and previous_roles.get(p["player_id"], {}).get("state") != state:
-            queue.append({
-                "key": key, "name": p["name"], "position": p["position"],
-                "nfl_team": p["nfl_team"], "state": state,
-                "lineup_role": p["lineup_role"], "kickoff": p["kickoff"],
-            })
+        queue.append({
+            "key": key, "name": p["name"], "position": p["position"],
+            "nfl_team": p["nfl_team"], "state": "inactive",
+            "lineup_role": "starter", "kickoff": p["kickoff"],
+        })
+    # A prior version queued eligible/bench notices. Discard these, as
+    # well as any batch that has become too late by the time of this poll.
     pending = previous.get("pending_batch")
-    if pending:
-        # Never mutate an outgoing batch while a Resend retry is unresolved.
-        queue = list(pending.get("items", [])) + [
-            p for p in queue if p["key"] not in {i["key"] for i in pending["items"]}
-        ]
-        pending = previous["pending_batch"]
-    elif queue:
-        items = sorted(queue, key=lambda p: (p["lineup_role"] != "starter", p["name"]))
+    if pending and not (
+        isinstance(pending, dict) and pending.get("items") and
+        all(actionable_starter_out(item, now) for item in pending["items"])
+    ):
+        pending = None
+    if not pending and queue:
+        items = sorted(queue, key=lambda p: (p["kickoff"], p["name"]))
         summary = []
         for p in items:
-            flag = ("INACTIVE" if p["state"] == "inactive" else
-                    "STATUS UNVERIFIED - CHECK NFL BEFORE KICKOFF" if p["state"] == "unverified"
-                    else "ELIGIBLE (NOT INACTIVE)")
-            role = p["lineup_role"].upper()
-            summary.append(f"{p['name']} ({p['position']}, {p['nfl_team']}) - {flag} | {role}")
-        body = (
-            f"Official NFL Sunday game-day availability | {date}\n\n"
-            + "\n".join(summary)
-            + "\n\nEligible means not named on the confirmed NFL inactive list. "
-              "It does NOT prove the player took a snap.\n"
-              f"Official NFL inactives: {url}\n"
-              "Injury Watch: https://williamsbryce.github.io/fantasy-injury-watch/"
+            kickoff = datetime.fromisoformat(p["kickoff"]).astimezone(REGINA)
+            summary.append(
+                f"{p['name']} ({p['position']}, {p['nfl_team']})"
+                " - OFFICIALLY INACTIVE | FANTASY STARTER"
+                f" | NFL kickoff {kickoff.strftime('%I:%M %p')} SK"
+            )
+        lineup_url = (
+            f"https://www46.myfantasyleague.com/{season}/lineup?"
+            f"L={league_id}&FRANCHISE={franchise_id}"
         )
+        body = (
+            "Action needed: confirmed NFL inactive player in your MFL"
+            f" starting lineup | {date}\n\n"
+            + "\n".join(summary)
+            + f"\n\nReview your MFL lineup before the affected game starts: {lineup_url}"
+              f"\nOfficial NFL inactive list: {url}"
+              "\nInjury Watch: https://williamsbryce.github.io/fantasy-injury-watch/"
+        )
+        html_escape = __import__("html").escape
         html = (
-            '<!doctype html><html><body style="font-family:Arial,sans-serif;'
-            'color:#182435;line-height:1.5;max-width:600px;padding:16px">'
-            '<h2 style="background:#182435;color:white;padding:17px">'
-            "BAWs Fantasy Injury Watch · Game day</h2>"
-            '<p>New official NFL player availability confirmations:</p>'
-            '<ul>' + "".join(
-                '<li style="margin:10px 0"><strong>' +
-                __import__("html").escape(p["name"]) + '</strong> · ' +
-                ('Inactive' if p["state"] == "inactive" else
-                 'Official list unavailable - verify manually' if p["state"] == "unverified"
-                 else 'Eligible to play') +
-                ' · ' + __import__("html").escape(p["lineup_role"].title())
-                + '</li>' for p in items
-            ) + '</ul>'
-            '<p>Eligible means not listed as inactive, not proof of playing snaps.</p>'
-            f'<p><a href="{url}">Official NFL inactive list</a> · '
-            '<a href="https://williamsbryce.github.io/fantasy-injury-watch/">'
-            'Open Injury Watch</a></p></body></html>'
+            '<!doctype html><html><body style="margin:0;background:#f3f5f8;'
+            'padding:20px;font-family:Arial,sans-serif;color:#182435;">'
+            '<div style="max-width:600px;margin:auto;background:white;'
+            'border:1px solid #dce2e9;">'
+            '<div style="background:#182435;padding:18px;color:white;'
+            'font-size:18px;font-weight:bold;">BAWs Fantasy Injury Watch</div>'
+            '<div style="padding:18px;">'
+            '<h2 style="color:#9d2533;margin:0 0 12px;font-size:20px;">'
+            'Starting player confirmed inactive</h2>'
+            + "".join(
+                '<div style="padding:12px 0;border-bottom:1px solid #e7ebf0;">'
+                '<strong>' + html_escape(p["name"]) + '</strong>'
+                ' &nbsp; <span style="color:#9d2533;font-weight:bold;">OUT</span>'
+                '<div style="margin-top:4px;font-size:12px;color:#627185;">'
+                + html_escape(p["position"]) + ' · ' + html_escape(p["nfl_team"]) +
+                ' · NFL kickoff ' + html_escape(
+                    datetime.fromisoformat(p["kickoff"]).astimezone(REGINA).strftime("%I:%M %p")
+                ) + ' SK</div></div>'
+                for p in items
+            ) +
+            '<p style="font-size:14px;">Review your starting lineup before kickoff.</p>'
+            f'<p><a href="{lineup_url}">Open MFL starting lineup</a></p>'
+            f'<p><a href="{url}">Official NFL inactive list</a></p>'
+            '</div></div></body></html>'
         )
         fingerprint = hashlib.sha256(
             "|".join(p["key"] for p in items).encode("utf-8")
         ).hexdigest()[:24]
         pending = {"items": items, "text": body, "html": html,
-                   "idempotency_key": "baw-gameday-" + fingerprint}
+                   "idempotency_key": "baw-starter-out-" + fingerprint}
     state = {
         "schema": 1, "season": season, "week": week, "date": date,
         "checked_at": now.astimezone(timezone.utc).isoformat(),
@@ -420,20 +429,30 @@ def prepare(now=None, *, context=None, official=None, roster=None):
     return True
 
 
-def send():
+def send(now=None):
+    now = now or datetime.now(timezone.utc)
     if not GAME_DAY_PATH.exists():
         return False
     state = json.loads(GAME_DAY_PATH.read_text(encoding="utf-8"))
     batch = state.get("pending_batch")
     if not batch:
-        print("GAME DAY: no new official statuses to email")
+        print("GAME DAY: no starter-out notification due")
+        return False
+    if not batch.get("items") or not all(
+        actionable_starter_out(item, now) for item in batch["items"]
+    ):
+        # Delivery may run after kickoff or after lineup context has changed.
+        # Fail closed rather than issue a useless late-night email.
+        state["pending_batch"] = None
+        GAME_DAY_PATH.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+        print("GAME DAY: expired/unverified starter-out batch suppressed before email")
         return False
     for variable in ("RESEND_API_KEY", "ALERT_FROM", "ALERT_TO"):
         if not os.environ.get(variable):
             raise RuntimeError("Game-day email configuration unavailable")
     if not send_resend(
         os.environ["RESEND_API_KEY"], os.environ["ALERT_FROM"],
-        os.environ["ALERT_TO"], "BAWs Fantasy Injury Watch | Game-day status",
+        os.environ["ALERT_TO"], "BAWs Fantasy Injury Watch | STARTER OUT",
         batch["text"], html_body=batch["html"],
         idempotency_key=batch["idempotency_key"],
     ):
@@ -460,8 +479,8 @@ def audit():
         return
     try:
         record_event(
-            "email", "success", "NFL game-day status email accepted",
-            f"Resend accepted official NFL game-day updates for {last['count']} players.",
+            "email", "success", "Confirmed inactive fantasy starter email accepted",
+            f"Resend accepted pregame NFL inactive alerts for {last['count']} verified starters.",
             key="nfl-gameday",
         )
     except AuditError as exc:
