@@ -108,6 +108,10 @@ class SnapshotTests(unittest.TestCase):
         })
         self.env.start()
         self.addCleanup(self.env.stop)
+        # Unit tests must never contact public RotoWire/NFL news pages.
+        self.news_stub = patch.object(game, "fetch_pregame_reports", return_value={})
+        self.news_stub.start()
+        self.addCleanup(self.news_stub.stop)
 
     def test_only_confirmed_roster_statuses_get_emails(self):
         lists = game.parse_nfl_inactives(HTML, 2026, 11)
@@ -280,6 +284,105 @@ class SnapshotTests(unittest.TestCase):
                      roster=PLAYERS)
         self.assertEqual(json.loads(self.snapshot.read_text())["players"][2]["state"],
                          "pending")
+
+    def test_rotowire_ruled_out_triggers_starter_alert_without_mfl_out_tag(self):
+        # Brandon Jones is MFL Questionable, but the news report says OUT.
+        news = {
+            "201": {
+                "source": "RotoWire",
+                "headline": "Brandon Jones: Ruled out for Sunday's game",
+                "published": "November 22, 2026",
+                "url": "https://www.rotowire.com/football/headlines/example-123",
+            }
+        }
+        self.assertTrue(game.prepare(
+            NOW, context=GAME,
+            official=({}, game.official_sunday_url(2026, 11)),
+            roster=PLAYERS, reports=news
+        ))
+        state = json.loads(self.snapshot.read_text())
+        by_name = {p["name"]: p for p in state["players"]}
+        self.assertEqual(by_name["Brandon Jones"]["state"], "reported_out")
+        batch = state["pending_batch"]
+        self.assertEqual(len(batch["items"]), 1)
+        self.assertEqual(batch["items"][0]["name"], "Brandon Jones")
+        self.assertIn("REPORTED OUT - NOT YET OFFICIALLY INACTIVE", batch["text"])
+        self.assertIn("RotoWire", batch["text"])
+        self.assertNotIn("Anthony Hill Jr.", batch["text"])
+        with patch.object(game, "send_resend", return_value=True) as sender:
+            self.assertTrue(game.send(NOW))
+            sender.assert_called_once()
+        self.assertIn("Brandon Jones", sender.call_args.args[4])
+
+    def test_official_eligible_overrides_conflicting_out_news(self):
+        news = {
+            "201": {
+                "source": "RotoWire",
+                "headline": "Brandon Jones: Ruled out",
+                "url": "https://www.rotowire.com/football/headlines/example-123",
+            }
+        }
+        # A complete confirmed Broncos list not containing Brandon
+        # means he is officially eligible despite the media report.
+        inactive = {"DEN": ["Another Player", "Other Player",
+                            "Third Player", "Fourth Player", "Fifth Player"]}
+        game.prepare(
+            NOW, context=GAME,
+            official=(inactive, game.official_sunday_url(2026, 11)),
+            roster=PLAYERS, reports=news
+        )
+        state = json.loads(self.snapshot.read_text())
+        by_name = {p["name"]: p for p in state["players"]}
+        self.assertEqual(by_name["Brandon Jones"]["state"], "eligible")
+        self.assertIsNone(state["pending_batch"])
+
+    def test_news_report_cannot_alert_about_bench_player(self):
+        report = {"17560": {
+            "source": "RotoWire", "headline": "Anthony Hill Jr.: Ruled out",
+            "url": "https://www.rotowire.com/football/headlines/hill-345",
+        }}
+        game.prepare(
+            NOW, context=GAME,
+            official=({}, game.official_sunday_url(2026, 11)),
+            roster=PLAYERS, reports=report
+        )
+        self.assertIsNone(json.loads(self.snapshot.read_text())["pending_batch"])
+
+    def test_news_confirmation_after_kickoff_is_suppressed(self):
+        from datetime import timedelta
+        late = GAME["games"][1]["kickoff"] + timedelta(minutes=2)
+        news = {"201": {
+            "source": "RotoWire",
+            "headline": "Brandon Jones: Ruled out Sunday",
+            "url": "https://www.rotowire.com/football/headlines/jones-100",
+        }}
+        game.prepare(
+            late, context=GAME,
+            official=({}, game.official_sunday_url(2026, 11)),
+            roster=PLAYERS, reports=news
+        )
+        self.assertIsNone(json.loads(self.snapshot.read_text())["pending_batch"])
+
+    def test_old_queued_report_is_canceled_if_official_list_clears_player(self):
+        news = {"201": {
+            "source": "NFL.com pregame report",
+            "headline": "Brandon Jones has been ruled out",
+            "url": "https://www.nfl.com/news/week-11-injuries-sunday-pregame-2026-nfl-season",
+        }}
+        game.prepare(
+            NOW, context=GAME,
+            official=({}, game.official_sunday_url(2026, 11)),
+            roster=PLAYERS, reports=news
+        )
+        self.assertIsNotNone(json.loads(self.snapshot.read_text())["pending_batch"])
+        # A newer official team list confirms he is not inactive.
+        official = {"DEN": ["A Player", "B Player", "C Player", "D Player", "E Player"]}
+        game.prepare(
+            NOW, context=GAME,
+            official=(official, game.official_sunday_url(2026, 11)),
+            roster=PLAYERS, reports=news
+        )
+        self.assertIsNone(json.loads(self.snapshot.read_text())["pending_batch"])
 
     def test_only_sunday_games_considered(self):
         other = {"week": 11, "games": [{
