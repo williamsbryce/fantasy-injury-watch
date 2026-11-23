@@ -79,6 +79,34 @@ class TestPipeline(unittest.TestCase):
    self.assertIn('mfl_news_url',decoded['leagues'][0]['alerts'][0])
 
 
+class TestNoUnsolicitedMFLStatusEmails(unittest.TestCase):
+ def test_out_designation_on_bench_or_starter_does_not_trigger_extra_change_email(self):
+  from pathlib import Path
+  from tempfile import TemporaryDirectory
+  from unittest.mock import patch
+  import os, copy
+  from src import main
+  updated=copy.deepcopy(FIXTURE)
+  updated["rosters"]["rosters"]["franchise"][0]["player"][1]["status"]="ROSTER"
+  with TemporaryDirectory() as td:
+   path=Path(td)/"report.json"
+   env={
+    "MFL_API_KEY":"fake-key","MFL_LEAGUE_ID":"12345",
+    "MFL_FRANCHISE_ID":"0001","EMAIL_ENABLED":"true",
+    "SEND_TEST_EMAIL":"false","RESEND_API_KEY":"fake-provider-key",
+    "ALERT_FROM":"sender@example.com","ALERT_TO":"recipient@example.com",
+   }
+   with patch.object(main,"current_week_context",return_value=None), \
+        patch.dict(os.environ,env), \
+        patch.object(main,"REPORT_PATH",path), \
+        patch.object(main,"LEGACY_PATH",path.parent/"missing.enc.json"), \
+        patch.object(main,"fetch_all",return_value=updated), \
+        patch.object(main,"send_resend") as send:
+    main.run()
+   send.assert_not_called()
+   self.assertTrue(path.exists())
+
+
 class TestMFLResilience(unittest.TestCase):
  def test_transient_error_retried_without_exposing_key(self):
   from unittest.mock import patch
