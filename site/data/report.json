@@ -1,73 +1,17 @@
 {
   "schema": 2,
-  "synced_at": "2026-11-22T11:33:51.504090+00:00",
+  "synced_at": "2026-11-23T01:47:58.997579+00:00",
   "leagues": [
     {
       "id": "40298",
       "name": "CFFL Dynasty",
       "platform": "MyFantasyLeague",
       "franchise_id": "0001",
-      "players_checked": 53,
+      "players_checked": 52,
       "full_roster_count": 57,
-      "feed_timestamp": "1795322822",
-      "synced_at": "2026-11-22T11:33:51.504090+00:00",
+      "feed_timestamp": "1795395546",
+      "synced_at": "2026-11-23T01:47:58.997579+00:00",
       "alerts": [
-        {
-          "key": "40298:16195",
-          "player_id": "16195",
-          "name": "Dontayvion Wicks",
-          "position": "WR",
-          "nfl_team": "PHI",
-          "league": "CFFL Dynasty",
-          "league_id": "40298",
-          "roster_status": "ROSTER",
-          "status": "IR",
-          "group": "action",
-          "details": "Ankle",
-          "expected_return": "Dec 19, 2026",
-          "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795322822",
-          "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=16195",
-          "lineup_role": "bench",
-          "status_change": {
-            "kind": "changed",
-            "previous": "Out"
-          },
-          "news": [
-            {
-              "title": "Dontayvion Wicks: Placed on injured reserve",
-              "published": "November 21, 2026",
-              "url": "https://www.rotowire.com/football/headlines/dontayvion-wicks-injury-placed-on-injured-reserve-648980",
-              "source": "RotoWire"
-            }
-          ]
-        },
-        {
-          "key": "40298:17560",
-          "player_id": "17560",
-          "name": "Anthony Hill Jr.",
-          "position": "LB",
-          "nfl_team": "TEN",
-          "league": "CFFL Dynasty",
-          "league_id": "40298",
-          "roster_status": "ROSTER",
-          "status": "Questionable",
-          "group": "watch",
-          "details": "Neck",
-          "expected_return": "Nov 22, 2026",
-          "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795322822",
-          "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17560",
-          "lineup_role": "bench",
-          "news": [
-            {
-              "title": "Anthony Hill: Cleared to play in Week 11",
-              "published": "November 22, 2026",
-              "url": "https://www.rotowire.com/football/headlines/anthony-hill-news-cleared-to-play-in-week-11-649060",
-              "source": "RotoWire"
-            }
-          ]
-        },
         {
           "key": "40298:14910",
           "player_id": "14910",
@@ -77,19 +21,81 @@
           "league": "CFFL Dynasty",
           "league_id": "40298",
           "roster_status": "ROSTER",
-          "status": "Questionable",
-          "group": "watch",
+          "status": "Out",
+          "group": "action",
           "details": "Hamstring",
-          "expected_return": "Nov 22, 2026",
+          "expected_return": "Nov 27, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795322822",
+          "source_timestamp": "1795395546",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14910",
           "lineup_role": "bench",
+          "status_change": {
+            "kind": "changed",
+            "previous": "Questionable"
+          },
           "news": [
             {
               "title": "Brandon Jones: Won't play against Las Vegas",
               "published": "November 22, 2026",
               "url": "https://www.rotowire.com/football/headlines/brandon-jones-injury-wont-play-against-las-vegas-649133",
+              "source": "RotoWire"
+            }
+          ]
+        },
+        {
+          "key": "40298:10948",
+          "player_id": "10948",
+          "name": "Case Keenum",
+          "position": "QB",
+          "nfl_team": "CHI",
+          "league": "CFFL Dynasty",
+          "league_id": "40298",
+          "roster_status": "ROSTER",
+          "status": "Out",
+          "group": "action",
+          "details": "Coach's Decision",
+          "expected_return": "Nov 26, 2026",
+          "source": "MyFantasyLeague injury feed",
+          "source_timestamp": "1795395546",
+          "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=10948",
+          "lineup_role": "bench",
+          "status_change": {
+            "kind": "new"
+          },
+          "news": [
+            {
+              "title": "Case Keenum: Tabbed as emergency QB again in Week 11",
+              "published": "November 22, 2026",
+              "url": "https://www.rotowire.com/football/headlines/case-keenum-injury-tabbed-as-emergency-qb-again-in-week-11-649068",
+              "source": "RotoWire"
+            }
+          ]
+        },
+        {
+          "key": "40298:17654",
+          "player_id": "17654",
+          "name": "Cole Payton",
+          "position": "QB",
+          "nfl_team": "PHI",
+          "league": "CFFL Dynasty",
+          "league_id": "40298",
+          "roster_status": "ROSTER",
+          "status": "Out",
+          "group": "action",
+          "details": "Coach's Decision",
+          "expected_return": "Nov 26, 2026",
+          "source": "MyFantasyLeague injury feed",
+          "source_timestamp": "1795395546",
+          "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17654",
+          "lineup_role": "bench",
+          "status_change": {
+            "kind": "new"
+          },
+          "news": [
+            {
+              "title": "Cole Payton: Emergency QB3 for Week 11",
+              "published": "November 22, 2026",
+              "url": "https://www.rotowire.com/football/headlines/cole-payton-injury-emergency-qb3-for-week-11-649049",
               "source": "RotoWire"
             }
           ]
@@ -108,7 +114,7 @@
           "details": "Knee - MCL",
           "expected_return": "Nov 29, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795322822",
+          "source_timestamp": "1795395546",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=16608",
           "lineup_role": "bench",
           "news": [
@@ -134,7 +140,7 @@
           "details": "Finger",
           "expected_return": "Nov 25, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795322822",
+          "source_timestamp": "1795395546",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14073",
           "lineup_role": "bench",
           "news": [
@@ -148,15 +154,15 @@
         }
       ],
       "lineup": {
-        "state": "submitted",
         "week": 11,
-        "checked_at": "2026-11-22T19:56:00.919878+00:00",
-        "starters_count": 17,
+        "state": "submitted",
+        "checked_at": "2026-11-23T01:47:58.997579+00:00",
         "warning": null,
-        "kickoff": null
+        "kickoff": null,
+        "starters_count": 17
       },
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-22T21:58:07.455071+00:00"
+      "news_checked_at": "2026-11-23T01:47:58.997579+00:00"
     }
   ],
   "sent_digest_date": "2026-11-19",
