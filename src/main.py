@@ -9,7 +9,7 @@ from .mfl import fetch_all
 from .news import enrich_reports, fetch_recent_news
 from .model import parse_report
 from .lineup_monitor import current_week_context, enrich_lineup
-from .notify import email_text, email_html, message_html, send_resend, urgent_new_alerts
+from .notify import email_text, email_html, message_html, send_resend
 from .audit_log import record_event, AuditError
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -106,7 +106,10 @@ def run():
             raise RuntimeError("EMAIL_ENABLED is set, but email configuration is missing")
         # Thursday/Sunday digests are handled exclusively by the separate
         # durable workflow. Injury API failures must never suppress a digest.
-        # This workflow continues immediate urgent and lineup alerts only.
+        # MFL designation changes never generate unsolicited urgent emails.
+        # Retain only the dedicated pregame missing-lineup warning; verified
+        # Out starters are handled by the separate substitution guard and
+        # official NFL game-day monitoring.
         if (lineup_warnings and lineup_key and
                 lineup_key != previous.get("sent_lineup_warning_key")):
             summary = "\n".join(info["warning"] for _, info in lineup_warnings)
@@ -125,16 +128,6 @@ def run():
                 log_accepted_email(
                     "missing-lineup-warning", "Incomplete weekly lineup warning accepted",
                     "Resend accepted a pregame warning that MFL had not confirmed a complete lineup.")
-        new_urgent = urgent_new_alerts(document, previous)
-        if new_urgent:
-            names = ", ".join(a["name"] for a in new_urgent[:4])
-            if send_resend(email_key, from_addr, to_addr,
-                           f"BAWs Fantasy Injury Watch | Urgent: {names}",
-                           email_text(document, "Urgent injury update"),
-                           html_body=email_html(document, "Urgent injury update")):
-                log_accepted_email(
-                    "urgent-email", "Urgent injury email accepted",
-                    f"Resend accepted an alert for {len(new_urgent)} new urgent injury status(es). Inbox delivery is not verified.")
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
     REPORT_PATH.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
     print(f"Read-only MFL sync successful. Leagues: {len(leagues)}. Total injury items: {sum(len(l['alerts']) for l in leagues)}.")
