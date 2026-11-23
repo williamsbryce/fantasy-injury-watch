@@ -121,15 +121,17 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(states["Nick Singleton"], "inactive")
         self.assertEqual(states["Brandon Jones"], "pending")
         batch = snapshot["pending_batch"]
-        self.assertEqual(len(batch["items"]), 2)
-        self.assertIn("ELIGIBLE (NOT INACTIVE)", batch["text"])
+        self.assertEqual(len(batch["items"]), 1)
+        self.assertIn("Nick Singleton", batch["text"])
+        self.assertIn("OFFICIALLY INACTIVE | FANTASY STARTER", batch["text"])
+        self.assertNotIn("Anthony Hill Jr.", batch["text"])
         with patch.object(game, "send_resend", return_value=True) as mock_sender:
-            self.assertTrue(game.send())
-            self.assertFalse(game.send())
+            self.assertTrue(game.send(NOW))
+            self.assertFalse(game.send(NOW))
             mock_sender.assert_called_once()
         confirmed = json.loads(self.snapshot.read_text())
         self.assertIsNone(confirmed["pending_batch"])
-        self.assertEqual(len(confirmed["notified_keys"]), 2)
+        self.assertEqual(len(confirmed["notified_keys"]), 1)
         self.assertEqual(mock_sender.call_args.kwargs["idempotency_key"],
                          batch["idempotency_key"])
         # Repeat the same list: never send twice.
@@ -146,20 +148,83 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual({p["state"] for p in snapshot["players"]}, {"pending"})
         self.assertIsNone(snapshot["pending_batch"])
         with patch.object(game, "send_resend") as sender:
-            self.assertFalse(game.send())
+            self.assertFalse(game.send(NOW))
             sender.assert_not_called()
 
-    def test_missing_official_list_near_kickoff_sends_warning_not_false_active(self):
+    def test_missing_official_list_near_kickoff_does_not_spam(self):
         close_to_kickoff = datetime(2026, 11, 22, 17, 30, tzinfo=timezone.utc)
         game.prepare(close_to_kickoff, context=GAME,
                      official=({}, game.official_sunday_url(2026, 11)),
                      roster=PLAYERS)
         state = json.loads(self.snapshot.read_text())
         self.assertEqual({p["state"] for p in state["players"]}, {"pending"})
-        self.assertEqual(len(state["pending_batch"]["items"]), 1)
-        self.assertIn("STATUS UNVERIFIED - CHECK NFL",
-                      state["pending_batch"]["text"])
-        self.assertNotIn("ELIGIBLE (NOT INACTIVE)", state["pending_batch"]["text"])
+        self.assertIsNone(state["pending_batch"])
+        with patch.object(game, "send_resend") as sender:
+            self.assertFalse(game.send(close_to_kickoff))
+            sender.assert_not_called()
+
+    def test_eligible_starter_and_inactive_bench_do_not_send(self):
+        players = [
+            {**PLAYERS[0], "lineup_role": "starter"},
+            {**PLAYERS[1], "lineup_role": "bench"},
+            PLAYERS[2],
+        ]
+        lists = game.parse_nfl_inactives(HTML, 2026, 11)
+        game.prepare(NOW, context=GAME,
+                     official=(lists, game.official_sunday_url(2026, 11)),
+                     roster=players)
+        state = json.loads(self.snapshot.read_text())
+        self.assertIsNone(state["pending_batch"])
+        self.assertEqual(state["players"][0]["state"], "eligible")
+        self.assertEqual(state["players"][1]["state"], "inactive")
+
+    def test_late_official_inactive_is_not_emailed_after_kickoff(self):
+        from datetime import timedelta
+        late = GAME["games"][0]["kickoff"] + timedelta(minutes=1)
+        lists = game.parse_nfl_inactives(HTML, 2026, 11)
+        game.prepare(late, context=GAME,
+                     official=(lists, game.official_sunday_url(2026, 11)),
+                     roster=PLAYERS)
+        self.assertIsNone(json.loads(self.snapshot.read_text())["pending_batch"])
+        with patch.object(game, "send_resend") as sender:
+            self.assertFalse(game.send(late))
+            sender.assert_not_called()
+
+    def test_batch_expires_between_preparation_and_delivery(self):
+        from datetime import timedelta
+        lists = game.parse_nfl_inactives(HTML, 2026, 11)
+        game.prepare(NOW, context=GAME,
+                     official=(lists, game.official_sunday_url(2026, 11)),
+                     roster=PLAYERS)
+        late = GAME["games"][0]["kickoff"] - timedelta(minutes=4)
+        with patch.object(game, "send_resend") as sender:
+            self.assertFalse(game.send(late))
+            sender.assert_not_called()
+        self.assertIsNone(json.loads(self.snapshot.read_text())["pending_batch"])
+
+    def test_obsolete_eligible_notifications_are_not_retried(self):
+        prior = {
+            "date": "2026-11-22", "week": 11, "notified_keys": [],
+            "pending_batch": {
+                "items": [{"name": "Anthony Hill Jr.", "player_id": "17560",
+                           "state": "eligible", "lineup_role": "bench",
+                           "kickoff": GAME["games"][0]["kickoff"].isoformat()}],
+                "text": "Old eligibility email", "html": "<p>Old</p>",
+                "idempotency_key": "old",
+            },
+        }
+        self.snapshot.write_text(json.dumps(prior))
+        players = [{**PLAYERS[1], "lineup_role": "bench"}, PLAYERS[0], PLAYERS[2]]
+        lists = game.parse_nfl_inactives(HTML, 2026, 11)
+        game.prepare(NOW, context=GAME,
+                     official=(lists, game.official_sunday_url(2026, 11)),
+                     roster=players)
+        self.assertIsNone(json.loads(self.snapshot.read_text())["pending_batch"])
+
+    def test_cached_injured_starter_does_not_authorize_email(self):
+        players = game.cached_players(REPORT, 2026, 11)
+        self.assertTrue(players)
+        self.assertTrue(all(p["lineup_role"] == "unknown" for p in players))
 
     def test_injured_reserve_is_not_mistaken_for_eligible(self):
         report = json.loads(self.report.read_text())
@@ -175,7 +240,7 @@ class SnapshotTests(unittest.TestCase):
         state = json.loads(self.snapshot.read_text())
         person = next(p for p in state["players"] if p["name"] == "Nick Singleton")
         self.assertEqual(person["state"], "unavailable")
-        self.assertNotIn("Nick Singleton", state["pending_batch"]["text"])
+        self.assertIsNone(state["pending_batch"])
 
     def test_regular_healthy_bench_players_are_not_published(self):
         players = PLAYERS + [{
