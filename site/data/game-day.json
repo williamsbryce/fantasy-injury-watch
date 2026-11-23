@@ -3,8 +3,8 @@
   "season": 2026,
   "week": 11,
   "date": "2026-11-22",
-  "checked_at": "2026-11-22T23:53:52.256303+00:00",
-  "official_confirmed_at": "2026-11-22T23:53:52.256303+00:00",
+  "checked_at": "2026-11-23T05:49:11.368038+00:00",
+  "official_confirmed_at": "2026-11-23T05:49:11.368038+00:00",
   "source": "https://www.nfl.com/news/nfl-week-11-inactives-players-ruled-out-sunday-2026-season",
   "confirmed_teams": [
     "ARI",
@@ -20,6 +20,7 @@
     "LAC",
     "LV",
     "MIA",
+    "MIN",
     "NO",
     "NYG",
     "NYJ",
@@ -65,7 +66,7 @@
       "position": "DE",
       "nfl_team": "MIN",
       "lineup_role": "starter",
-      "state": "pending",
+      "state": "eligible",
       "kickoff": "2026-11-23T01:20:00+00:00",
       "injury_watch": false
     },
@@ -125,7 +126,7 @@
       "position": "LB",
       "nfl_team": "MIN",
       "lineup_role": "starter",
-      "state": "pending",
+      "state": "eligible",
       "kickoff": "2026-11-23T01:20:00+00:00",
       "injury_watch": false
     },
@@ -160,12 +161,12 @@
       "injury_watch": false
     },
     {
-      "player_id": "17560",
-      "name": "Anthony Hill Jr.",
-      "position": "LB",
-      "nfl_team": "TEN",
+      "player_id": "17654",
+      "name": "Cole Payton",
+      "position": "QB",
+      "nfl_team": "PHI",
       "lineup_role": "bench",
-      "state": "eligible",
+      "state": "inactive",
       "kickoff": "2026-11-22T18:00:00+00:00",
       "injury_watch": true
     },
@@ -175,9 +176,19 @@
       "position": "S",
       "nfl_team": "MIN",
       "lineup_role": "starter",
-      "state": "pending",
+      "state": "eligible",
       "kickoff": "2026-11-23T01:20:00+00:00",
       "injury_watch": false
+    },
+    {
+      "player_id": "10948",
+      "name": "Case Keenum",
+      "position": "QB",
+      "nfl_team": "CHI",
+      "lineup_role": "bench",
+      "state": "inactive",
+      "kickoff": "2026-11-22T18:00:00+00:00",
+      "injury_watch": true
     },
     {
       "player_id": "14157",
