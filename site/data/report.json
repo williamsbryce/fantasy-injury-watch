@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "synced_at": "2026-11-23T01:47:58.997579+00:00",
+  "synced_at": "2026-11-23T03:09:57.173663+00:00",
   "leagues": [
     {
       "id": "40298",
@@ -10,7 +10,7 @@
       "players_checked": 52,
       "full_roster_count": 57,
       "feed_timestamp": "1795395546",
-      "synced_at": "2026-11-23T01:47:58.997579+00:00",
+      "synced_at": "2026-11-23T03:09:57.173663+00:00",
       "alerts": [
         {
           "key": "40298:14910",
@@ -29,10 +29,6 @@
           "source_timestamp": "1795395546",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14910",
           "lineup_role": "bench",
-          "status_change": {
-            "kind": "changed",
-            "previous": "Questionable"
-          },
           "news": [
             {
               "title": "Brandon Jones: Won't play against Las Vegas",
@@ -59,9 +55,6 @@
           "source_timestamp": "1795395546",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=10948",
           "lineup_role": "bench",
-          "status_change": {
-            "kind": "new"
-          },
           "news": [
             {
               "title": "Case Keenum: Tabbed as emergency QB again in Week 11",
@@ -88,9 +81,6 @@
           "source_timestamp": "1795395546",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17654",
           "lineup_role": "bench",
-          "status_change": {
-            "kind": "new"
-          },
           "news": [
             {
               "title": "Cole Payton: Emergency QB3 for Week 11",
@@ -154,15 +144,15 @@
         }
       ],
       "lineup": {
-        "state": "submitted",
         "week": 11,
-        "checked_at": "2026-11-23T01:56:05.716797+00:00",
-        "starters_count": 17,
+        "state": "submitted",
+        "checked_at": "2026-11-23T03:09:57.173663+00:00",
         "warning": null,
-        "kickoff": null
+        "kickoff": null,
+        "starters_count": 17
       },
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-23T01:56:13.108981+00:00"
+      "news_checked_at": "2026-11-23T03:09:57.173663+00:00"
     }
   ],
   "sent_digest_date": "2026-11-19",
