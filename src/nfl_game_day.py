@@ -26,6 +26,7 @@ from .lineup_monitor import (
 from .mfl import export, MFLAPIError
 from .model import friendly_name
 from .notify import send_resend
+from .pregame_news import fetch_pregame_reports
 from .audit_log import record_event, AuditError
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -242,8 +243,8 @@ def classify_player(player, today_games, inactive_lists):
 
 
 def actionable_starter_out(player, now):
-    """Only official inactive, verified starter and strictly before kickoff."""
-    if player.get("state") != "inactive" or player.get("lineup_role") != "starter":
+    """Only verified fantasy starters confirmed/reported OUT before kickoff."""
+    if player.get("state") not in ("inactive", "reported_out") or player.get("lineup_role") != "starter":
         return False
     try:
         kickoff = datetime.fromisoformat(str(player["kickoff"]))
@@ -252,7 +253,7 @@ def actionable_starter_out(player, now):
     return bool(kickoff.tzinfo and kickoff - now > MIN_EMAIL_LEAD)
 
 
-def prepare(now=None, *, context=None, official=None, roster=None):
+def prepare(now=None, *, context=None, official=None, roster=None, reports=None):
     now = now or datetime.now(timezone.utc)
     if now.tzinfo is None:
         raise RuntimeError("Game-day check requires a timezone")
@@ -327,49 +328,86 @@ def prepare(now=None, *, context=None, official=None, roster=None):
                 prior.get("nfl_team") == row.get("nfl_team") and
                 prior.get("state") in ("eligible", "inactive")):
             row["state"] = prior["state"]
+    # Reported OUT from NFL.com/RotoWire is independent of the MFL injury tag.
+    # Official team inactives always win: never contradict verified Eligible.
+    reports = reports if reports is not None else fetch_pregame_reports(
+        player_rows, season, week, now
+    )
+    for p in player_rows:
+        if p["state"] != "pending" or p["lineup_role"] != "starter":
+            continue
+        report = reports.get(str(p["player_id"])) if isinstance(reports, dict) else None
+        if not isinstance(report, dict):
+            continue
+        if report.get("source") not in ("RotoWire", "NFL.com pregame report"):
+            continue
+        link = str(report.get("url", ""))
+        if not (link.startswith("https://www.rotowire.com/") or
+                link.startswith("https://www.nfl.com/news/")):
+            continue
+        if not report.get("headline"):
+            continue
+        p["state"] = "reported_out"
+        p["news_report"] = {
+            k: report.get(k, "") for k in ("source", "headline", "published", "url")
+        }
     notified = previous.get("notified_keys", [])
     queue = []
     for p in player_rows:
-        # Email only about a CONFIRMED fantasy starter who is OFFICIALLY
-        # INACTIVE, with enough time left to act before his NFL kickoff.
+        # Only verified fantasy starters with an official inactive or
+        # explicit current-week pregame OUT report, before NFL kickoff.
         if not actionable_starter_out(p, now):
             continue
         key = f"{date}-{p['player_id']}-starter-out"
         if key in notified:
             continue
         queue.append({
-            "key": key, "name": p["name"], "position": p["position"],
-            "nfl_team": p["nfl_team"], "state": "inactive",
+            "key": key, "player_id": p["player_id"],
+            "name": p["name"], "position": p["position"],
+            "nfl_team": p["nfl_team"], "state": p["state"],
             "lineup_role": "starter", "kickoff": p["kickoff"],
+            "source": ("NFL.com official inactive list" if p["state"] == "inactive"
+                       else p["news_report"]["source"]),
+            "source_url": (url if p["state"] == "inactive"
+                           else p["news_report"]["url"]),
+            "headline": ("" if p["state"] == "inactive"
+                          else p["news_report"]["headline"]),
         })
     # A prior version queued eligible/bench notices. Discard these, as
     # well as any batch that has become too late by the time of this poll.
     pending = previous.get("pending_batch")
+    current_by_id = {str(p["player_id"]): p for p in player_rows}
     if pending and not (
         isinstance(pending, dict) and pending.get("items") and
-        all(actionable_starter_out(item, now) for item in pending["items"])
+        all(actionable_starter_out(item, now) and
+            str(item.get("player_id")) in current_by_id and
+            actionable_starter_out(current_by_id[str(item["player_id"])], now)
+            for item in pending["items"])
     ):
         pending = None
     if not pending and queue:
         items = sorted(queue, key=lambda p: (p["kickoff"], p["name"]))
-        summary = []
-        for p in items:
-            kickoff = datetime.fromisoformat(p["kickoff"]).astimezone(REGINA)
-            summary.append(
-                f"{p['name']} ({p['position']}, {p['nfl_team']})"
-                " - OFFICIALLY INACTIVE | FANTASY STARTER"
-                f" | NFL kickoff {kickoff.strftime('%I:%M %p')} SK"
-            )
         lineup_url = (
             f"https://www46.myfantasyleague.com/{season}/lineup?"
             f"L={league_id}&FRANCHISE={franchise_id}"
         )
+        summary = []
+        for p in items:
+            kickoff = datetime.fromisoformat(p["kickoff"]).astimezone(REGINA)
+            label = ("OFFICIALLY INACTIVE" if p["state"] == "inactive"
+                     else "REPORTED OUT - NOT YET OFFICIALLY INACTIVE")
+            summary.append(
+                f"{p['name']} ({p['position']}, {p['nfl_team']})"
+                f" - {label} | FANTASY STARTER"
+                f" | Kickoff {kickoff.strftime('%I:%M %p')} SK"
+                f" | {p['source']}: {p['source_url']}"
+            )
         body = (
-            "Action needed: confirmed NFL inactive player in your MFL"
-            f" starting lineup | {date}\n\n"
+            "Action needed: starting player out before kickoff"
+            f" | Sunday {date}\n\n"
             + "\n".join(summary)
-            + f"\n\nReview your MFL lineup before the affected game starts: {lineup_url}"
-              f"\nOfficial NFL inactive list: {url}"
+            + f"\n\nReview MFL lineup now: {lineup_url}"
+              "\nAn early media report is distinct from the official NFL inactive list."
               "\nInjury Watch: https://williamsbryce.github.io/fantasy-injury-watch/"
         )
         html_escape = __import__("html").escape
@@ -382,21 +420,31 @@ def prepare(now=None, *, context=None, official=None, roster=None):
             'font-size:18px;font-weight:bold;">BAWs Fantasy Injury Watch</div>'
             '<div style="padding:18px;">'
             '<h2 style="color:#9d2533;margin:0 0 12px;font-size:20px;">'
-            'Starting player confirmed inactive</h2>'
+            'Starting player OUT before kickoff</h2>'
             + "".join(
                 '<div style="padding:12px 0;border-bottom:1px solid #e7ebf0;">'
                 '<strong>' + html_escape(p["name"]) + '</strong>'
-                ' &nbsp; <span style="color:#9d2533;font-weight:bold;">OUT</span>'
+                ' &nbsp; <span style="color:#9d2533;font-weight:bold;">'
+                + ('NFL INACTIVE' if p["state"] == "inactive"
+                   else 'REPORTED OUT') + '</span>'
                 '<div style="margin-top:4px;font-size:12px;color:#627185;">'
                 + html_escape(p["position"]) + ' · ' + html_escape(p["nfl_team"]) +
-                ' · NFL kickoff ' + html_escape(
+                ' · Kickoff ' + html_escape(
                     datetime.fromisoformat(p["kickoff"]).astimezone(REGINA).strftime("%I:%M %p")
-                ) + ' SK</div></div>'
+                ) + ' SK</div>'
+                '<div style="margin-top:6px;font-size:12px;">'
+                + html_escape(p["source"]) + ': '
+                '<a href="' + html_escape(p["source_url"]) + '">Read source</a></div>'
+                + (('<div style="font-size:12px;margin-top:3px;color:#526277;">'
+                    + html_escape(p["headline"]) + '</div>') if p["headline"] else '')
+                + '</div>'
                 for p in items
             ) +
             '<p style="font-size:14px;">Review your starting lineup before kickoff.</p>'
+            '<p style="font-size:12px;color:#627185;">'
+            'A media report is not the same as a confirmed NFL inactive list.'
+            '</p>'
             f'<p><a href="{lineup_url}">Open MFL starting lineup</a></p>'
-            f'<p><a href="{url}">Official NFL inactive list</a></p>'
             '</div></div></body></html>'
         )
         fingerprint = hashlib.sha256(
@@ -415,6 +463,7 @@ def prepare(now=None, *, context=None, official=None, roster=None):
         "confirmed_teams": sorted(set(official.keys()) | set(
             previous.get("confirmed_teams", []))),
         "players": player_rows,
+        "pregame_news_checked_at": now.astimezone(timezone.utc).isoformat(),
         "pending_batch": pending, "notified_keys": notified[-200:],
         "last_accepted": previous.get("last_accepted"),
     }
@@ -479,8 +528,8 @@ def audit():
         return
     try:
         record_event(
-            "email", "success", "Confirmed inactive fantasy starter email accepted",
-            f"Resend accepted pregame NFL inactive alerts for {last['count']} verified starters.",
+            "email", "success", "Pregame starter-out email accepted",
+            f"Resend accepted pregame OUT alerts for {last['count']} verified starters.",
             key="nfl-gameday",
         )
     except AuditError as exc:
