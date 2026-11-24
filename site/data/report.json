@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "synced_at": "2026-11-23T03:09:57.173663+00:00",
+  "synced_at": "2026-11-24T23:56:25.766915+00:00",
   "leagues": [
     {
       "id": "40298",
@@ -9,87 +9,9 @@
       "franchise_id": "0001",
       "players_checked": 52,
       "full_roster_count": 57,
-      "feed_timestamp": "1795395546",
-      "synced_at": "2026-11-23T03:09:57.173663+00:00",
+      "feed_timestamp": "1795561263",
+      "synced_at": "2026-11-24T23:56:25.766915+00:00",
       "alerts": [
-        {
-          "key": "40298:14910",
-          "player_id": "14910",
-          "name": "Brandon Jones",
-          "position": "S",
-          "nfl_team": "DEN",
-          "league": "CFFL Dynasty",
-          "league_id": "40298",
-          "roster_status": "ROSTER",
-          "status": "Out",
-          "group": "action",
-          "details": "Hamstring",
-          "expected_return": "Nov 27, 2026",
-          "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795395546",
-          "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14910",
-          "lineup_role": "bench",
-          "news": [
-            {
-              "title": "Brandon Jones: Won't play against Las Vegas",
-              "published": "November 22, 2026",
-              "url": "https://www.rotowire.com/football/headlines/brandon-jones-injury-wont-play-against-las-vegas-649133",
-              "source": "RotoWire"
-            }
-          ]
-        },
-        {
-          "key": "40298:10948",
-          "player_id": "10948",
-          "name": "Case Keenum",
-          "position": "QB",
-          "nfl_team": "CHI",
-          "league": "CFFL Dynasty",
-          "league_id": "40298",
-          "roster_status": "ROSTER",
-          "status": "Out",
-          "group": "action",
-          "details": "Coach's Decision",
-          "expected_return": "Nov 26, 2026",
-          "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795395546",
-          "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=10948",
-          "lineup_role": "bench",
-          "news": [
-            {
-              "title": "Case Keenum: Tabbed as emergency QB again in Week 11",
-              "published": "November 22, 2026",
-              "url": "https://www.rotowire.com/football/headlines/case-keenum-injury-tabbed-as-emergency-qb-again-in-week-11-649068",
-              "source": "RotoWire"
-            }
-          ]
-        },
-        {
-          "key": "40298:17654",
-          "player_id": "17654",
-          "name": "Cole Payton",
-          "position": "QB",
-          "nfl_team": "PHI",
-          "league": "CFFL Dynasty",
-          "league_id": "40298",
-          "roster_status": "ROSTER",
-          "status": "Out",
-          "group": "action",
-          "details": "Coach's Decision",
-          "expected_return": "Nov 26, 2026",
-          "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795395546",
-          "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17654",
-          "lineup_role": "bench",
-          "news": [
-            {
-              "title": "Cole Payton: Emergency QB3 for Week 11",
-              "published": "November 22, 2026",
-              "url": "https://www.rotowire.com/football/headlines/cole-payton-injury-emergency-qb3-for-week-11-649049",
-              "source": "RotoWire"
-            }
-          ]
-        },
         {
           "key": "40298:16608",
           "player_id": "16608",
@@ -99,14 +21,18 @@
           "league": "CFFL Dynasty",
           "league_id": "40298",
           "roster_status": "ROSTER",
-          "status": "Questionable",
-          "group": "watch",
+          "status": "IR",
+          "group": "action",
           "details": "Knee - MCL",
-          "expected_return": "Nov 29, 2026",
+          "expected_return": "Dec 25, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795395546",
+          "source_timestamp": "1795561263",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=16608",
           "lineup_role": "bench",
+          "status_change": {
+            "kind": "changed",
+            "previous": "Questionable"
+          },
           "news": [
             {
               "title": "George Holani: Moved to injured reserve",
@@ -130,29 +56,29 @@
           "details": "Finger",
           "expected_return": "Nov 25, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795395546",
+          "source_timestamp": "1795561263",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14073",
           "lineup_role": "bench",
           "news": [
             {
-              "title": "Josh Jacobs: Practices in limited fashion",
-              "published": "November 23, 2026",
-              "url": "https://www.rotowire.com/football/headlines/josh-jacobs-injury-practices-in-limited-fashion-649385",
+              "title": "Josh Jacobs: Officially questionable for Wednesday",
+              "published": "November 24, 2026",
+              "url": "https://www.rotowire.com/football/headlines/josh-jacobs-injury-officially-questionable-for-wednesday-649591",
               "source": "RotoWire"
             }
           ]
         }
       ],
       "lineup": {
-        "state": "submitted",
         "week": 11,
-        "checked_at": "2026-11-24T14:12:00.228463+00:00",
-        "starters_count": 17,
+        "state": "submitted",
+        "checked_at": "2026-11-24T23:56:25.766915+00:00",
         "warning": null,
-        "kickoff": null
+        "kickoff": null,
+        "starters_count": 17
       },
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-24T14:12:11.834834+00:00"
+      "news_checked_at": "2026-11-24T23:56:25.766915+00:00"
     }
   ],
   "sent_digest_date": "2026-11-19",
