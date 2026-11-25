@@ -70,15 +70,15 @@
         }
       ],
       "lineup": {
-        "week": 11,
         "state": "submitted",
-        "checked_at": "2026-11-24T23:56:25.766915+00:00",
+        "week": 11,
+        "checked_at": "2026-11-25T00:03:51.140081+00:00",
+        "starters_count": 17,
         "warning": null,
-        "kickoff": null,
-        "starters_count": 17
+        "kickoff": null
       },
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-24T23:56:25.766915+00:00"
+      "news_checked_at": "2026-11-25T00:03:53.743547+00:00"
     }
   ],
   "sent_digest_date": "2026-11-19",
