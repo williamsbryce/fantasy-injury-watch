@@ -1,17 +1,75 @@
 {
   "schema": 2,
-  "synced_at": "2026-11-26T03:37:02.641443+00:00",
+  "synced_at": "2026-11-27T01:46:13.068094+00:00",
   "leagues": [
     {
       "id": "40298",
       "name": "CFFL Dynasty",
       "platform": "MyFantasyLeague",
       "franchise_id": "0001",
-      "players_checked": 51,
-      "full_roster_count": 57,
-      "feed_timestamp": "1795653868",
-      "synced_at": "2026-11-26T03:37:02.641443+00:00",
+      "players_checked": 52,
+      "full_roster_count": 58,
+      "feed_timestamp": "1795741145",
+      "synced_at": "2026-11-27T01:46:13.068094+00:00",
       "alerts": [
+        {
+          "key": "40298:10948",
+          "player_id": "10948",
+          "name": "Case Keenum",
+          "position": "QB",
+          "nfl_team": "CHI",
+          "league": "CFFL Dynasty",
+          "league_id": "40298",
+          "roster_status": "ROSTER",
+          "status": "Out",
+          "group": "action",
+          "details": "Coach's Decision",
+          "expected_return": "Dec 6, 2026",
+          "source": "MyFantasyLeague injury feed",
+          "source_timestamp": "1795741145",
+          "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=10948",
+          "lineup_role": "bench",
+          "status_change": {
+            "kind": "new"
+          },
+          "news": [
+            {
+              "title": "Case Keenum: Serving as emergency third quarterback again",
+              "published": "November 26, 2026",
+              "url": "https://www.rotowire.com/football/headlines/case-keenum-injury-serving-as-emergency-third-quarterback-again-649921",
+              "source": "RotoWire"
+            }
+          ]
+        },
+        {
+          "key": "40298:17654",
+          "player_id": "17654",
+          "name": "Cole Payton",
+          "position": "QB",
+          "nfl_team": "PHI",
+          "league": "CFFL Dynasty",
+          "league_id": "40298",
+          "roster_status": "ROSTER",
+          "status": "Out",
+          "group": "action",
+          "details": "Coach's Decision",
+          "expected_return": "Dec 6, 2026",
+          "source": "MyFantasyLeague injury feed",
+          "source_timestamp": "1795741145",
+          "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17654",
+          "lineup_role": "bench",
+          "status_change": {
+            "kind": "new"
+          },
+          "news": [
+            {
+              "title": "Cole Payton: Emergency QB3 in Week 12",
+              "published": "November 26, 2026",
+              "url": "https://www.rotowire.com/football/headlines/cole-payton-injury-emergency-qb3-in-week-12-649949",
+              "source": "RotoWire"
+            }
+          ]
+        },
         {
           "key": "40298:14073",
           "player_id": "14073",
@@ -26,13 +84,9 @@
           "details": "Finger",
           "expected_return": "Dec 6, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795653868",
+          "source_timestamp": "1795741145",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14073",
           "lineup_role": "bench",
-          "status_change": {
-            "kind": "changed",
-            "previous": "Questionable"
-          },
           "news": [
             {
               "title": "Josh Jacobs: Inactive in Week 12",
@@ -53,35 +107,32 @@
           "roster_status": "ROSTER",
           "status": "Questionable",
           "group": "watch",
-          "details": "Ankle",
+          "details": "Calf",
           "expected_return": "Nov 29, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795653868",
+          "source_timestamp": "1795741145",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17112",
           "lineup_role": "bench",
-          "status_change": {
-            "kind": "new"
-          },
           "news": [
             {
-              "title": "Abdul Carter: DNP Wednesday",
-              "published": "November 25, 2026",
-              "url": "https://www.rotowire.com/football/headlines/abdul-carter-injury-dnp-wednesday-649825",
+              "title": "Abdul Carter: Misses Thursday's practice",
+              "published": "November 26, 2026",
+              "url": "https://www.rotowire.com/football/headlines/abdul-carter-injury-misses-thursdays-practice-650003",
               "source": "RotoWire"
             }
           ]
         }
       ],
       "lineup": {
-        "state": "submitted",
         "week": 12,
-        "checked_at": "2026-11-26T17:15:04.552797+00:00",
-        "starters_count": 17,
+        "state": "submitted",
+        "checked_at": "2026-11-27T01:46:13.068094+00:00",
         "warning": null,
-        "kickoff": null
+        "kickoff": null,
+        "starters_count": 17
       },
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-26T17:15:06.908575+00:00"
+      "news_checked_at": "2026-11-27T01:46:13.068094+00:00"
     }
   ],
   "sent_digest_date": "2026-11-19",
