@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "synced_at": "2026-11-27T01:46:13.068094+00:00",
+  "synced_at": "2026-11-27T12:34:45.658353+00:00",
   "leagues": [
     {
       "id": "40298",
@@ -9,8 +9,8 @@
       "franchise_id": "0001",
       "players_checked": 52,
       "full_roster_count": 58,
-      "feed_timestamp": "1795741145",
-      "synced_at": "2026-11-27T01:46:13.068094+00:00",
+      "feed_timestamp": "1795754824",
+      "synced_at": "2026-11-27T12:34:45.658353+00:00",
       "alerts": [
         {
           "key": "40298:10948",
@@ -26,12 +26,9 @@
           "details": "Coach's Decision",
           "expected_return": "Dec 6, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795741145",
+          "source_timestamp": "1795754824",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=10948",
           "lineup_role": "bench",
-          "status_change": {
-            "kind": "new"
-          },
           "news": [
             {
               "title": "Case Keenum: Serving as emergency third quarterback again",
@@ -55,12 +52,9 @@
           "details": "Coach's Decision",
           "expected_return": "Dec 6, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795741145",
+          "source_timestamp": "1795754824",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17654",
           "lineup_role": "bench",
-          "status_change": {
-            "kind": "new"
-          },
           "news": [
             {
               "title": "Cole Payton: Emergency QB3 in Week 12",
@@ -84,7 +78,7 @@
           "details": "Finger",
           "expected_return": "Dec 6, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795741145",
+          "source_timestamp": "1795754824",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14073",
           "lineup_role": "bench",
           "news": [
@@ -110,7 +104,7 @@
           "details": "Calf",
           "expected_return": "Nov 29, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795741145",
+          "source_timestamp": "1795754824",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17112",
           "lineup_role": "bench",
           "news": [
@@ -124,15 +118,15 @@
         }
       ],
       "lineup": {
-        "state": "submitted",
         "week": 12,
-        "checked_at": "2026-11-27T01:54:15.784498+00:00",
-        "starters_count": 17,
+        "state": "submitted",
+        "checked_at": "2026-11-27T12:34:45.658353+00:00",
         "warning": null,
-        "kickoff": null
+        "kickoff": null,
+        "starters_count": 17
       },
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-27T04:52:49.422359+00:00"
+      "news_checked_at": "2026-11-27T12:34:45.658353+00:00"
     }
   ],
   "sent_digest_date": "2026-11-19",
