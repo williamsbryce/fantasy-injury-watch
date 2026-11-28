@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "synced_at": "2026-11-27T23:30:05.324761+00:00",
+  "synced_at": "2026-11-28T07:56:25.908957+00:00",
   "leagues": [
     {
       "id": "40298",
@@ -9,8 +9,8 @@
       "franchise_id": "0001",
       "players_checked": 52,
       "full_roster_count": 58,
-      "feed_timestamp": "1795808665",
-      "synced_at": "2026-11-27T23:30:05.324761+00:00",
+      "feed_timestamp": "1795841223",
+      "synced_at": "2026-11-28T07:56:25.908957+00:00",
       "alerts": [
         {
           "key": "40298:10948",
@@ -26,7 +26,7 @@
           "details": "Coach's Decision",
           "expected_return": "Dec 6, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795808665",
+          "source_timestamp": "1795841223",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=10948",
           "lineup_role": "bench",
           "news": [
@@ -52,7 +52,7 @@
           "details": "Coach's Decision",
           "expected_return": "Dec 6, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795808665",
+          "source_timestamp": "1795841223",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17654",
           "lineup_role": "bench",
           "news": [
@@ -78,7 +78,7 @@
           "details": "Finger",
           "expected_return": "Dec 6, 2026",
           "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795808665",
+          "source_timestamp": "1795841223",
           "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=14073",
           "lineup_role": "bench",
           "news": [
@@ -89,44 +89,18 @@
               "source": "RotoWire"
             }
           ]
-        },
-        {
-          "key": "40298:17112",
-          "player_id": "17112",
-          "name": "Abdul Carter",
-          "position": "DE",
-          "nfl_team": "NYG",
-          "league": "CFFL Dynasty",
-          "league_id": "40298",
-          "roster_status": "ROSTER",
-          "status": "Questionable",
-          "group": "watch",
-          "details": "Calf",
-          "expected_return": "Nov 29, 2026",
-          "source": "MyFantasyLeague injury feed",
-          "source_timestamp": "1795808665",
-          "mfl_news_url": "https://www.myfantasyleague.com/2026/news_articles?L=40298&PLAYERS=17112",
-          "lineup_role": "bench",
-          "news": [
-            {
-              "title": "Abdul Carter: Misses Thursday's practice",
-              "published": "November 26, 2026",
-              "url": "https://www.rotowire.com/football/headlines/abdul-carter-injury-misses-thursdays-practice-650003",
-              "source": "RotoWire"
-            }
-          ]
         }
       ],
       "lineup": {
-        "state": "submitted",
         "week": 12,
-        "checked_at": "2026-11-27T23:40:30.109193+00:00",
-        "starters_count": 17,
+        "state": "submitted",
+        "checked_at": "2026-11-28T07:56:25.908957+00:00",
         "warning": null,
-        "kickoff": null
+        "kickoff": null,
+        "starters_count": 17
       },
       "news_source": "RotoWire",
-      "news_checked_at": "2026-11-27T23:40:34.452794+00:00"
+      "news_checked_at": "2026-11-28T07:56:25.908957+00:00"
     }
   ],
   "sent_digest_date": "2026-11-19",
